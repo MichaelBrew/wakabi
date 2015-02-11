@@ -49,10 +49,10 @@ function requestLocation (sender, res) {
     }, 200);
 }
 
-var reply = function(req, res, next) {
-    var message = req.body.Body;
-    var from    = req.body.From;
-    var cookies = parseCookies(req);
+var receiveIncomingMessage = function(req, res, next) {
+    var message   = req.body.Body;
+    var from      = req.body.From;
+    var cookies   = parseCookies(req);
     var rideStage = (cookies['rideStage'] == null ? rideStages.NOT_REQUESTED : cookies['rideStage']);
 
     sys.log('From: ' + from + ', Message: ' + message + ', rideStage: ' + rideStage);
@@ -73,6 +73,13 @@ var reply = function(req, res, next) {
 
         case rideStages.REQUESTED_RIDE:
             sys.log('Asked for location');
+
+            if (/* Check if received text contains single number that was part of locations list*/0) {
+                /* Send response asking for needed trailer */
+            } else {
+                /* Send response asking them to resend their location correctly this time */
+            }
+            
             break;
 
         case rideStages.SENT_LOCATION:
@@ -86,6 +93,6 @@ var reply = function(req, res, next) {
 }
 
 /* Incoming SMS */
-router.post('/', [reply]);
+router.post('/', [receiveIncomingMessage]);
 
 module.exports = router;
