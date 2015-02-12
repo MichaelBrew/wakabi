@@ -62,11 +62,11 @@ var receiveIncomingMessage = function(req, res, next) {
     var message   = req.body.Body;
     var from      = req.body.From;
     var cookies   = parseCookies(req);
-    var isDriver  = isDriver(from);
+    //var isDriver  = isDriver(from);
     var rideStage;
 
     if (cookies['rideStage'] == null) {
-        if (isDriver) {
+        if (/*isDriver*/0) {
             rideStage = rideStages.DRIVER;
         } else {
             rideStage = rideStages.NOT_REQUESTED;
@@ -77,7 +77,7 @@ var receiveIncomingMessage = function(req, res, next) {
 
     sys.log('From: ' + from + ', Message: ' + message + ', rideStage: ' + rideStage);
 
-    if (!isDriver) {
+    if (/*!isDriver*/1) {
         // Handling rider texts
 
         switch (rideStage) {
