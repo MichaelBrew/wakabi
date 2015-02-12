@@ -1,11 +1,12 @@
 var express = require('express');
-var sys     = require('sys')
+var sys     = require('sys');
 var router  = express.Router();
 
 // Twilio Credentials
-var accountSid = 'ACf55ee981f914dc797efa85947d9f60b8';
-var authToken = 'cc3c8f0a7949ce40356c029579934c0f';
-var twilio  = require('twilio')(accountSid, authToken);
+var accountSid   = 'ACf55ee981f914dc797efa85947d9f60b8';
+var authToken    = 'cc3c8f0a7949ce40356c029579934c0f';
+var twilio       = require('twilio');
+var twilioClient = require('twilio')(accountSid, authToken);
 
 var keywordRide = "RIDE";
 var availableLocations = [
@@ -54,7 +55,7 @@ function requestLocation (sender, res) {
     }, 200);
 }
 
-function isDriver(senderNumber) {
+function isSenderDriver(senderNumber) {
     if (/* Sender number found in driver DB table*/0) {
         return true;
     } else {
@@ -66,11 +67,11 @@ var receiveIncomingMessage = function(req, res, next) {
     var message   = req.body.Body;
     var from      = req.body.From;
     var cookies   = parseCookies(req);
-    //var isDriver  = isDriver(from);
+    var isDriver  = isSenderDriver(from);
     var rideStage;
 
     if (cookies['rideStage'] == null) {
-        if (/*isDriver*/0) {
+        if (isDriver) {
             rideStage = rideStages.DRIVER;
         } else {
             rideStage = rideStages.NOT_REQUESTED;
@@ -81,7 +82,7 @@ var receiveIncomingMessage = function(req, res, next) {
 
     sys.log('From: ' + from + ', Message: ' + message + ', rideStage: ' + rideStage);
 
-    if (/*!isDriver*/1) {
+    if (!isDriver) {
         // Handling rider texts
 
         switch (rideStage) {
