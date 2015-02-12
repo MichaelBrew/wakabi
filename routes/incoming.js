@@ -25,6 +25,8 @@ var rideStages = {
     SENT_TRAILER   : "sentTrailer"
 }
 
+var resendText = "We\'re sorry, we did not understand that message. "
+
 function parseCookies (request) {
     var list = {},
         rc = request.headers.cookie;
@@ -37,7 +39,7 @@ function parseCookies (request) {
     return list;
 }
 
-function requestLocation (sender, res) {
+function requestLocation (sender, res, resend) {
     var locationXml = "";
     for (var i = 1; i <= availableLocations.length; i++) {
         locationXml += (i + ": " + availableLocations[i-1]);
@@ -47,12 +49,23 @@ function requestLocation (sender, res) {
         }
     }
 
-    var responseText = 'Please respond with the number corresponding to your location:\n' + locationXml;
+    var responseText = "";
+
+    if (resend) {
+        responseText += resendText;
+    }
+
+    responseText += 'Please respond with the number corresponding to your location:\n' + locationXml;
+
     var response = new twilio.TwimlResponse();
     response.sms(responseText);
     res.send(response.toString(), {
         'Set-Cookie':'rideStage='+rideStages.REQUESTED_RIDE, 'Content-Type':'text/xml'
     }, 200);
+}
+
+function requestTrailerInfo(sender, res, resend) {
+
 }
 
 function isSenderDriver(senderNumber) {
@@ -94,8 +107,8 @@ var receiveIncomingMessage = function(req, res, next) {
                            /* Add number to rider DB*/
                     }
 
-                    /* Send response asking for location */
-                    requestLocation(from, res);
+                    // Send response asking for location
+                    requestLocation(from, res, false);
                 }
                 break;
 
@@ -103,9 +116,11 @@ var receiveIncomingMessage = function(req, res, next) {
                 sys.log('Asked for location');
 
                 if (/* Check if received text contains single number that was part of locations list*/0) {
-                    /* Send response asking for needed trailer */
+                    // Send response asking for needed trailer
+                    requestTrailerInfo(from, res);
                 } else {
-                    /* Send response asking them to resend their location correctly this time */
+                    // Send response asking them to resend their location correctly this time
+                    requestLocation(from, res, true);
                 }
                 break;
 
