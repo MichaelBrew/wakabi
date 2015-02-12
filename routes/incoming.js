@@ -13,6 +13,7 @@ var availableLocations = [
 ];
 
 var rideStages = {
+    DRIVER         : "driver",
     NOT_REQUESTED  : "haveNotRequested",
     REQUESTED_RIDE : "requestedRide",
     SENT_LOCATION  : "sentLocation",
@@ -49,46 +50,70 @@ function requestLocation (sender, res) {
     }, 200);
 }
 
+function isDriver(senderNumber) {
+    if (/* Sender number found in driver DB table*/0) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 var receiveIncomingMessage = function(req, res, next) {
     var message   = req.body.Body;
     var from      = req.body.From;
     var cookies   = parseCookies(req);
-    var rideStage = (cookies['rideStage'] == null ? rideStages.NOT_REQUESTED : cookies['rideStage']);
+    var isDriver  = isDriver(from);
+    var rideStage;
+
+    if (cookies['rideStage'] == null) {
+        if (isDriver) {
+            rideStage = rideStages.DRIVER;
+        } else {
+            rideStage = rideStages.NOT_REQUESTED;
+        }
+    } else {
+        rideStage = cookies['rideStage'];
+    }
 
     sys.log('From: ' + from + ', Message: ' + message + ', rideStage: ' + rideStage);
 
-    switch (rideStage) {
-        case rideStages.NOT_REQUESTED:
-            if (message.toUpperCase() === keywordRide) {
-                sys.log('Ride requested');
+    if (!isDriver) {
+        // Handling rider texts
 
-                if (/* sender's number doesn't exist in riders DB*/0) {
-                        /* Add number to rider DB*/
+        switch (rideStage) {
+            case rideStages.NOT_REQUESTED:
+                if (message.toUpperCase() === keywordRide) {
+                    sys.log('Ride requested');
+
+                    if (/* sender's number doesn't exist in riders DB*/0) {
+                           /* Add number to rider DB*/
+                    }
+
+                    /* Send response asking for location */
+                    requestLocation(from, res);
                 }
+                break;
 
-                /* Send response asking for location */
-                requestLocation(from, res);
-            }
-            break;
+            case rideStages.REQUESTED_RIDE:
+                sys.log('Asked for location');
 
-        case rideStages.REQUESTED_RIDE:
-            sys.log('Asked for location');
+                if (/* Check if received text contains single number that was part of locations list*/0) {
+                    /* Send response asking for needed trailer */
+                } else {
+                    /* Send response asking them to resend their location correctly this time */
+                }
+                break;
 
-            if (/* Check if received text contains single number that was part of locations list*/0) {
-                /* Send response asking for needed trailer */
-            } else {
-                /* Send response asking them to resend their location correctly this time */
-            }
-            
-            break;
+            case rideStages.SENT_LOCATION:
+                sys.log('Received location');
+                break;
 
-        case rideStages.SENT_LOCATION:
-            sys.log('Received location');
-            break;
-
-        case rideStages.SENT_TRAILER:
-            sys.log('Received trailer decision');
-            break;
+            case rideStages.SENT_TRAILER:
+                sys.log('Received trailer decision');
+                break;
+        }
+    } else {
+        // Handling driver texts
     }
 }
 
