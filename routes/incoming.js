@@ -1,7 +1,11 @@
 var express = require('express');
-var sys     = require('sys');
-var twilio  = require('twilio');
+var sys     = require('sys')
 var router  = express.Router();
+
+// Twilio Credentials
+var accountSid = 'ACf55ee981f914dc797efa85947d9f60b8';
+var authToken = 'cc3c8f0a7949ce40356c029579934c0f';
+var twilio  = require('twilio')(accountSid, authToken);
 
 var keywordRide = "RIDE";
 var availableLocations = [
