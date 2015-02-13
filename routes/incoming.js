@@ -40,7 +40,9 @@ function isSenderDriver(senderNumber) {
 
 function parseCookies (request) {
     var list = {},
-        rc = request.headers.cookie;
+        rc   = request.headers.cookie;
+
+    sys.log("The cookies are " + rc);
 
     rc && rc.split(';').forEach(function( cookie ) {
         var parts = cookie.split('=');
