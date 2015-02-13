@@ -93,7 +93,11 @@ var receiveIncomingMessage = function(req, res, next) {
         rideStage = cookies['rideStage'];
     }
 
-    sys.log('From: ' + from + ', Message: ' + message + ', rideStage: ' + rideStage);
+    if (isDriver) {
+        sys.log('From: ' + from + ', Status: Driver, Message: ' + message + ', rideStage: ' + rideStage);
+    } else {
+        sys.log('From: ' + from + ', Status: Rider, Message: ' + message + ', rideStage: ' + rideStage);
+    }
 
     if (!isDriver) {
         // Handling rider texts
