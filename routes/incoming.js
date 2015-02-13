@@ -39,7 +39,7 @@ function parseCookies (request) {
     return list;
 }
 
-function requestLocation (sender, res, resend) {
+function requestLocation (res, resend) {
     var locationXml = "";
     for (var i = 1; i <= availableLocations.length; i++) {
         locationXml += (i + ": " + availableLocations[i-1]);
@@ -66,6 +66,15 @@ function requestLocation (sender, res, resend) {
 
 function requestTrailerInfo(sender, res, resend) {
 
+}
+
+function defaultHelpResponse(res) {
+    var responseText = resendText + "Please text RIDE to request a ride.";
+    var response = new twilio.TwimlResponse();
+    response.sms(responseText);
+    res.send(response.toString(), {
+        'Content-Type':'text/xml'
+    }, 200);
 }
 
 function isSenderDriver(senderNumber) {
@@ -112,7 +121,9 @@ var receiveIncomingMessage = function(req, res, next) {
                     }
 
                     // Send response asking for location
-                    requestLocation(from, res, false);
+                    requestLocation(res, false);
+                } else {
+                    defaultHelpResponse(res);
                 }
                 break;
 
@@ -124,7 +135,7 @@ var receiveIncomingMessage = function(req, res, next) {
                     requestTrailerInfo(from, res);
                 } else {
                     // Send response asking them to resend their location correctly this time
-                    requestLocation(from, res, true);
+                    requestLocation(res, true);
                 }
                 break;
 
