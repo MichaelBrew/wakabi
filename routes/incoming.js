@@ -27,6 +27,17 @@ var rideStages = {
 
 var resendText = "We\'re sorry, we did not understand that message. "
 
+/********************/
+/* HELPER FUNCTIONS */
+/********************/
+function isSenderDriver(senderNumber) {
+    if (/* Sender number found in driver DB table*/0) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 function parseCookies (request) {
     var list = {},
         rc = request.headers.cookie;
@@ -37,6 +48,52 @@ function parseCookies (request) {
     });
 
     return list;
+}
+
+/**********************/
+/* REPLYING FUNCTIONS */
+/**********************/
+function handleRiderText(res, message, riderStage) {
+    switch (riderStage) {
+            case rideStages.NOT_REQUESTED:
+                if (message.toUpperCase() === keywordRide) {
+                    sys.log('Ride requested');
+
+                    if (/* sender's number doesn't exist in riders DB*/0) {
+                           /* Add number to rider DB*/
+                    }
+
+                    // Send response asking for location
+                    requestLocation(res, false);
+                } else {
+                    defaultHelpResponse(res);
+                }
+                break;
+
+            case rideStages.REQUESTED_RIDE:
+                sys.log('Asked for location');
+
+                if (/* Check if received text contains single number that was part of locations list*/0) {
+                    // Send response asking for needed trailer
+                    requestTrailerInfo(res, false);
+                } else {
+                    // Send response asking them to resend their location correctly this time
+                    requestLocation(res, true);
+                }
+                break;
+
+            case rideStages.SENT_LOCATION:
+                sys.log('Received location');
+                break;
+
+            case rideStages.SENT_TRAILER:
+                sys.log('Received trailer decision');
+                break;
+        }
+}
+
+function handleDriverText(res, message) {
+    // Do something
 }
 
 function requestLocation (res, resend) {
@@ -64,7 +121,7 @@ function requestLocation (res, resend) {
     }, 200);
 }
 
-function requestTrailerInfo(sender, res, resend) {
+function requestTrailerInfo(res, resend) {
 
 }
 
@@ -77,14 +134,6 @@ function defaultHelpResponse(res) {
     }, 200);
 }
 
-function isSenderDriver(senderNumber) {
-    if (/* Sender number found in driver DB table*/0) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
 var receiveIncomingMessage = function(req, res, next) {
     var message   = req.body.Body;
     var from      = req.body.From;
@@ -92,6 +141,11 @@ var receiveIncomingMessage = function(req, res, next) {
     var isDriver  = isSenderDriver(from);
     var rideStage;
 
+    /* TODO
+     * Cookies doesn't work yet, whoops
+     * Need it to track session
+     * FIX IT!!!!!
+     */
     if (cookies['rideStage'] == null) {
         if (isDriver) {
             rideStage = rideStages.DRIVER;
@@ -110,45 +164,10 @@ var receiveIncomingMessage = function(req, res, next) {
 
     if (!isDriver) {
         // Handling rider texts
-
-        switch (rideStage) {
-            case rideStages.NOT_REQUESTED:
-                if (message.toUpperCase() === keywordRide) {
-                    sys.log('Ride requested');
-
-                    if (/* sender's number doesn't exist in riders DB*/0) {
-                           /* Add number to rider DB*/
-                    }
-
-                    // Send response asking for location
-                    requestLocation(res, false);
-                } else {
-                    defaultHelpResponse(res);
-                }
-                break;
-
-            case rideStages.REQUESTED_RIDE:
-                sys.log('Asked for location');
-
-                if (/* Check if received text contains single number that was part of locations list*/0) {
-                    // Send response asking for needed trailer
-                    requestTrailerInfo(from, res);
-                } else {
-                    // Send response asking them to resend their location correctly this time
-                    requestLocation(res, true);
-                }
-                break;
-
-            case rideStages.SENT_LOCATION:
-                sys.log('Received location');
-                break;
-
-            case rideStages.SENT_TRAILER:
-                sys.log('Received trailer decision');
-                break;
-        }
+        handleRiderText(res, message, rideStage);
     } else {
         // Handling driver texts
+        handleDriverText(res, message);
     }
 }
 
