@@ -1,4 +1,5 @@
 var express = require('express');
+var pg      = require('pg');
 var sys     = require('sys');
 var router  = express.Router();
 
@@ -42,6 +43,10 @@ function parseCookies (request) {
     var list = {},
         rc   = request.headers.cookie;
 
+    console.log("The request headers are:");
+    for (var key in request.headers) {
+        console.log("key: " + key + ", value: " + request.headers[key]);
+    }
     sys.log("The cookies are " + rc);
 
     rc && rc.split(';').forEach(function( cookie ) {
@@ -52,49 +57,81 @@ function parseCookies (request) {
     return list;
 }
 
+function getRideStage(request, isDriver) {
+    /*
+    if (request.cookies.get("rideStage") != null) {
+        return request.cookies.get("rideStage");
+    } else {
+    */
+        if (isDriver) {
+            return rideStages.DRIVER;
+        } else {
+            return rideStages.NOT_REQUESTED;
+        }
+    //`}
+}
+
+function addRiderNumToDb(from) {
+    console.log("The process.env is " + process.env);
+
+    pg.connect(process.env.DATABASE_URL, function(err, client) {
+        // Query to add rider into DB (I think)
+        // INSERT INTO riders (num, onride) VALUES (from, false);
+
+        // Look for rider
+        var query = client.query('SELECT ' + from + ' FROM RIDERS;');
+
+        query.on('row', function(row) {
+            console.log(JSON.stringify(row));
+        });
+    });
+
+    if (/* sender's number doesn't exist in riders DB*/0) {
+        /* Add number to rider DB*/
+    }
+}
+
 /**********************/
 /* REPLYING FUNCTIONS */
 /**********************/
-function handleRiderText(res, message, riderStage) {
+function handleRiderText(res, message, from, riderStage) {
     switch (riderStage) {
-            case rideStages.NOT_REQUESTED:
-                if (message.toUpperCase() === keywordRide) {
-                    sys.log('Ride requested');
+        case rideStages.NOT_REQUESTED:
+            if (message.toUpperCase() === keywordRide) {
+                sys.log('Ride requested');
 
-                    if (/* sender's number doesn't exist in riders DB*/0) {
-                           /* Add number to rider DB*/
-                    }
+                addRiderNumToDb(from);
 
-                    // Send response asking for location
-                    requestLocation(res, false);
-                } else {
-                    defaultHelpResponse(res);
-                }
-                break;
+                // Send response asking for location
+                requestLocation(res, false);
+            } else {
+                defaultHelpResponse(res);
+            }
+            break;
 
-            case rideStages.REQUESTED_RIDE:
-                sys.log('Asked for location');
+        case rideStages.REQUESTED_RIDE:
+            sys.log('Asked for location');
 
-                if (/* Check if received text contains single number that was part of locations list*/0) {
-                    // Send response asking for needed trailer
-                    requestTrailerInfo(res, false);
-                } else {
-                    // Send response asking them to resend their location correctly this time
-                    requestLocation(res, true);
-                }
-                break;
+            if (/* Check if received text contains single number that was part of locations list*/0) {
+                // Send response asking for needed trailer
+                requestTrailerInfo(res, false);
+            } else {
+                // Send response asking them to resend their location correctly this time
+                requestLocation(res, true);
+            }
+            break;
 
-            case rideStages.SENT_LOCATION:
-                sys.log('Received location');
-                break;
+        case rideStages.SENT_LOCATION:
+            sys.log('Received location');
+            break;
 
-            case rideStages.SENT_TRAILER:
-                sys.log('Received trailer decision');
-                break;
-        }
+        case rideStages.SENT_TRAILER:
+            sys.log('Received trailer decision');
+            break;
+    }
 }
 
-function handleDriverText(res, message) {
+function handleDriverText(res, message, from) {
     // Do something
 }
 
@@ -119,7 +156,8 @@ function requestLocation (res, resend) {
     var response = new twilio.TwimlResponse();
     response.sms(responseText);
     res.send(response.toString(), {
-        'Set-Cookie':'rideStage='+rideStages.REQUESTED_RIDE, 'Content-Type':'text/xml'
+        'Set-Cookie':'rideStage='+rideStages.REQUESTED_RIDE,
+        'Content-Type':'text/xml'
     }, 200);
 }
 
@@ -139,15 +177,17 @@ function defaultHelpResponse(res) {
 var receiveIncomingMessage = function(req, res, next) {
     var message   = req.body.Body;
     var from      = req.body.From;
-    var cookies   = parseCookies(req);
     var isDriver  = isSenderDriver(from);
+    var rideStage = getRideStage(req, isDriver);
+
+    /*
     var rideStage;
 
     /* TODO
      * Cookies doesn't work yet, whoops
      * Need it to track session
      * FIX IT!!!!!
-     */
+
     if (cookies['rideStage'] == null) {
         if (isDriver) {
             rideStage = rideStages.DRIVER;
@@ -157,6 +197,7 @@ var receiveIncomingMessage = function(req, res, next) {
     } else {
         rideStage = cookies['rideStage'];
     }
+    */
 
     if (isDriver) {
         sys.log('From: ' + from + ', Status: Driver, Message: ' + message + ', rideStage: ' + rideStage);
@@ -166,10 +207,10 @@ var receiveIncomingMessage = function(req, res, next) {
 
     if (!isDriver) {
         // Handling rider texts
-        handleRiderText(res, message, rideStage);
+        handleRiderText(res, message, from, rideStage);
     } else {
         // Handling driver texts
-        handleDriverText(res, message);
+        handleDriverText(res, message, from);
     }
 }
 
