@@ -72,14 +72,19 @@ function getRideStage(request, isDriver) {
 }
 
 function addRiderNumToDb(from) {
-    console.log("The process.env is " + process.env);
-
     pg.connect(process.env.DATABASE_URL, function(err, client) {
+        sys.log("Connected to DB");
         // Query to add rider into DB (I think)
         // INSERT INTO riders (num, onride) VALUES (from, false);
 
         // Look for rider
-        var query = client.query('SELECT ' + from + ' FROM RIDERS;');
+        var query = client.query('SELECT ' + from + ' FROM RIDERS', function(err, result) {
+            if (!err) {
+                sys.log("Row count: %d", results.rows.length);
+            } else {
+                sys.log("Error with query");
+            }
+        });
 
         query.on('row', function(row) {
             console.log(JSON.stringify(row));
