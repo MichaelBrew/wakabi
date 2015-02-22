@@ -2,21 +2,13 @@ var express = require('express');
 var pg      = require('pg');
 var sys     = require('sys');
 var router  = express.Router();
+var strings = require('../public/javascripts/strings');
 
 // Twilio Credentials
 var accountSid   = 'ACf55ee981f914dc797efa85947d9f60b8';
 var authToken    = 'cc3c8f0a7949ce40356c029579934c0f';
 var twilio       = require('twilio');
 var twilioClient = require('twilio')(accountSid, authToken);
-
-var keywordRide = "RIDE";
-var availableLocations = [
-    "area1",
-    "area2",
-    "area3",
-    "area4",
-    "area5"
-];
 
 /*
  * The 'rideStages' var acts as an enum to represent where the current
@@ -36,7 +28,6 @@ var rideStages = {
     SENT_TRAILER  : "sentTrailer"
 }
 
-var resendText = "We\'re sorry, we did not understand that message. "
 
 /********************/
 /* HELPER FUNCTIONS */
@@ -97,7 +88,7 @@ function addRiderNumToDb(from) {
                             if (!err) {
                                 sys.log("Rider " + from + " successfully added to DB");
                             } else {
-                                sys.log("Rider " + from + " unsuccessfully added to DB, err: " + err);
+                                sys.log("Rider " + from + " unsuccessfully added to DB, " + err);
                             }
                         });
                     } else {
@@ -105,11 +96,11 @@ function addRiderNumToDb(from) {
                         sys.log("Rider already exists in DB");
                     }
                 } else {
-                    sys.log("Error querying DB to see if rider exists already, err: " + err);
+                    sys.log("Error querying DB to see if rider exists already, " + err);
                 }
             });
         } else {
-            sys.log("Error connecting to DB, err: " + err);
+            sys.log("Error connecting to DB, " + err);
         }
     });
 }
@@ -120,7 +111,7 @@ function addRiderNumToDb(from) {
 function handleRiderText(res, message, from, riderStage) {
     switch (riderStage) {
         case rideStages.SENT_NOTHING:
-            if (message.toUpperCase() === keywordRide) {
+            if (message.toUpperCase() === strings.keywordRide) {
                 sys.log('Ride requested');
 
                 addRiderNumToDb(from);
@@ -160,10 +151,10 @@ function handleDriverText(res, message, from) {
 
 function requestLocation (res, resend) {
     var locationXml = "";
-    for (var i = 1; i <= availableLocations.length; i++) {
-        locationXml += (i + ": " + availableLocations[i-1]);
+    for (var i = 1; i <= strings.availableLocations.length; i++) {
+        locationXml += (i + ": " + strings.availableLocations[i-1]);
 
-        if (i != availableLocations.length+1) {
+        if (i != strings.availableLocations.length+1) {
             locationXml += "\n";
         }
     }
@@ -174,7 +165,7 @@ function requestLocation (res, resend) {
         responseText += resendText;
     }
 
-    responseText += 'Please respond with the number corresponding to your location:\n' + locationXml;
+    responseText += strings.askLocation + locationXml;
 
     var response = new twilio.TwimlResponse();
     response.sms(responseText);
@@ -189,7 +180,7 @@ function requestTrailerInfo(res, resend) {
 }
 
 function defaultHelpResponse(res) {
-    var responseText = resendText + "Please text RIDE to request a ride.";
+    var responseText = resendText + strings.helpText;
     var response = new twilio.TwimlResponse();
     response.sms(responseText);
     res.send(response.toString(), {
