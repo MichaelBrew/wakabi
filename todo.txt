@@ -1,0 +1,5 @@
+Task List
+
+- Normalize all phone numbers before adding them to database
+- Fix cookies so user session can be tracked
+- Everything else

@@ -79,7 +79,6 @@ function addRiderNumToDb(from) {
                 if (!err) {
                     if (result.rows.length == 0) {
                         // Rider is not in DB yet, add them
-                        // TODO: Should probably normalize the input (such as just having format +11111111)
                         var addRiderQuery = client.query("INSERT INTO riders (num, onride) VALUES ('" + from + "', false)", function(err, result) {
                             if (!err) {
                                 sys.log("Rider " + from + " successfully added to DB");
