@@ -80,7 +80,7 @@ function addRiderNumToDb(from) {
         // Look for rider
         var query = client.query('SELECT ' + from + ' FROM RIDERS', function(err, result) {
             if (!err) {
-                sys.log("Row count: %d", results.rows.length);
+                sys.log("Row count: %d", result.rows.length);
             } else {
                 sys.log("Error with query");
             }
