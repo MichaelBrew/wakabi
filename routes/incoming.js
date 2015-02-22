@@ -90,7 +90,7 @@ function addRiderNumToDb(from) {
                         if (!err) {
                             sys.log("Rider " + from + " unsuccessfully added to DB");
                         } else {
-                            sys.log("Rider " + from + " successfully added to DB");
+                            sys.log("Rider " + from + " successfully added to DB, err: " + err);
                         }
                     });
                 } else {
@@ -98,7 +98,7 @@ function addRiderNumToDb(from) {
                     sys.log("Rider already exists in DB");
                 }
             } else {
-                sys.log("Error querying DB to see if rider exists already");
+                sys.log("Error querying DB to see if rider exists already, err: " + err);
             }
         });
 
