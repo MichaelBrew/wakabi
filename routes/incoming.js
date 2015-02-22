@@ -18,12 +18,22 @@ var availableLocations = [
     "area5"
 ];
 
+/*
+ * The 'rideStages' var acts as an enum to represent where the current
+ * rider is in the request process.
+ *
+ * DRIVER        : All drivers rideStages is marked DRIVER (default for drivers)
+ * SENT_NOTHING  : Before the request, all riders have sent nothing (default for riders)
+ * SENT_REQUEST  : The rider has now sent the initial request 
+ * SENT_LOCATION : The rider has now sent their location
+ * SENT_TRAILER  : The rider has now sent whether they need a trailer
+*/
 var rideStages = {
-    DRIVER         : "driver",
-    NOT_REQUESTED  : "haveNotRequested",
-    REQUESTED_RIDE : "requestedRide",
-    SENT_LOCATION  : "sentLocation",
-    SENT_TRAILER   : "sentTrailer"
+    DRIVER        : "driver",
+    SENT_NOTHING  : "sentNothing",
+    SENT_REQUEST  : "sentRequest",
+    SENT_LOCATION : "sentLocation",
+    SENT_TRAILER  : "sentTrailer"
 }
 
 var resendText = "We\'re sorry, we did not understand that message. "
@@ -39,6 +49,10 @@ function isSenderDriver(senderNumber) {
     }
 }
 
+/*
+ * Grabbed this from the internet, but I don't think
+ * it's quite right. Not sure whether to keep.
+ */
 function parseCookies (request) {
     var list = {},
         rc   = request.headers.cookie;
@@ -66,7 +80,7 @@ function getRideStage(request, isDriver) {
         if (isDriver) {
             return rideStages.DRIVER;
         } else {
-            return rideStages.NOT_REQUESTED;
+            return rideStages.SENT_NOTHING;
         }
     //`}
 }
@@ -105,7 +119,7 @@ function addRiderNumToDb(from) {
 /**********************/
 function handleRiderText(res, message, from, riderStage) {
     switch (riderStage) {
-        case rideStages.NOT_REQUESTED:
+        case rideStages.SENT_NOTHING:
             if (message.toUpperCase() === keywordRide) {
                 sys.log('Ride requested');
 
@@ -118,7 +132,7 @@ function handleRiderText(res, message, from, riderStage) {
             }
             break;
 
-        case rideStages.REQUESTED_RIDE:
+        case rideStages.SENT_REQUEST:
             sys.log('Asked for location');
 
             if (/* Check if received text contains single number that was part of locations list*/0) {
@@ -165,7 +179,7 @@ function requestLocation (res, resend) {
     var response = new twilio.TwimlResponse();
     response.sms(responseText);
     res.send(response.toString(), {
-        'Set-Cookie':'rideStage='+rideStages.REQUESTED_RIDE,
+        'Set-Cookie':'rideStage='+rideStages.SENT_REQUEST,
         'Content-Type':'text/xml'
     }, 200);
 }
