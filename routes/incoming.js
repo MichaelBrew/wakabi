@@ -81,19 +81,30 @@ function addRiderNumToDb(from) {
         var query = client.query('SELECT ' + from + ' FROM RIDERS', function(err, result) {
             if (!err) {
                 sys.log("Row count: %d", result.rows.length);
+
+                if (result.rows.length == 0) {
+                    // Rider is not in DB yet, add them
+                    var addRiderQuery = client.query('INSERT INTO riders (num, onride) VALUES (' + from + ', false)'), function(err, result) {
+                        if (!err) {
+                            sys.log("Rider " + from + " unsuccessfully added to DB");
+                        } else {
+                            sys.log("Rider " + from + " successfully added to DB");
+                        }
+                    }
+                } else {
+                    // Rider already exists in DB
+                }
             } else {
-                sys.log("Error with query");
+                sys.log("Error querying DB to see if rider exists already");
             }
         });
 
+        /*
         query.on('row', function(row) {
             console.log(JSON.stringify(row));
         });
+    */
     });
-
-    if (/* sender's number doesn't exist in riders DB*/0) {
-        /* Add number to rider DB*/
-    }
 }
 
 /**********************/
