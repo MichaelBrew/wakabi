@@ -78,13 +78,15 @@ function addRiderNumToDb(from) {
         // INSERT INTO riders (num, onride) VALUES (from, false);
 
         // Look for rider
-        var query = client.query('SELECT ' + from + ' FROM RIDERS', function(err, result) {
+        // TODO: Is this serach query correct?
+        var query = client.query("SELECT num FROM riders WHERE num = '" + from + "'", function(err, result) {
             if (!err) {
                 sys.log("Row count: %d", result.rows.length);
 
                 if (result.rows.length == 0) {
                     // Rider is not in DB yet, add them
-                    var addRiderQuery = client.query('INSERT INTO riders (num, onride) VALUES (' + from + ', false)'), function(err, result) {
+                    // TODO: Should probably normalize the input (such as just having format +11111111)
+                    var addRiderQuery = client.query("INSERT INTO riders (num, onride) VALUES ('" + from + "', false)"), function(err, result) {
                         if (!err) {
                             sys.log("Rider " + from + " unsuccessfully added to DB");
                         } else {
@@ -93,6 +95,7 @@ function addRiderNumToDb(from) {
                     }
                 } else {
                     // Rider already exists in DB
+                    sys.log("Rider already exists in DB");
                 }
             } else {
                 sys.log("Error querying DB to see if rider exists already");
