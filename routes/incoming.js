@@ -132,6 +132,7 @@ function isRideStageReset(res, msg) {
         var responseText = "Ok, rideStage has been reset to NOTHING";
         response.sms(responseText);
         res.cookie('rideStage', rideStages.NOTHING);
+        sys.log("isRideStageReset: Just set the rideStage to " + rideStages.NOTHING);
         res.send(response.toString(), {
             'Content-Type':'text/xml'
         }, 200);
@@ -207,6 +208,7 @@ function handleRiderText(res, message, from, riderStage) {
                 // Send response asking for needed trailer
                 sys.log('Location received');
                 res.cookie('location', message);
+                sys.log('Just set the location cookie to ' + message);
                 requestTrailerInfo(res, false);
             } else {
                 // Send response asking them to resend their location correctly this time
@@ -263,6 +265,7 @@ function requestLocation (res, resend) {
     var response = new twilio.TwimlResponse();
     response.sms(responseText);
     res.cookie('rideStage', rideStages.AWAITING_LOCATION);
+    sys.log("requestLocation: Just set the rideStage to " + rideStages.AWAITING_LOCATION);
     res.send(response.toString(), {
         'Content-Type':'text/xml'
     }, 200);
@@ -272,6 +275,7 @@ function requestTrailerInfo(res, resend) {
     var response = new twilio.TwimlResponse();
     response.sms(strings.askTrailer);
     res.cookie('rideStage', rideStages.AWAITING_TRAILER);
+    sys.log("requestTrailerInfo: Just set the rideStage to " + rideStages.AWAITING_TRAILER);
     res.send(response.toString(), {
         'Content-Type':'text/xml'
     }, 200);
@@ -281,6 +285,7 @@ function sendWaitText(res) {
     var response = new twilio.TwimlResponse();
     response.sms(strings.waitText);
     res.cookie('rideStage', rideStages.CONTACTING_DRIVER);
+    sys.log("sendWaitText: Just set the rideStage to " + rideStages.CONTACTING_DRIVER);
     res.send(response.toString(), {
         'Content-Type':'text/xlm'
     }, 200);
