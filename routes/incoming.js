@@ -1,8 +1,10 @@
-var express = require('express');
-var pg      = require('pg');
-var sys     = require('sys');
-var router  = express.Router();
-var strings = require('../public/javascripts/strings');
+var cookieParser = require('cookie-parser');
+var express      = require('express');
+var pg           = require('pg');
+var sys          = require('sys');
+var strings      = require('../public/javascripts/strings');
+
+var router       = express.Router();
 
 // Twilio Credentials
 var accountSid   = 'ACf55ee981f914dc797efa85947d9f60b8';
@@ -14,18 +16,18 @@ var twilioClient = require('twilio')(accountSid, authToken);
  * The 'rideStages' var acts as an enum to represent where the current
  * rider is in the request process.
  *
- * DRIVER        : All drivers rideStages is marked DRIVER (default for drivers)
- * SENT_NOTHING  : Before the request, all riders have sent nothing (default for riders)
- * SENT_REQUEST  : The rider has now sent the initial request 
- * SENT_LOCATION : The rider has now sent their location
- * SENT_TRAILER  : The rider has now sent whether they need a trailer
-*/
+ * DRIVER            : All drivers rideStages is marked DRIVER (default for drivers)
+ * NOTHING           : Before the request, all riders have sent nothing (default for riders)
+ * AWAITING_LOCATION : The server has asked for their location, waiting for answer
+ * AWAITING_TRAILER  : The server has asked if they need a trailer, waiting for answer
+ * CONTACTING_DRIVER : The server has told them a driver will contact them
+ */
 var rideStages = {
-    DRIVER        : "driver",
-    SENT_NOTHING  : "sentNothing",
-    SENT_REQUEST  : "sentRequest",
-    SENT_LOCATION : "sentLocation",
-    SENT_TRAILER  : "sentTrailer"
+    DRIVER             : "driver",
+    NOTHING            : "nothing",
+    AWAITING_LOCATION  : "awaitingLocation",
+    AWAITING_TRAILER   : "awaitingTrailer",
+    CONTACTING_DRIVER  : "contactingDriver"
 }
 
 
@@ -63,6 +65,19 @@ function parseCookies (request) {
 }
 
 function getRideStage(request, isDriver) {
+    if (request.cookies != null) {
+        sys.log("getRideStage: cookies are NOT null");
+        sys.log(request.cookies);
+
+        if (request.cookies.rideStage != null) {
+            sys.log("getRideStage: rideStage is NOT null");
+            return request.cookies.rideStage;
+        } else {
+            sys.log("getRideStage: rideStage IS null");
+        }
+    } else {
+        sys.log("getRideStage: cookies ARE null");
+    }
     /*
     if (request.cookies.get("rideStage") != null) {
         return request.cookies.get("rideStage");
@@ -105,14 +120,34 @@ function addRiderNumToDb(from) {
     });
 }
 
+function verifyRiderLocation(msg) {
+    for (var i = 0; i < strings.availableLocations.length; i++) {
+        if (parseInt(msg) == i) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function verifyTrailerDecision(msg) {
+    for (var i = 0; i < strings.validYesWords.length; i++) {
+        if (msg == validYesWords[i]) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 /**********************/
 /* REPLYING FUNCTIONS */
 /**********************/
 function handleRiderText(res, message, from, riderStage) {
     switch (riderStage) {
-        case rideStages.SENT_NOTHING:
+        case rideStages.NOTHING:
             if (message.toUpperCase() === strings.keywordRide) {
-                sys.log('Ride requested');
+                sys.log('Ride request received');
 
                 addRiderNumToDb(from);
 
@@ -123,24 +158,31 @@ function handleRiderText(res, message, from, riderStage) {
             }
             break;
 
-        case rideStages.SENT_REQUEST:
-            sys.log('Asked for location');
-
-            if (/* Check if received text contains single number that was part of locations list*/0) {
+        case rideStages.AWAITING_LCOATION:
+            if (verifyRiderLocation(message)) {
                 // Send response asking for needed trailer
+                sys.log('Location received');
                 requestTrailerInfo(res, false);
             } else {
                 // Send response asking them to resend their location correctly this time
+                sys.log('Invalid response for location');
                 requestLocation(res, true);
             }
             break;
 
-        case rideStages.SENT_LOCATION:
-            sys.log('Received location');
+        case rideStages.AWAITING_TRAILER:
+            if (verifyTrailerDecision(message)) {
+                sys.log('Trailer decision received');
+                sendWaitText(res);
+            } else {
+                sys.log('Invalid response for trailer decision');
+                requestTrailerInfo(res, true);
+            }
             break;
 
-        case rideStages.SENT_TRAILER:
-            sys.log('Received trailer decision');
+        case rideStages.CONTACTING_DRIVER:
+            sys.log('Received text from waiting rider');
+            sendWaitText(res);
             break;
     }
 }
@@ -169,14 +211,29 @@ function requestLocation (res, resend) {
 
     var response = new twilio.TwimlResponse();
     response.sms(responseText);
+    res.cookie('rideStage', rideStages.SENT_REQUEST);
     res.send(response.toString(), {
-        'Set-Cookie':'rideStage='+rideStages.SENT_REQUEST,
+        //'Set-Cookie':'rideStage='+rideStages.SENT_REQUEST,
         'Content-Type':'text/xml'
     }, 200);
 }
 
 function requestTrailerInfo(res, resend) {
+    var response = new twilio.TwimlResponse();
+    response.sms(strings.askTrailer);
+    res.cookie('rideStage,' rideStages.SENT_TRAILER);
+    res.send(response.toString(), {
+        'Content-Type':'text/xml'
+    }, 200);
+}
 
+function sendWaitText(res) {
+    var response = new twilio.TwimlResponse();
+    response.sms(strings.waitText);
+    res.cookie('rideStage', rideStages.SENT_TRAILER);
+    res.send(response.toString(), {
+        'Content-Type':'text/xlm'
+    }, 200);
 }
 
 function defaultHelpResponse(res) {
@@ -193,25 +250,6 @@ var receiveIncomingMessage = function(req, res, next) {
     var from      = req.body.From;
     var isDriver  = isSenderDriver(from);
     var rideStage = getRideStage(req, isDriver);
-
-    /*
-    var rideStage;
-
-    /* TODO
-     * Cookies doesn't work yet, whoops
-     * Need it to track session
-     * FIX IT!!!!!
-
-    if (cookies['rideStage'] == null) {
-        if (isDriver) {
-            rideStage = rideStages.DRIVER;
-        } else {
-            rideStage = rideStages.NOT_REQUESTED;
-        }
-    } else {
-        rideStage = cookies['rideStage'];
-    }
-    */
 
     if (isDriver) {
         sys.log('From: ' + from + ', Status: Driver, Message: ' + message + ', rideStage: ' + rideStage);
