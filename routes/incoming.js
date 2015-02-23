@@ -109,16 +109,20 @@ function verifyRiderLocation(msg) {
 }
 
 function verifyTrailerDecision(msg, needTrailer) {
+    sys.log("verifyTrailerDecision");
     for (var i = 0; i < strings.validYesWords.length; i++) {
         if (msg == strings.validYesWords[i]) {
+            sys.log("verifyTrailerDecision: message is affirmative, needTrailer.doesNeed set to true");
             needTrailer.doesNeed = true;
             return true;
         } else if (msg == strings.validNoWords[i]) {
+            sys.log("verifyTrailerDecision: message is negative, needTrailer.doesNeed set to false");
             needTrailer.doesNeed = false;
             return true;
         }
     }
 
+    sys.log("verifyTrailerDecision: message is unrecognized, returning false");
     return false;
 }
 
@@ -225,8 +229,9 @@ function handleRiderText(res, message, from, riderStage) {
             var needTrailer = { doesNeed: false };
 
             if (verifyTrailerDecision(message, needTrailer)) {
-                var location = res.cookies.originLocation;
                 sys.log('Trailer decision received');
+                var location = res.cookies.originLocation;
+                sys.log("Just received location from cookies as " + location);
 
                 res.cookie('rideStage', rideStages.CONTACTING_DRIVER);
                 sys.log("handleRiderText: Just set the rideStage to " + rideStages.CONTACTING_DRIVER);
