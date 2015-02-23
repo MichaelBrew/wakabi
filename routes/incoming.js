@@ -228,7 +228,7 @@ function handleRiderText(res, message, from, riderStage) {
             if (verifyRiderLocation(message)) {
                 // Send response asking for needed trailer
                 sys.log('Location received');
-                res.cookie('location'), message);
+                res.cookie('location', message);
                 requestTrailerInfo(res, false);
             } else {
                 // Send response asking them to resend their location correctly this time
