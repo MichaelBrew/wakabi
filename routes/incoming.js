@@ -193,7 +193,7 @@ function searchForDriver(from, location, needTrailer) {
 /**********************/
 /* REPLYING FUNCTIONS */
 /**********************/
-function handleRiderText(res, message, from, riderStage) {
+function handleRiderText(req, res, message, from, riderStage) {
     switch (riderStage) {
         case rideStages.NOTHING:
             sys.log('handleRiderText: case NOTHING');
@@ -230,7 +230,7 @@ function handleRiderText(res, message, from, riderStage) {
 
             if (verifyTrailerDecision(message, needTrailer)) {
                 sys.log('Trailer decision received');
-                var location = res.cookies.originLocation;
+                var location = req.cookies.originLocation;
                 sys.log("Just received location from cookies as " + location);
 
                 res.cookie('rideStage', rideStages.CONTACTING_DRIVER);
@@ -348,7 +348,7 @@ var receiveIncomingMessage = function(req, res, next) {
 
     if (!isDriver) {
         // Handling rider texts
-        handleRiderText(res, message, from, rideStage);
+        handleRiderText(req, res, message, from, rideStage);
     } else {
         // Handling driver texts
         handleDriverText(res, message, from);
