@@ -139,7 +139,7 @@ function verifyTrailerDecision(msg) {
     return false;
 }
 
-function isRideStageReset(msg) {
+function isRideStageReset(res, msg) {
     sys.log("isRideStageReset: received message is " + msg);
 
     if (msg == "resetridestage") {
@@ -274,7 +274,7 @@ var receiveIncomingMessage = function(req, res, next) {
     var isDriver  = isSenderDriver(from);
     var rideStage = getRideStage(req, isDriver);
 
-    if (isRideStageReset(message)) {
+    if (isRideStageReset(res, message)) {
         sys.log('receiveIncomingMessage: rideStage successfully reset, returning');
         return;
     }
