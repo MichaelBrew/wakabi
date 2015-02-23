@@ -120,7 +120,7 @@ function addRiderNumToDb(from) {
 }
 
 function verifyRiderLocation(msg) {
-    for (var i = 0; i < strings.availableLocations.length; i++) {
+    for (var i = 1; i <= strings.availableLocations.length; i++) {
         if (parseInt(msg) == i) {
             return true;
         }
