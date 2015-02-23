@@ -131,7 +131,7 @@ function verifyRiderLocation(msg) {
 
 function verifyTrailerDecision(msg) {
     for (var i = 0; i < strings.validYesWords.length; i++) {
-        if (msg == validYesWords[i]) {
+        if (msg == strings.validYesWords[i]) {
             return true;
         }
     }

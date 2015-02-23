@@ -11,10 +11,10 @@ exports.askLocation = "Please respond with the number corresponding to your loca
 exports.askTrailer = "Do you need a trailer to transport cargo? It will cost extra.";
 exports.helpText = "Please text RIDE to request a ride.";
 exports.validYesWords = [
-        'Y',
-        'y',
-        'YES',
-        'Yes',
-        'yes'
+        "Y",
+        "y",
+        "YES",
+        "Yes",
+        "yes"
 ];
 exports.waitText = "Ok, a driver will call you to pick you up shortly!";
