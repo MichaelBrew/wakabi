@@ -158,7 +158,7 @@ function handleRiderText(res, message, from, riderStage) {
             }
             break;
 
-        case rideStages.AWAITING_LCOATION:
+        case rideStages.AWAITING_LOCATION:
             if (verifyRiderLocation(message)) {
                 // Send response asking for needed trailer
                 sys.log('Location received');
