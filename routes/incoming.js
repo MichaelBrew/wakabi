@@ -140,7 +140,10 @@ function verifyTrailerDecision(msg) {
 }
 
 function isRideStageReset(msg) {
+    sys.log("isRideStageReset: received message is " + msg);
+
     if (msg == "resetridestage") {
+        sys.log("isRideStageReset: message was a reset");
         var response = new twilio.TwimlResponse();
         var responesText = "Ok, rideStage has been reset to " + rideStages.NOTHING;
         response.sms(responseText);
@@ -149,9 +152,11 @@ function isRideStageReset(msg) {
             'Content-Type':'text/xml'
         }, 200);
 
+        sys.log("isRideStageReset: returning true");
         return true;
     }
 
+    sys.log("isRideStageReset: message was not a reset, returning false");
     return false;
 }
 
@@ -270,7 +275,7 @@ var receiveIncomingMessage = function(req, res, next) {
     var rideStage = getRideStage(req, isDriver);
 
     if (isRideStageReset(message)) {
-        sys.log('rideStage successfully reset, returning');
+        sys.log('receiveIncomingMessage: rideStage successfully reset, returning');
         return;
     }
 
