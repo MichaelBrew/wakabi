@@ -44,28 +44,6 @@ function isSenderDriver(senderNumber) {
     }
 }
 
-/*
- * Grabbed this from the internet, but I don't think
- * it's quite right. Not sure whether to keep.
- */
-function parseCookies (request) {
-    var list = {},
-        rc   = request.headers.cookie;
-
-    console.log("The request headers are:");
-    for (var key in request.headers) {
-        console.log("key: " + key + ", value: " + request.headers[key]);
-    }
-    sys.log("The cookies are " + rc);
-
-    rc && rc.split(';').forEach(function( cookie ) {
-        var parts = cookie.split('=');
-        list[parts.shift().trim()] = unescape(parts.join('='));
-    });
-
-    return list;
-}
-
 function getRideStage(request, isDriver) {
     if (request.cookies != null) {
         sys.log("getRideStage: cookies are NOT null");
