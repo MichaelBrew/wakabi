@@ -8,7 +8,7 @@ exports.availableLocations = [
 ];
 exports.resendText = "We\'re sorry, we did not understand that message. ";
 exports.askLocation = "Please respond with the number corresponding to your location:\n";
-exports.askTrailer = "Do you need a trailer to transport cargo? It will cost extra.";
+exports.askTrailer = "Do you need a trailer to transport cargo (answer yes or no)? It will cost extra.";
 exports.helpText = "Please text RIDE to request a ride.";
 exports.validYesWords = [
         "Y",
@@ -16,5 +16,12 @@ exports.validYesWords = [
         "YES",
         "Yes",
         "yes"
+];
+exports.validNoWords = [
+        "N",
+        "n",
+        "NO",
+        "No",
+        "no"
 ];
 exports.waitText = "Ok, a driver will call you to pick you up shortly!";
