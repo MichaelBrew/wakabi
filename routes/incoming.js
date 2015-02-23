@@ -134,12 +134,11 @@ function verifyRiderLocation(msg) {
 function verifyTrailerDecision(msg, needTrailer) {
     for (var i = 0; i < strings.validYesWords.length; i++) {
         if (msg == strings.validYesWords[i]) {
-                needTrailer.doesNeed = true;
-                return true;
-            } else if (msg == strings.validNoWords[i]) {
-                needTrailer.doesNeed = false;
-                return true;
-            }
+            needTrailer.doesNeed = true;
+            return true;
+        } else if (msg == strings.validNoWords[i]) {
+            needTrailer.doesNeed = false;
+            return true;
         }
     }
 
