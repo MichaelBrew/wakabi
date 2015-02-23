@@ -86,7 +86,7 @@ function getRideStage(request, isDriver) {
         if (isDriver) {
             return rideStages.DRIVER;
         } else {
-            return rideStages.SENT_NOTHING;
+            return rideStages.NOTHING;
         }
     //`}
 }
@@ -211,9 +211,8 @@ function requestLocation (res, resend) {
 
     var response = new twilio.TwimlResponse();
     response.sms(responseText);
-    res.cookie('rideStage', rideStages.SENT_REQUEST);
+    res.cookie('rideStage', rideStages.AWAITING_LOCATION);
     res.send(response.toString(), {
-        //'Set-Cookie':'rideStage='+rideStages.SENT_REQUEST,
         'Content-Type':'text/xml'
     }, 200);
 }
@@ -221,7 +220,7 @@ function requestLocation (res, resend) {
 function requestTrailerInfo(res, resend) {
     var response = new twilio.TwimlResponse();
     response.sms(strings.askTrailer);
-    res.cookie('rideStage,' rideStages.SENT_TRAILER);
+    res.cookie('rideStage,' rideStages.AWAITING_TRAILER);
     res.send(response.toString(), {
         'Content-Type':'text/xml'
     }, 200);
@@ -230,7 +229,7 @@ function requestTrailerInfo(res, resend) {
 function sendWaitText(res) {
     var response = new twilio.TwimlResponse();
     response.sms(strings.waitText);
-    res.cookie('rideStage', rideStages.SENT_TRAILER);
+    res.cookie('rideStage', rideStages.CONTACTING_DRIVER);
     res.send(response.toString(), {
         'Content-Type':'text/xlm'
     }, 200);
