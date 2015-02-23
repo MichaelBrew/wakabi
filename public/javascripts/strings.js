@@ -25,3 +25,4 @@ exports.validNoWords = [
         "no"
 ];
 exports.waitText = "Ok, a driver will call you to pick you up shortly!";
+exports.noDriversAvailable = "We're sorry, no drivers are available in your area. If one does become available within the next half hour, we will let you know.";

@@ -30,6 +30,8 @@ var rideStages = {
     CONTACTING_DRIVER  : "contactingDriver"
 }
 
+var TWILIO_NUMBER = '+18443359847';
+
 
 /********************/
 /* HELPER FUNCTIONS */
@@ -129,10 +131,15 @@ function verifyRiderLocation(msg) {
     return false;
 }
 
-function verifyTrailerDecision(msg) {
+function verifyTrailerDecision(msg, needTrailer) {
     for (var i = 0; i < strings.validYesWords.length; i++) {
-        if (msg == strings.validYesWords[i] || msg == strings.validNoWords[i]) {
-            return true;
+        if (msg == strings.validYesWords[i]) {
+                needTrailer.doesNeed = true;
+                return true;
+            } else if (msg == strings.validNoWords[i]) {
+                needTrailer.doesNeed = false;
+                return true;
+            }
         }
     }
 
@@ -160,6 +167,44 @@ function isRideStageReset(res, msg) {
     return false;
 }
 
+function searchForDriver(from, location, needTrailer) {
+    pg.connect(process.env.DATABASE_URL, function(err, client) {
+        if (!err) {
+            // Look for driver
+            var queryString = "SELECT num FROM drivers WHERE working = 'true' AND on_ride = 'false' AND current_zone = " + location;
+            if (needTrailer) {
+                queryString += " AND has_trailer = 'true'";
+            }
+
+            var query = client.query(queryString, function(err, result) {
+                if (!err) {
+                    if (result.rows.length == 0) {
+                        // No drivers available
+                        sendNoDriversText(from);
+                    } else {
+                        // For now, just grab first driver
+                        var driver = result.rows[0];
+
+                        var driverNumber;
+                        if (driver.num != null) {
+                            sys.log("searchForDriver: Found driver " + driver.num);
+                            driverNumber = driver.num;
+                        } else {
+                            sys.log("searchForDriver: driver.num is NULL");
+                        }
+
+                        // textDriverForConfirmation(driverNumber)
+                    }
+                } else {
+                    sys.log("Error querying DB to find drivers, " + err);
+                }
+            });
+        } else {
+            sys.log("Error connecting to DB, " + err);
+        }
+    });
+}
+
 /**********************/
 /* REPLYING FUNCTIONS */
 /**********************/
@@ -184,6 +229,7 @@ function handleRiderText(res, message, from, riderStage) {
             if (verifyRiderLocation(message)) {
                 // Send response asking for needed trailer
                 sys.log('Location received');
+                res.cookie('location'), message);
                 requestTrailerInfo(res, false);
             } else {
                 // Send response asking them to resend their location correctly this time
@@ -194,9 +240,13 @@ function handleRiderText(res, message, from, riderStage) {
 
         case rideStages.AWAITING_TRAILER:
             sys.log('handleRiderText: case AWAITING_TRAILER');
-            if (verifyTrailerDecision(message)) {
+            var needTrailer = { doesNeed: false };
+
+            if (verifyTrailerDecision(message, needTrailer)) {
                 sys.log('Trailer decision received');
                 sendWaitText(res);
+
+                searchForDriver(from, res.cookies.location, needTrailer.doesNeed);
             } else {
                 sys.log('Invalid response for trailer decision');
                 requestTrailerInfo(res, true);
@@ -266,6 +316,20 @@ function defaultHelpResponse(res) {
     res.send(response.toString(), {
         'Content-Type':'text/xml'
     }, 200);
+}
+
+function sendNoDriversText(rider) {
+    twilioClient.sms.messages.create({
+        to: rider,
+        from: TWILIO_NUMBER,
+        body: strings.noDriversAvailable
+    }, function(error, message) {
+        if (!error) {
+            // Record time sent, so if nothing comes up in 30 mins, let them know
+        } else {
+            sys.log('Failed to send noDriversText, ' + error);
+        }
+    });
 }
 
 var receiveIncomingMessage = function(req, res, next) {
