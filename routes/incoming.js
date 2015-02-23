@@ -222,8 +222,11 @@ function handleRiderText(res, message, from, riderStage) {
 
             if (verifyTrailerDecision(message, needTrailer)) {
                 sys.log('Trailer decision received');
-                sendWaitText(res);
 
+                res.cookie('rideStage', rideStages.CONTACTING_DRIVER);
+                sys.log("sendWaitText: Just set the rideStage to " + rideStages.CONTACTING_DRIVER);
+
+                sendWaitText(res);
                 searchForDriver(from, res.cookies.location, needTrailer.doesNeed);
             } else {
                 sys.log('Invalid response for trailer decision');
@@ -283,8 +286,8 @@ function requestTrailerInfo(res, resend) {
 function sendWaitText(res) {
     var response = new twilio.TwimlResponse();
     response.sms(strings.waitText);
-    res.cookie('rideStage', rideStages.CONTACTING_DRIVER);
-    sys.log("sendWaitText: Just set the rideStage to " + rideStages.CONTACTING_DRIVER);
+    //res.cookie('rideStage', rideStages.CONTACTING_DRIVER);
+    //sys.log("sendWaitText: Just set the rideStage to " + rideStages.CONTACTING_DRIVER);
     res.send(response.toString(), {
         'Content-Type':'text/xlm'
     }, 200);
