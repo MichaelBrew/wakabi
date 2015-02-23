@@ -210,7 +210,7 @@ function handleRiderText(res, message, from, riderStage) {
             if (verifyRiderLocation(message)) {
                 // Send response asking for needed trailer
                 sys.log('Location received');
-                res.cookie('location', message);
+                res.cookie('originLocation', message);
                 sys.log('Just set the location cookie to ' + message);
                 requestTrailerInfo(res, false);
             } else {
@@ -225,6 +225,7 @@ function handleRiderText(res, message, from, riderStage) {
             var needTrailer = { doesNeed: false };
 
             if (verifyTrailerDecision(message, needTrailer)) {
+                var location = res.cookies.originLocation;
                 sys.log('Trailer decision received');
 
                 res.cookie('rideStage', rideStages.CONTACTING_DRIVER);
@@ -234,7 +235,7 @@ function handleRiderText(res, message, from, riderStage) {
 
                 sendWaitText(res);
                 sys.log("handleRiderText: finished sendWaitText");
-                searchForDriver(from, res.cookies.location, needTrailer.doesNeed);
+                searchForDriver(from, location, needTrailer.doesNeed);
             } else {
                 sys.log('Invalid response for trailer decision');
                 requestTrailerInfo(res, true);
