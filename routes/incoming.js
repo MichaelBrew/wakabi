@@ -145,8 +145,10 @@ function isRideStageReset(res, msg) {
 }
 
 function searchForDriver(from, location, needTrailer) {
+    sys.log("searchForDriver");
     pg.connect(process.env.DATABASE_URL, function(err, client) {
         if (!err) {
+            sys.log("searchForDriver: connected to DB");
             // Look for driver
             var queryString = "SELECT num FROM drivers WHERE working = 'true' AND on_ride = 'false' AND current_zone = " + location;
             if (needTrailer) {
@@ -157,8 +159,10 @@ function searchForDriver(from, location, needTrailer) {
                 if (!err) {
                     if (result.rows.length == 0) {
                         // No drivers available
+                        sys.log("searchForDriver: No drivers available");
                         sendNoDriversText(from);
                     } else {
+                        sys.log("searchForDriver: Drivers available");
                         // For now, just grab first driver
                         var driver = result.rows[0];
 
@@ -224,11 +228,12 @@ function handleRiderText(res, message, from, riderStage) {
                 sys.log('Trailer decision received');
 
                 res.cookie('rideStage', rideStages.CONTACTING_DRIVER);
-                sys.log("sendWaitText: Just set the rideStage to " + rideStages.CONTACTING_DRIVER);
+                sys.log("handleRiderText: Just set the rideStage to " + rideStages.CONTACTING_DRIVER);
                 res.cookie('Content-Type', 'text/xlm');
-                sys.log("sendWaitText: Just set the Content-Type to text/xlm");
+                sys.log("handleRiderText: Just set the Content-Type to text/xlm");
 
                 sendWaitText(res);
+                sys.log("handleRiderText: finished sendWaitText");
                 searchForDriver(from, res.cookies.location, needTrailer.doesNeed);
             } else {
                 sys.log('Invalid response for trailer decision');
