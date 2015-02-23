@@ -139,6 +139,21 @@ function verifyTrailerDecision(msg) {
     return false;
 }
 
+function isRideStageReset(msg) {
+    if (msg == "resetridestage") {
+        var response = new twilio.TwimlResponse();
+        response.sms("Ok, rideStage has been reset to " + rideStages.NOTHING);
+        res.cookie('rideStage', rideStages.NOTHING);
+        res.send(response.toString(), {
+            'Content-Type':'text/xml'
+        }, 200);
+
+        return true;
+    }
+
+    return false;
+}
+
 /**********************/
 /* REPLYING FUNCTIONS */
 /**********************/
@@ -252,6 +267,10 @@ var receiveIncomingMessage = function(req, res, next) {
     var from      = req.body.From;
     var isDriver  = isSenderDriver(from);
     var rideStage = getRideStage(req, isDriver);
+
+    if (isRideStageReset(message)) {
+        return;
+    }
 
     if (isDriver) {
         sys.log('From: ' + from + ', Status: Driver, Message: ' + message + ', rideStage: ' + rideStage);
