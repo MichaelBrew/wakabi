@@ -225,6 +225,8 @@ function handleRiderText(res, message, from, riderStage) {
 
                 res.cookie('rideStage', rideStages.CONTACTING_DRIVER);
                 sys.log("sendWaitText: Just set the rideStage to " + rideStages.CONTACTING_DRIVER);
+                res.cookie('Content-Type', 'text/xlm');
+                sys.log("sendWaitText: Just set the Content-Type to text/xlm");
 
                 sendWaitText(res);
                 searchForDriver(from, res.cookies.location, needTrailer.doesNeed);
@@ -284,13 +286,13 @@ function requestTrailerInfo(res, resend) {
 }
 
 function sendWaitText(res) {
+    sys.log("sendWaitText");
     var response = new twilio.TwimlResponse();
     response.sms(strings.waitText);
     //res.cookie('rideStage', rideStages.CONTACTING_DRIVER);
     //sys.log("sendWaitText: Just set the rideStage to " + rideStages.CONTACTING_DRIVER);
-    res.send(response.toString(), {
-        'Content-Type':'text/xlm'
-    }, 200);
+    res.send(response.toString(), {}, 200);
+    sys.log("sendWaitText: text sent");
 }
 
 function defaultHelpResponse(res) {
