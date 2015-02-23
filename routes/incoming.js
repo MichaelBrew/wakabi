@@ -220,7 +220,7 @@ function requestLocation (res, resend) {
 function requestTrailerInfo(res, resend) {
     var response = new twilio.TwimlResponse();
     response.sms(strings.askTrailer);
-    res.cookie('rideStage,' rideStages.AWAITING_TRAILER);
+    res.cookie('rideStage', rideStages.AWAITING_TRAILER);
     res.send(response.toString(), {
         'Content-Type':'text/xml'
     }, 200);
