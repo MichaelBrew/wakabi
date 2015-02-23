@@ -204,7 +204,7 @@ function requestLocation (res, resend) {
     var responseText = "";
 
     if (resend) {
-        responseText += resendText;
+        responseText += strings.resendText;
     }
 
     responseText += strings.askLocation + locationXml;
@@ -236,7 +236,7 @@ function sendWaitText(res) {
 }
 
 function defaultHelpResponse(res) {
-    var responseText = resendText + strings.helpText;
+    var responseText = strings.resendText + strings.helpText;
     var response = new twilio.TwimlResponse();
     response.sms(responseText);
     res.send(response.toString(), {
