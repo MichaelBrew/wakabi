@@ -67,7 +67,6 @@ function parseCookies (request) {
 function getRideStage(request, isDriver) {
     if (request.cookies != null) {
         sys.log("getRideStage: cookies are NOT null");
-        sys.log(request.cookies);
 
         if (request.cookies.rideStage != null) {
             sys.log("getRideStage: rideStage is NOT null");
@@ -146,6 +145,7 @@ function verifyTrailerDecision(msg) {
 function handleRiderText(res, message, from, riderStage) {
     switch (riderStage) {
         case rideStages.NOTHING:
+            sys.log('handleRiderText: case NOTHING');
             if (message.toUpperCase() === strings.keywordRide) {
                 sys.log('Ride request received');
 
@@ -159,6 +159,7 @@ function handleRiderText(res, message, from, riderStage) {
             break;
 
         case rideStages.AWAITING_LOCATION:
+            sys.log('handleRiderText: case AWAITING_LOCATION');
             if (verifyRiderLocation(message)) {
                 // Send response asking for needed trailer
                 sys.log('Location received');
@@ -171,6 +172,7 @@ function handleRiderText(res, message, from, riderStage) {
             break;
 
         case rideStages.AWAITING_TRAILER:
+            sys.log('handleRiderText: case AWAITING_TRAILER');
             if (verifyTrailerDecision(message)) {
                 sys.log('Trailer decision received');
                 sendWaitText(res);
@@ -181,6 +183,7 @@ function handleRiderText(res, message, from, riderStage) {
             break;
 
         case rideStages.CONTACTING_DRIVER:
+            sys.log('handleRiderText: case CONTACTING_DRIVER');
             sys.log('Received text from waiting rider');
             sendWaitText(res);
             break;
