@@ -45,29 +45,28 @@ function isSenderDriver(senderNumber) {
 }
 
 function getRideStage(request, isDriver) {
+    var defaultReturnVal;
+    if (isDriver) {
+        defaultReturnVal = rideStages.DRIVER;
+    } else {
+        defaultReturnVal =  rideStages.NOTHING;
+    }
+
     if (request.cookies != null) {
         sys.log("getRideStage: cookies are NOT null");
 
         if (request.cookies.rideStage != null) {
-            sys.log("getRideStage: rideStage is NOT null");
+            sys.log("getRideStage: rideStage is NOT null, returning " + request.cookies.rideStage);
             return request.cookies.rideStage;
         } else {
-            sys.log("getRideStage: rideStage IS null");
+            sys.log("getRideStage: rideStage IS null, returning " + defaultReturnVal);
+            return defaultReturnVal;
         }
     } else {
-        sys.log("getRideStage: cookies ARE null");
+        sys.log("getRideStage: cookies ARE null, returning " + defaultReturnVal);
+
+        return defaultReturnVal;
     }
-    /*
-    if (request.cookies.get("rideStage") != null) {
-        return request.cookies.get("rideStage");
-    } else {
-    */
-        if (isDriver) {
-            return rideStages.DRIVER;
-        } else {
-            return rideStages.NOTHING;
-        }
-    //`}
 }
 
 function addRiderNumToDb(from) {
