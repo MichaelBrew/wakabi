@@ -188,6 +188,44 @@ function isQuickDriverSignUp(res, message, from) {
     return false;
 }
 
+function isQuickRemoveDriver(res, message, from) {
+    if (message.toLowerCase() == "removedriver") {
+        pg.connect(process.env.DATABASE_URL, function(err, client) {
+            if (!err) {
+                sys.log("isQuickRemoveDriver: connected to DB");
+                // Create query to add driver
+                var queryString = "DELETE FROM drivers WHERE num = '" + from + "'";
+
+                var query = client.query(queryString, function(err, result) {
+                    var responseText = "";
+
+                    if (!err) {
+                        sys.log("Driver removed from DB successfully");
+                        responseText += "Ok, you are no longer a driver!";
+                        res.cookie('rideStage', rideStages.NOTHING);
+                    } else {
+                        sys.log("Error removing driver from DB, " + err);
+                        responseText += "Error removing driver, " + err;
+                    }
+
+                    var response = new twilio.TwimlResponse();
+                    response.sms(responseText);
+                    res.send(response.toString(), {
+                        'Content-Type':'text/xml'
+                    }, 200);
+                });
+            } else {
+                sys.log("Error connecting to DB, " + err);
+            }
+        });
+
+        return true;
+    }
+
+    sys.log("isQuickRemoveDriver: message was not a driver removal, returning false");
+    return false;
+}
+
 function searchForDriver(from, location, needTrailer) {
     sys.log("searchForDriver");
     pg.connect(process.env.DATABASE_URL, function(err, client) {
@@ -397,6 +435,9 @@ var receiveIncomingMessage = function(req, res, next) {
         return;
     } else if (isQuickDriverSignUp(res, message, from)) {
         sys.log('receiveIncomingMessage: driver signed up, returning');
+        return;
+    } else if (isQuickRemoveDriver(res, message, from)) {
+        sys.log('receiveIncomingMessage: driver removed from DB, returning');
         return;
     }
 
