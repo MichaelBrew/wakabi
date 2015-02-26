@@ -149,6 +149,33 @@ function isRideStageReset(res, msg) {
     return false;
 }
 
+function isQuickDriverSignUp(res, message, from) {
+    if (message.toUpperCase() == "signupdriver") {
+        pg.connect(process.env.DATABASE_URL, function(err, client) {
+            if (!err) {
+                sys.log("isQuickDriverSignUp: connected to DB");
+                // Create query to add driver
+                var queryString = "INSERT INTO drivers (num, working, on_ride, current_zone, has_trailer, rating, last_payment) VALUES ('"
+                        + from + "', true, false, 1, true, 100, '2015-02-26')";
+
+                var query = client.query(queryString, function(err, result) {
+                    if (!err) {
+                        sys.log("Driver added to DB");
+                    } else {
+                        sys.log("Error adding driver to DB, " + err);
+                    }
+                });
+            } else {
+                sys.log("Error connecting to DB, " + err);
+            }
+        });
+
+        return true;
+    }
+
+    return false;
+}
+
 function searchForDriver(from, location, needTrailer) {
     sys.log("searchForDriver");
     pg.connect(process.env.DATABASE_URL, function(err, client) {
@@ -355,6 +382,9 @@ var receiveIncomingMessage = function(req, res, next) {
 
     if (isRideStageReset(res, message)) {
         sys.log('receiveIncomingMessage: rideStage successfully reset, returning');
+        return;
+    } else if (isQuickDriverSignUp(res, message, from)) {
+        sys.log('receiveIncomingMessage: driver signed up, returning');
         return;
     }
 
