@@ -159,11 +159,22 @@ function isQuickDriverSignUp(res, message, from) {
                         + from + "', true, false, 1, true, 100, '2015-02-26')";
 
                 var query = client.query(queryString, function(err, result) {
+                    var responseText = "";
+
                     if (!err) {
-                        sys.log("Driver added to DB");
+                        sys.log("Driver added to DB successfully");
+                        responseText += "Ok, you are now registered as a driver!";
+                        res.cookie('rideStage', rideStages.DRIVER);
                     } else {
                         sys.log("Error adding driver to DB, " + err);
+                        responseText += "Error adding driver, " + err;
                     }
+
+                    var response = new twilio.TwimlResponse();
+                    response.sms(responseText);
+                    res.send(response.toString(), {
+                        'Content-Type':'text/xml'
+                    }, 200);
                 });
             } else {
                 sys.log("Error connecting to DB, " + err);
