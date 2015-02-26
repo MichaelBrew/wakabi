@@ -150,7 +150,7 @@ function isRideStageReset(res, msg) {
 }
 
 function isQuickDriverSignUp(res, message, from) {
-    if (message.toUpperCase() == "signupdriver") {
+    if (message.toLowerCase() == "signupdriver") {
         pg.connect(process.env.DATABASE_URL, function(err, client) {
             if (!err) {
                 sys.log("isQuickDriverSignUp: connected to DB");
@@ -173,6 +173,7 @@ function isQuickDriverSignUp(res, message, from) {
         return true;
     }
 
+    sys.log("isQuickDriverSignUp: message was not a driver sign up, returning false");
     return false;
 }
 
