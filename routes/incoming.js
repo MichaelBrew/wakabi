@@ -130,7 +130,7 @@ function verifyTrailerDecision(msg, needTrailer) {
 function isRideStageReset(res, msg) {
     sys.log("isRideStageReset: received message is " + msg);
 
-    if (msg == "resetridestage") {
+    if (msg.toLowerCase() == "reset") {
         sys.log("isRideStageReset: message was a reset");
         var response = new twilio.TwimlResponse();
         var responseText = "Ok, rideStage has been reset to NOTHING";
