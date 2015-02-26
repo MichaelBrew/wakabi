@@ -27,7 +27,8 @@ var rideStages = {
     NOTHING            : "nothing",
     AWAITING_LOCATION  : "awaitingLocation",
     AWAITING_TRAILER   : "awaitingTrailer",
-    CONTACTING_DRIVER  : "contactingDriver"
+    CONTACTING_DRIVER  : "contactingDriver",
+    AWAITING_DRIVER    : "awaitingDrivier"
 }
 
 var TWILIO_NUMBER = '+18443359847';
@@ -178,7 +179,7 @@ function searchForDriver(from, location, needTrailer) {
                             sys.log("searchForDriver: driver.num is NULL");
                         }
 
-                        // textDriverForConfirmation(driverNumber)
+                        textDriverForConfirmation(driverNumber)
                     }
                 } else {
                     sys.log("Error querying DB to find drivers, " + err);
@@ -316,10 +317,27 @@ function defaultHelpResponse(res) {
 }
 
 function sendNoDriversText(rider) {
+    /*
+     * Set rideStage cookie to rideStages.AWAITING_DRIVER
+     */
     twilioClient.sms.messages.create({
         to: rider,
         from: TWILIO_NUMBER,
         body: strings.noDriversAvailable
+    }, function(error, message) {
+        if (!error) {
+            // Record time sent, so if nothing comes up in 30 mins, let them know
+        } else {
+            sys.log('Failed to send noDriversText, ' + error);
+        }
+    });
+}
+
+function textDriverForConfirmation(driverNumber) {
+    twilioClient.sms.messages.create({
+        to: driverNumber,
+        from: TWILIO_NUMBER,
+        body: "Do you want to accept a new ride request?"
     }, function(error, message) {
         if (!error) {
             // Record time sent, so if nothing comes up in 30 mins, let them know
