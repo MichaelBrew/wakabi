@@ -38,19 +38,19 @@ var TWILIO_NUMBER = '+18443359847';
 /* HELPER FUNCTIONS */
 /********************/
 function isSenderDriver(senderNumber) {
-	pg.connect(process.env.DATABASE_URL, function(err, client) {
+    pg.connect(process.env.DATABASE_URL, function(err, client) {
         if (!err) {
             // Look for driver
             var query = client.query("SELECT num FROM drivers WHERE num = '" + senderNumber + "'", function(err, result) {
                 if (!err) {
                     if (result.rows.length == 0) {
                         // Number is not in DB -> not driver
-						sys.log("isSenderDriver: false");
-						return false;
+                        sys.log("isSenderDriver: false");
+                        return false;
                     } else {
                         // Number is in DB -> driver
-						sys.log("isSenderDriver: true");
-						return true;
+                        sys.log("isSenderDriver: true");
+                        return true;
                     }
                 } else {
                     sys.log("Error querying DB to see if driver exists already, " + err);
