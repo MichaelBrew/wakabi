@@ -1,8 +1,19 @@
 body {
-  padding: 50px;
+  padding: 25px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
 a {
   color: #00B7FF;
+}
+
+#top-bar {
+    line-height: 50px;
+    text-align: center;
+}
+
+#top-bar img {
+  float: left;
+  height: 50px;
+  width: 50px;
 }
