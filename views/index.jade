@@ -1,20 +1,19 @@
 extends layout
 
 block content
-    div.container
-        div.content
-            table.table.table-bordered
-                thead
-                    tr
-                        th Activity Log
-                tbody
-                    tr
-                        td.driveradded
-                            div.driveraddedicon
-                            span New Driver Added
-                    tr
-                        td Hello
-            table.table.table-bordered
-                thead
-                    tr
-                        th Alerts
+  div.container
+    div.content
+      table#activity-table.table.table-bordered
+        thead
+          tr
+            th Activity Log
+        tbody
+          tr
+            td Activity item
+      table#alert-table.table.table-bordered
+        thead
+          tr
+            th Alerts
+        tbody
+          tr
+            td Alert item

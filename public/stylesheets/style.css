@@ -8,23 +8,31 @@ a {
 }
 
 .table {
-    border-radius: 10px;
-    width: 50%;
+  border-radius: 10px;
+  width: 45%;
 }
 
 .driveraddedicon {
-    height: 45px;
-    width: 45px;
-    float: left;
-    background: green;
+  height: 45px;
+  width: 45px;
+  float: left;
+  background: green;
 }
 
 .driveradded h3 {
-    vertical-align: top;
-    margin-top: 0px;
-    margin-left: 55px; /* width of driveraddedicon + 10 */
+  vertical-align: top;
+  margin-top: 0px;
+  margin-left: 55px; /* width of driveraddedicon + 10 */
 }
 
 .content table {
-    display: inline-block;
+  padding: 10px;
+}
+
+#activity-table {
+  float: left;
+}
+
+#alert-table {
+  float: right;
 }
