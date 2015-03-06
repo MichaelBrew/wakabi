@@ -7,13 +7,24 @@ a {
   color: #00B7FF;
 }
 
-#top-bar {
-    line-height: 50px;
-    text-align: center;
+.table {
+    border-radius: 10px;
+    width: 50%;
 }
 
-#top-bar img {
-  float: left;
-  height: 50px;
-  width: 50px;
+.driveraddedicon {
+    height: 45px;
+    width: 45px;
+    float: left;
+    background: green;
+}
+
+.driveradded h3 {
+    vertical-align: top;
+    margin-top: 0px;
+    margin-left: 55px; /* width of driveraddedicon + 10 */
+}
+
+.content table {
+    display: inline-block;
 }
