@@ -271,7 +271,7 @@ function searchForDriver(from, location, needTrailer) {
 /**********************/
 /* REPLYING FUNCTIONS */
 /**********************/
-function handleRideRequest(res, message) {
+function handleRideRequest(res, message, from) {
     if (message.toUpperCase() == strings.keywordRide) {
         sys.log('handleRideRequest: Ride request received');
 
@@ -315,7 +315,7 @@ function handleTrailerResponse(res, message) {
 function handleRiderText(req, res, message, from, riderStage) {
     switch (riderStage) {
         case rideStages.NOTHING:
-            handleRideRequest(res, message);
+            handleRideRequest(res, message, from);
             break;
 
         case rideStages.AWAITING_LOCATION:
