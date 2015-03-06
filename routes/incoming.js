@@ -304,7 +304,7 @@ function handleTrailerResponse(res, message) {
         sendWaitText(res);
 
         var location = req.cookies.originLocation;
-        var needsTrailer = if isYesMessage(message) ? true : false;
+        var needsTrailer = (isYesMessage(message) ? true : false);
         searchForDriver(from, location, needTrailers);
     } else {
         sys.log('handleTrailerResponse: Invalid response for trailer decision');
