@@ -6,7 +6,7 @@ var strings      = require('../public/javascripts/strings');
 
 var router       = express.Router();
 
-// Twilio Credentials
+/* Twilio Credentials */
 var accountSid   = 'ACf55ee981f914dc797efa85947d9f60b8';
 var authToken    = 'cc3c8f0a7949ce40356c029579934c0f';
 var twilio       = require('twilio');
@@ -15,6 +15,7 @@ var twilioClient = require('twilio')(accountSid, authToken);
 /*
  * The 'rideStages' var acts as an enum to represent where the current
  * rider is in the request process.
+ * TODO: can we eliminate DRIVER here now there's a driveStages?
  *
  * DRIVER            : All drivers' rideStage is marked DRIVER (default for drivers)
  * NOTHING           : Before the request, all riders have sent nothing (default for riders)
@@ -29,6 +30,21 @@ var rideStages = {
     AWAITING_TRAILER   : "awaitingTrailer",
     CONTACTING_DRIVER  : "contactingDriver",
     AWAITING_DRIVER    : "awaitingDrivier"
+}
+
+/*
+ * The 'driveStages' var acts as an enum to represent where the current
+ * driver is in the ride process.
+ *
+ * NOTHING           : Driver has not yet started the ride process
+ * SENT_RIDER_NUMBER : If the ride request is accepted, the rider's number has been sent
+ * RIDE_STARTED      : The driver has indicated the start of the ride
+ * RIDE_ENDED        : The driver has indicated the end of the ride
+ */
+var driveStages = {
+    NOTHING             : "nothing",
+    AWAITING_START_RIDE : "awaitingStartRide",
+    AWAITING_END_RIDE   : "awaitingEndRide"
 }
 
 var TWILIO_NUMBER = '+18443359847';
@@ -117,23 +133,6 @@ function verifyRiderLocation(msg) {
         }
     }
 
-    return false;
-}
-
-function verifyTrailerDecision(msg, needTrailer) {
-    for (var i = 0; i < strings.validYesWords.length; i++) {
-        if (msg == strings.validYesWords[i]) {
-            sys.log("verifyTrailerDecision: trailer needed");
-            needTrailer.doesNeed = true;
-            return true;
-        } else if (msg == strings.validNoWords[i]) {
-            sys.log("verifyTrailerDecision: trailer not needed");
-            needTrailer.doesNeed = false;
-            return true;
-        }
-    }
-
-    sys.log("verifyTrailerDecision: message is unrecognized, returning false");
     return false;
 }
 
@@ -231,7 +230,6 @@ function isQuickRemoveDriver(res, message, from) {
 }
 
 function searchForDriver(from, location, needTrailer) {
-    sys.log("searchForDriver");
     pg.connect(process.env.DATABASE_URL, function(err, client) {
         if (!err) {
             // Look for driver
@@ -273,52 +271,59 @@ function searchForDriver(from, location, needTrailer) {
 /**********************/
 /* REPLYING FUNCTIONS */
 /**********************/
+function handleRideRequest(res, message) {
+    if (message.toUpperCase() == strings.keywordRide) {
+        sys.log('handleRideRequest: Ride request received');
+
+        addRiderNumToDb(from);
+        requestLocation(res, false);
+    } else {
+        sys.log('handleRideRequest: invalid messages received');
+        defaultHelpResponse(res);
+    }
+}
+
+function handleLocationResponse(res, message) {
+    if (verifyRiderLocation(message)) {
+        sys.log('handleLocationResponse: Location received');
+
+        res.cookie('originLocation', message);
+        requestTrailerInfo(res, false);
+    } else {
+        sys.log('handleLocationResponse: Invalid response for location');
+        requestLocation(res, true);
+    }
+}
+
+function handleTrailerResponse(res, message) {
+    if (isYesMessage(message) || isNoMessage(message)) {
+        sys.log('handleTrailerResponse: Trailer decision received');
+
+        res.cookie('rideStage', rideStages.CONTACTING_DRIVER);
+        res.cookie('Content-Type', 'text/xlm');
+        sendWaitText(res);
+
+        var location = req.cookies.originLocation;
+        var needsTrailer = if isYesMessage(message) ? true : false;
+        searchForDriver(from, location, needTrailers);
+    } else {
+        sys.log('handleTrailerResponse: Invalid response for trailer decision');
+        requestTrailerInfo(res, true);
+    }
+}
+
 function handleRiderText(req, res, message, from, riderStage) {
     switch (riderStage) {
         case rideStages.NOTHING:
-            if (message.toUpperCase() === strings.keywordRide) {
-                sys.log('handleRiderText: Ride request received');
-
-                addRiderNumToDb(from);
-
-                // Send response asking for location
-                requestLocation(res, false);
-            } else {
-                sys.log('handleRiderText: case NOTHING, invalid message');
-                defaultHelpResponse(res);
-            }
+            handleRideRequest(res, message);
             break;
 
         case rideStages.AWAITING_LOCATION:
-            if (verifyRiderLocation(message)) {
-                // Send response asking for needed trailer
-                sys.log('handleRiderText: Location received');
-                res.cookie('originLocation', message);
-                sys.log('Just set the location cookie to ' + message);
-                requestTrailerInfo(res, false);
-            } else {
-                // Send response asking them to resend their location correctly this time
-                sys.log('handleRideText: Invalid response for location');
-                requestLocation(res, true);
-            }
+            handleLocationResponse(res, message);
             break;
 
         case rideStages.AWAITING_TRAILER:
-            var needTrailer = { doesNeed: false };
-
-            if (verifyTrailerDecision(message, needTrailer)) {
-                sys.log('handleRiderText: Trailer decision received');
-                var location = req.cookies.originLocation;
-
-                res.cookie('rideStage', rideStages.CONTACTING_DRIVER);
-                res.cookie('Content-Type', 'text/xlm');
-
-                sendWaitText(res);
-                searchForDriver(from, location, needTrailer.doesNeed);
-            } else {
-                sys.log('handleRiderText: Invalid response for trailer decision');
-                requestTrailerInfo(res, true);
-            }
+            handleTrailerResponse(res, message);
             break;
 
         case rideStages.CONTACTING_DRIVER:
@@ -328,8 +333,51 @@ function handleRiderText(req, res, message, from, riderStage) {
     }
 }
 
-function handleDriverText(res, message, from) {
-    // Do something
+function handleDriverText(res, message, from, driverStage) {
+    switch (driverStage) {
+        case driveStages.NOTHING:
+            // Expecting: Driver's decision to accept ride request
+            // TODO: what if driver randomly texts server? Can't assume it's in response
+            //       to a ride request
+            if (isYesMessage(message)) {
+                // uh, where is the rider's number at this point?
+                // may need to store rider's number in DB as an extra column for driver
+                // entry, like 'riderNum'
+                sendNumberToDriver(res);
+            } else if (isNoMessage(message)) {
+                // pass the request on to the next driver
+            } else {
+                // wasn't a response to the request, send back default message?
+            }
+            break;
+
+        case driverStages.AWAITING_START_RIDE:
+            // Expecting: Start ride text
+            handleStartRideText(res, message);
+            break;
+
+        case driverStages.AWAITING_END_RIDE:
+            // Expecting: End ride text
+            handleEndRideText(res, message);
+    }
+}
+
+function isYesMessage(message) {
+    for (var i = 0; i < strings.validYesWords.length; i++) {
+        if (msg == strings.validYesWords[i]) {
+            sys.log("isYesMessage: message is yes");
+            return true;
+        }
+    }
+}
+
+function isNoMessage(message) {
+    for (var i = 0; i < strings.validNoWords.length; i++) {
+        if (msg == strings.validNoWords[i]) {
+            sys.log("isNoMessage: message is no");
+            return true;
+        }
+    }
 }
 
 function requestLocation (res, resend) {
@@ -406,15 +454,17 @@ function sendNoDriversText(rider) {
 }
 
 function textDriverForConfirmation(driverNumber) {
-    twilioClient.sms.messages.create({
+    twilioClient.sendSms({
         to: driverNumber,
         from: TWILIO_NUMBER,
         body: "Do you want to accept a new ride request?"
     }, function(error, message) {
         if (!error) {
             // Record time sent, so if nothing comes up in 30 mins, let them know
+            // Actually, start timeout once the wait text is sent to rider, then
+            // cancel that if the ride is accepted
         } else {
-            sys.log('Failed to send noDriversText, ' + error);
+            sys.log('Failed to send message asking if driver wanted to accept ride, ' + error);
         }
     });
 }
@@ -425,6 +475,7 @@ var receiveIncomingMessage = function(req, res, next) {
     var isDriver  = isSenderDriver(from);
     var rideStage = getRideStage(req, isDriver);
 
+    // Hacks/development/testing shortcuts
     if (isRideStageReset(res, message)) {
         return;
     } else if (isQuickDriverSignUp(res, message, from)) {
@@ -435,16 +486,10 @@ var receiveIncomingMessage = function(req, res, next) {
 
     if (isDriver) {
         sys.log('From: ' + from + ', Status: Driver, Message: ' + message + ', rideStage: ' + rideStage);
+        handleDriverText(res, message, from);
     } else {
         sys.log('From: ' + from + ', Status: Rider, Message: ' + message + ', rideStage: ' + rideStage);
-    }
-
-    if (!isDriver) {
-        // Handling rider texts
         handleRiderText(req, res, message, from, rideStage);
-    } else {
-        // Handling driver texts
-        handleDriverText(res, message, from);
     }
 }
 
