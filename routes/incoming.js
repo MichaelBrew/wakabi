@@ -295,7 +295,7 @@ function handleLocationResponse(res, message) {
     }
 }
 
-function handleTrailerResponse(res, message) {
+function handleTrailerResponse(res, message, from) {
     if (isYesMessage(message) || isNoMessage(message)) {
         sys.log('handleTrailerResponse: Trailer decision received');
 
@@ -305,7 +305,7 @@ function handleTrailerResponse(res, message) {
 
         var location = req.cookies.originLocation;
         var needsTrailer = (isYesMessage(message) ? true : false);
-        searchForDriver(from, location, needTrailers);
+        searchForDriver(from, location, needsTrailer);
     } else {
         sys.log('handleTrailerResponse: Invalid response for trailer decision');
         requestTrailerInfo(res, true);
@@ -362,7 +362,7 @@ function handleDriverText(res, message, from, driverStage) {
     }
 }
 
-function isYesMessage(message) {
+function isYesMessage(msg) {
     for (var i = 0; i < strings.validYesWords.length; i++) {
         if (msg == strings.validYesWords[i]) {
             sys.log("isYesMessage: message is yes");
@@ -371,7 +371,7 @@ function isYesMessage(message) {
     }
 }
 
-function isNoMessage(message) {
+function isNoMessage(msg) {
     for (var i = 0; i < strings.validNoWords.length; i++) {
         if (msg == strings.validNoWords[i]) {
             sys.log("isNoMessage: message is no");
