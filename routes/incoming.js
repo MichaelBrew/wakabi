@@ -16,7 +16,7 @@ var twilioClient = require('twilio')(accountSid, authToken);
  * The 'rideStages' var acts as an enum to represent where the current
  * rider is in the request process.
  *
- * DRIVER            : All drivers rideStages is marked DRIVER (default for drivers)
+ * DRIVER            : All drivers' rideStage is marked DRIVER (default for drivers)
  * NOTHING           : Before the request, all riders have sent nothing (default for riders)
  * AWAITING_LOCATION : The server has asked for their location, waiting for answer
  * AWAITING_TRAILER  : The server has asked if they need a trailer, waiting for answer
@@ -45,7 +45,6 @@ function isSenderDriver(senderNumber) {
                 if (!err) {
                     if (result.rows.length == 0) {
                         // Number is not in DB -> not driver
-                        sys.log("isSenderDriver: false");
                         return false;
                     } else {
                         // Number is in DB -> driver
@@ -53,11 +52,11 @@ function isSenderDriver(senderNumber) {
                         return true;
                     }
                 } else {
-                    sys.log("Error querying DB to see if driver exists already, " + err);
+                    sys.log("isSenderDriver: Error querying DB to see if driver exists already, " + err);
                 }
             });
         } else {
-            sys.log("Error connecting to DB, " + err);
+            sys.log("isSenderDriver: Error connecting to DB, " + err);
         }
     });
 }
@@ -71,18 +70,13 @@ function getRideStage(request, isDriver) {
     }
 
     if (request.cookies != null) {
-        sys.log("getRideStage: cookies are NOT null");
-
         if (request.cookies.rideStage != null) {
-            sys.log("getRideStage: rideStage is NOT null, returning " + request.cookies.rideStage);
             return request.cookies.rideStage;
         } else {
-            sys.log("getRideStage: rideStage IS null, returning " + defaultReturnVal);
             return defaultReturnVal;
         }
     } else {
-        sys.log("getRideStage: cookies ARE null, returning " + defaultReturnVal);
-
+        sys.log("getRideStage: cookies are null, returning " + defaultReturnVal);
         return defaultReturnVal;
     }
 }
@@ -97,21 +91,21 @@ function addRiderNumToDb(from) {
                         // Rider is not in DB yet, add them
                         var addRiderQuery = client.query("INSERT INTO riders (num, onride) VALUES ('" + from + "', false)", function(err, result) {
                             if (!err) {
-                                sys.log("Rider " + from + " successfully added to DB");
+                                sys.log("addRiderNumToDb: Rider " + from + " successfully added to DB");
                             } else {
-                                sys.log("Rider " + from + " unsuccessfully added to DB, " + err);
+                                sys.log("addRiderNumToDb: Rider " + from + " unsuccessfully added to DB, " + err);
                             }
                         });
                     } else {
                         // Rider already exists in DB
-                        sys.log("Rider already exists in DB");
+                        sys.log("addRiderNumToDb: Rider already exists in DB");
                     }
                 } else {
-                    sys.log("Error querying DB to see if rider exists already, " + err);
+                    sys.log("addRiderNumToDb: Error querying DB to see if rider exists already, " + err);
                 }
             });
         } else {
-            sys.log("Error connecting to DB, " + err);
+            sys.log("addRiderNumToDb: Error connecting to DB, " + err);
         }
     });
 }
@@ -127,14 +121,13 @@ function verifyRiderLocation(msg) {
 }
 
 function verifyTrailerDecision(msg, needTrailer) {
-    sys.log("verifyTrailerDecision");
     for (var i = 0; i < strings.validYesWords.length; i++) {
         if (msg == strings.validYesWords[i]) {
-            sys.log("verifyTrailerDecision: message is affirmative, needTrailer.doesNeed set to true");
+            sys.log("verifyTrailerDecision: trailer needed");
             needTrailer.doesNeed = true;
             return true;
         } else if (msg == strings.validNoWords[i]) {
-            sys.log("verifyTrailerDecision: message is negative, needTrailer.doesNeed set to false");
+            sys.log("verifyTrailerDecision: trailer not needed");
             needTrailer.doesNeed = false;
             return true;
         }
@@ -145,8 +138,6 @@ function verifyTrailerDecision(msg, needTrailer) {
 }
 
 function isRideStageReset(res, msg) {
-    sys.log("isRideStageReset: received message is " + msg);
-
     if (msg.toLowerCase() == "reset") {
         sys.log("isRideStageReset: message was a reset");
         var response = new twilio.TwimlResponse();
@@ -162,7 +153,6 @@ function isRideStageReset(res, msg) {
         return true;
     }
 
-    sys.log("isRideStageReset: message was not a reset, returning false");
     return false;
 }
 
@@ -179,11 +169,11 @@ function isQuickDriverSignUp(res, message, from) {
                     var responseText = "";
 
                     if (!err) {
-                        sys.log("Driver added to DB successfully");
+                        sys.log("isQuickDriverSignUp: Driver added to DB successfully");
                         responseText += "Ok, you are now registered as a driver!";
                         res.cookie('rideStage', rideStages.DRIVER);
                     } else {
-                        sys.log("Error adding driver to DB, " + err);
+                        sys.log("isQuickDriverSignUp: Error adding driver to DB, " + err);
                         responseText += "Error adding driver, " + err;
                     }
 
@@ -194,14 +184,13 @@ function isQuickDriverSignUp(res, message, from) {
                     }, 200);
                 });
             } else {
-                sys.log("Error connecting to DB, " + err);
+                sys.log("isQuickDriverSignUp: Error connecting to DB, " + err);
             }
         });
 
         return true;
     }
 
-    sys.log("isQuickDriverSignUp: message was not a driver sign up, returning false");
     return false;
 }
 
@@ -209,7 +198,6 @@ function isQuickRemoveDriver(res, message, from) {
     if (message.toLowerCase() == "removedriver") {
         pg.connect(process.env.DATABASE_URL, function(err, client) {
             if (!err) {
-                sys.log("isQuickRemoveDriver: connected to DB");
                 // Create query to add driver
                 var queryString = "DELETE FROM drivers WHERE num = '" + from + "'";
 
@@ -217,11 +205,11 @@ function isQuickRemoveDriver(res, message, from) {
                     var responseText = "";
 
                     if (!err) {
-                        sys.log("Driver removed from DB successfully");
+                        sys.log("isQuickRemoveDriver: Driver removed from DB successfully");
                         responseText += "Ok, you are no longer a driver!";
                         res.cookie('rideStage', rideStages.NOTHING);
                     } else {
-                        sys.log("Error removing driver from DB, " + err);
+                        sys.log("isQuickRemoveDriver: Error removing driver from DB, " + err);
                         responseText += "Error removing driver, " + err;
                     }
 
@@ -232,14 +220,13 @@ function isQuickRemoveDriver(res, message, from) {
                     }, 200);
                 });
             } else {
-                sys.log("Error connecting to DB, " + err);
+                sys.log("isQuickRemoveDriver: Error connecting to DB, " + err);
             }
         });
 
         return true;
     }
 
-    sys.log("isQuickRemoveDriver: message was not a driver removal, returning false");
     return false;
 }
 
@@ -247,7 +234,6 @@ function searchForDriver(from, location, needTrailer) {
     sys.log("searchForDriver");
     pg.connect(process.env.DATABASE_URL, function(err, client) {
         if (!err) {
-            sys.log("searchForDriver: connected to DB");
             // Look for driver
             var queryString = "SELECT num FROM drivers WHERE working = 'true' AND on_ride = 'false' AND current_zone = " + location;
             if (needTrailer) {
@@ -261,7 +247,6 @@ function searchForDriver(from, location, needTrailer) {
                         sys.log("searchForDriver: No drivers available");
                         sendNoDriversText(from);
                     } else {
-                        sys.log("searchForDriver: Drivers available");
                         // For now, just grab first driver
                         var driver = result.rows[0];
 
@@ -276,11 +261,11 @@ function searchForDriver(from, location, needTrailer) {
                         textDriverForConfirmation(driverNumber)
                     }
                 } else {
-                    sys.log("Error querying DB to find drivers, " + err);
+                    sys.log("searchForDriver: Error querying DB to find drivers, " + err);
                 }
             });
         } else {
-            sys.log("Error connecting to DB, " + err);
+            sys.log("searchForDriver: Error connecting to DB, " + err);
         }
     });
 }
@@ -291,60 +276,53 @@ function searchForDriver(from, location, needTrailer) {
 function handleRiderText(req, res, message, from, riderStage) {
     switch (riderStage) {
         case rideStages.NOTHING:
-            sys.log('handleRiderText: case NOTHING');
             if (message.toUpperCase() === strings.keywordRide) {
-                sys.log('Ride request received');
+                sys.log('handleRiderText: Ride request received');
 
                 addRiderNumToDb(from);
 
                 // Send response asking for location
                 requestLocation(res, false);
             } else {
+                sys.log('handleRiderText: case NOTHING, invalid message');
                 defaultHelpResponse(res);
             }
             break;
 
         case rideStages.AWAITING_LOCATION:
-            sys.log('handleRiderText: case AWAITING_LOCATION');
             if (verifyRiderLocation(message)) {
                 // Send response asking for needed trailer
-                sys.log('Location received');
+                sys.log('handleRiderText: Location received');
                 res.cookie('originLocation', message);
                 sys.log('Just set the location cookie to ' + message);
                 requestTrailerInfo(res, false);
             } else {
                 // Send response asking them to resend their location correctly this time
-                sys.log('Invalid response for location');
+                sys.log('handleRideText: Invalid response for location');
                 requestLocation(res, true);
             }
             break;
 
         case rideStages.AWAITING_TRAILER:
-            sys.log('handleRiderText: case AWAITING_TRAILER');
             var needTrailer = { doesNeed: false };
 
             if (verifyTrailerDecision(message, needTrailer)) {
-                sys.log('Trailer decision received');
+                sys.log('handleRiderText: Trailer decision received');
                 var location = req.cookies.originLocation;
-                sys.log("Just received location from cookies as " + location);
 
                 res.cookie('rideStage', rideStages.CONTACTING_DRIVER);
-                sys.log("handleRiderText: Just set the rideStage to " + rideStages.CONTACTING_DRIVER);
                 res.cookie('Content-Type', 'text/xlm');
-                sys.log("handleRiderText: Just set the Content-Type to text/xlm");
 
                 sendWaitText(res);
-                sys.log("handleRiderText: finished sendWaitText");
                 searchForDriver(from, location, needTrailer.doesNeed);
             } else {
-                sys.log('Invalid response for trailer decision');
+                sys.log('handleRiderText: Invalid response for trailer decision');
                 requestTrailerInfo(res, true);
             }
             break;
 
         case rideStages.CONTACTING_DRIVER:
-            sys.log('handleRiderText: case CONTACTING_DRIVER');
-            sys.log('Received text from waiting rider');
+            sys.log('handleRiderText: received text from waiting rider');
             sendWaitText(res);
             break;
     }
@@ -448,13 +426,10 @@ var receiveIncomingMessage = function(req, res, next) {
     var rideStage = getRideStage(req, isDriver);
 
     if (isRideStageReset(res, message)) {
-        sys.log('receiveIncomingMessage: rideStage successfully reset, returning');
         return;
     } else if (isQuickDriverSignUp(res, message, from)) {
-        sys.log('receiveIncomingMessage: driver signed up, returning');
         return;
     } else if (isQuickRemoveDriver(res, message, from)) {
-        sys.log('receiveIncomingMessage: driver removed from DB, returning');
         return;
     }
 
