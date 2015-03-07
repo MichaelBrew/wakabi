@@ -54,33 +54,6 @@ var TWILIO_NUMBER = '+18443359847';
 /********************/
 /* HELPER FUNCTIONS */
 /********************/
-function isSenderDriver(senderNumber) {
-    return db.isSenderDriver(senderNumber);
-    /*
-    pg.connect(process.env.DATABASE_URL, function(err, client) {
-        if (!err) {
-            // Look for driver
-            var query = client.query("SELECT num FROM drivers WHERE num = '" + senderNumber + "'", function(err, result) {
-                if (!err) {
-                    if (result.rows.length == 0) {
-                        // Number is not in DB -> not driver
-                        return false;
-                    } else {
-                        // Number is in DB -> driver
-                        sys.log("isSenderDriver: true");
-                        return true;
-                    }
-                } else {
-                    sys.log("isSenderDriver: Error querying DB to see if driver exists already, " + err);
-                }
-            });
-        } else {
-            sys.log("isSenderDriver: Error connecting to DB, " + err);
-        }
-    });
-*/
-}
-
 function getRideStage(request, isDriver) {
     var defaultReturnVal;
     if (isDriver) {
@@ -99,38 +72,6 @@ function getRideStage(request, isDriver) {
         sys.log("getRideStage: cookies are null, returning " + defaultReturnVal);
         return defaultReturnVal;
     }
-}
-
-function addRiderNumToDb(from) {
-    db.addRiderNumToDb(from);
-    /*
-    pg.connect(process.env.DATABASE_URL, function(err, client) {
-        if (!err) {
-            // Look for rider
-            var query = client.query("SELECT num FROM riders WHERE num = '" + from + "'", function(err, result) {
-                if (!err) {
-                    if (result.rows.length == 0) {
-                        // Rider is not in DB yet, add them
-                        var addRiderQuery = client.query("INSERT INTO riders (num, onride) VALUES ('" + from + "', false)", function(err, result) {
-                            if (!err) {
-                                sys.log("addRiderNumToDb: Rider " + from + " successfully added to DB");
-                            } else {
-                                sys.log("addRiderNumToDb: Rider " + from + " unsuccessfully added to DB, " + err);
-                            }
-                        });
-                    } else {
-                        // Rider already exists in DB
-                        sys.log("addRiderNumToDb: Rider already exists in DB");
-                    }
-                } else {
-                    sys.log("addRiderNumToDb: Error querying DB to see if rider exists already, " + err);
-                }
-            });
-        } else {
-            sys.log("addRiderNumToDb: Error connecting to DB, " + err);
-        }
-    });
-*/
 }
 
 function verifyRiderLocation(msg) {
@@ -164,37 +105,6 @@ function isRideStageReset(res, msg) {
 
 function isQuickDriverSignUp(res, message, from) {
     if (message.toLowerCase() == "signupdriver") {
-        /*
-        pg.connect(process.env.DATABASE_URL, function(err, client) {
-            if (!err) {
-                sys.log("isQuickDriverSignUp: connected to DB");
-                // Create query to add driver
-                var queryString = "INSERT INTO drivers (num, working, on_ride, current_zone, has_trailer, rating, last_payment) VALUES ('"
-                        + from + "', true, false, 1, true, 100, '2015-02-26')";
-
-                var query = client.query(queryString, function(err, result) {
-                    var responseText = "";
-
-                    if (!err) {
-                        sys.log("isQuickDriverSignUp: Driver added to DB successfully");
-                        responseText += "Ok, you are now registered as a driver!";
-                        res.cookie('rideStage', rideStages.DRIVER);
-                    } else {
-                        sys.log("isQuickDriverSignUp: Error adding driver to DB, " + err);
-                        responseText += "Error adding driver, " + err;
-                    }
-
-                    var response = new twilio.TwimlResponse();
-                    response.sms(responseText);
-                    res.send(response.toString(), {
-                        'Content-Type':'text/xml'
-                    }, 200);
-                });
-            } else {
-                sys.log("isQuickDriverSignUp: Error connecting to DB, " + err);
-            }
-        });
-*/
         var responseText = "";
 
         if (db.quickAddDriver(from)) {
@@ -218,36 +128,6 @@ function isQuickDriverSignUp(res, message, from) {
 
 function isQuickRemoveDriver(res, message, from) {
     if (message.toLowerCase() == "removedriver") {
-        /*
-        pg.connect(process.env.DATABASE_URL, function(err, client) {
-            if (!err) {
-                // Create query to add driver
-                var queryString = "DELETE FROM drivers WHERE num = '" + from + "'";
-
-                var query = client.query(queryString, function(err, result) {
-                    var responseText = "";
-
-                    if (!err) {
-                        sys.log("isQuickRemoveDriver: Driver removed from DB successfully");
-                        responseText += "Ok, you are no longer a driver!";
-                        res.cookie('rideStage', rideStages.NOTHING);
-                    } else {
-                        sys.log("isQuickRemoveDriver: Error removing driver from DB, " + err);
-                        responseText += "Error removing driver, " + err;
-                    }
-
-                    var response = new twilio.TwimlResponse();
-                    response.sms(responseText);
-                    res.send(response.toString(), {
-                        'Content-Type':'text/xml'
-                    }, 200);
-                });
-            } else {
-                sys.log("isQuickRemoveDriver: Error connecting to DB, " + err);
-            }
-        });
-*/
-
         var responseText = "";
 
         if (db.isQuickRemoveDriver(from)) {
@@ -283,44 +163,6 @@ function searchForDriver(from, location, needTrailer) {
         sys.log("searchForDriver: searchForDriver returned null, calling sendNoDriversText");
         sendNoDriversText(from);
     }
-    /*
-    pg.connect(process.env.DATABASE_URL, function(err, client) {
-        if (!err) {
-            // Look for driver
-            var queryString = "SELECT num FROM drivers WHERE working = 'true' AND on_ride = 'false' AND current_zone = " + location;
-            if (needTrailer) {
-                queryString += " AND has_trailer = 'true'";
-            }
-
-            var query = client.query(queryString, function(err, result) {
-                if (!err) {
-                    if (result.rows.length == 0) {
-                        // No drivers available
-                        sys.log("searchForDriver: No drivers available");
-                        sendNoDriversText(from);
-                    } else {
-                        // For now, just grab first driver
-                        var driver = result.rows[0];
-
-                        var driverNumber;
-                        if (driver.num != null) {
-                            sys.log("searchForDriver: Found driver " + driver.num);
-                            driverNumber = driver.num;
-                        } else {
-                            sys.log("searchForDriver: driver.num is NULL");
-                        }
-
-                        textDriverForConfirmation(driverNumber)
-                    }
-                } else {
-                    sys.log("searchForDriver: Error querying DB to find drivers, " + err);
-                }
-            });
-        } else {
-            sys.log("searchForDriver: Error connecting to DB, " + err);
-        }
-    });
-*/
 }
 
 /**********************/
@@ -330,7 +172,7 @@ function handleRideRequest(res, message, from) {
     if (message.toUpperCase() == strings.keywordRide) {
         sys.log('handleRideRequest: Ride request received');
 
-        addRiderNumToDb(from);
+        db.addRiderNumToDb(from);
         requestLocation(res, false);
     } else {
         sys.log('handleRideRequest: invalid messages received');
@@ -377,7 +219,7 @@ function handleRiderText(req, res, message, from, riderStage) {
             break;
 
         case rideStages.AWAITING_TRAILER:
-            handleTrailerResponse(req, res, message);
+            handleTrailerResponse(req, res, message, from);
             break;
 
         case rideStages.CONTACTING_DRIVER:
@@ -525,7 +367,7 @@ function textDriverForConfirmation(driverNumber) {
 var receiveIncomingMessage = function(req, res, next) {
     var message   = req.body.Body;
     var from      = req.body.From;
-    var isDriver  = isSenderDriver(from);
+    var isDriver  = db.isSenderDriver(from);
     var rideStage = getRideStage(req, isDriver);
 
     // Hacks/development/testing shortcuts
