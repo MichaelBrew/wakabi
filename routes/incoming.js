@@ -151,6 +151,7 @@ function isQuickRemoveDriver(res, message, from) {
 
 function searchForDriver(from, location, needTrailer) {
     var driver = db.searchForDriver(from, location, needTrailer);
+    sys.log("Driver returned from db.searchForDriver is " + driver + ", with num " + driver.num);
 
     if (driver != null) {
         if (driver.num != null) {
@@ -370,6 +371,8 @@ var receiveIncomingMessage = function(req, res, next) {
     var from      = req.body.From;
     var isDriver  = db.isSenderDriver(from);
     var rideStage = getRideStage(req, isDriver);
+
+    sys.log("receiveIncomingMessage: isDriver set to db.isSenderDriver, which is " + isDriver);
 
     // Hacks/development/testing shortcuts
     if (isRideStageReset(res, message)) {
