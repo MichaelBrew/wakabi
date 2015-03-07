@@ -314,10 +314,11 @@ function handleLocationResponse(res, message) {
 function handleTrailerResponse(res, message, from) {
     if (isYesMessage(message) || isNoMessage(message)) {
         sys.log('handleTrailerResponse: Trailer decision received');
+        var location = req.cookies.originLocation;
+        sys.log('handleTrailerResponse: Got location from cookies, is location ' + location);
 
         sendWaitText(res);
 
-        var location = req.cookies.originLocation;
         var needsTrailer = (isYesMessage(message) ? true : false);
         searchForDriver(from, location, needsTrailer);
     } else {
