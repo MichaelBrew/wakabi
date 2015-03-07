@@ -3,6 +3,7 @@ var express      = require('express');
 var pg           = require('pg');
 var sys          = require('sys');
 var strings      = require('../public/javascripts/strings');
+var db           = require('/javascripts/db');
 
 var router       = express.Router();
 
@@ -230,6 +231,19 @@ function isQuickRemoveDriver(res, message, from) {
 }
 
 function searchForDriver(from, location, needTrailer) {
+    var driver = db.searchForDriver(from, location, needTrailer);
+
+    if (driver != null) {
+        if (driver.num != null) {
+            sys.log("searchForDriver: Found driver " + driver.num);
+            textDriverForConfirmation(driver.num);
+        } else {
+            sys.log("searchForDriver: driver.num is NULL");
+        }
+    } else {
+        sendNoDriversText(from);
+    }
+    /*
     pg.connect(process.env.DATABASE_URL, function(err, client) {
         if (!err) {
             // Look for driver
@@ -266,6 +280,7 @@ function searchForDriver(from, location, needTrailer) {
             sys.log("searchForDriver: Error connecting to DB, " + err);
         }
     });
+*/
 }
 
 /**********************/
@@ -418,7 +433,6 @@ function requestTrailerInfo(res, resend) {
 }
 
 function sendWaitText(res) {
-    sys.log("sendWaitText");
     var response = new twilio.TwimlResponse();
     response.sms(strings.waitText);
     //res.cookie('rideStage', rideStages.CONTACTING_DRIVER);
@@ -457,7 +471,7 @@ function textDriverForConfirmation(driverNumber) {
     twilioClient.sendSms({
         to: driverNumber,
         from: TWILIO_NUMBER,
-        body: "Do you want to accept a new ride request?"
+        body: strings.acceptRideQuestion
     }, function(error, message) {
         if (!error) {
             // Record time sent, so if nothing comes up in 30 mins, let them know
