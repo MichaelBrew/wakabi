@@ -311,7 +311,7 @@ function handleLocationResponse(res, message) {
     }
 }
 
-function handleTrailerResponse(res, message, from) {
+function handleTrailerResponse(req, res, message, from) {
     if (isYesMessage(message) || isNoMessage(message)) {
         sys.log('handleTrailerResponse: Trailer decision received');
         var location = req.cookies.originLocation;
@@ -338,7 +338,7 @@ function handleRiderText(req, res, message, from, riderStage) {
             break;
 
         case rideStages.AWAITING_TRAILER:
-            handleTrailerResponse(res, message);
+            handleTrailerResponse(req, res, message);
             break;
 
         case rideStages.CONTACTING_DRIVER:
