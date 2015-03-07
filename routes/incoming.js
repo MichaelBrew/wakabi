@@ -3,7 +3,7 @@ var express      = require('express');
 var pg           = require('pg');
 var sys          = require('sys');
 var strings      = require('../public/javascripts/strings');
-var db           = require('/javascripts/db');
+var db           = require('../public/javascripts/db');
 
 var router       = express.Router();
 
