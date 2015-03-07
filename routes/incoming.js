@@ -154,10 +154,11 @@ function searchForDriver(from, location, needTrailer) {
 
     if (driver != null) {
         if (driver.num != null) {
-            sys.log("searchForDriver: Found driver " + driver.num);
+            sys.log("searchForDriver: About to text driver " + driver.num);
             textDriverForConfirmation(driver.num);
         } else {
             sys.log("searchForDriver: driver.num is NULL");
+            sendNoDriversText(from);
         }
     } else {
         sys.log("searchForDriver: searchForDriver returned null, calling sendNoDriversText");

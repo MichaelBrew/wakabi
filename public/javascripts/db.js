@@ -13,27 +13,8 @@ module.exports = {
 
                 var query = client.query(queryString, function(err, result) {
                     if (!err) {
+                        sys.log("searchForDriver: successfully queried db, found " + result.rows.length + " eligible drivers");
                         return result.rows[0];
-                        /*
-                        if (result.rows.length == 0) {
-                            // No drivers available
-                            sys.log("searchForDriver: No drivers available");
-                            sendNoDriversText(from);
-                        } else {
-                            // For now, just grab first driver
-                            var driver = result.rows[0];
-
-                            var driverNumber;
-                            if (driver.num != null) {
-                                sys.log("searchForDriver: Found driver " + driver.num);
-                                driverNumber = driver.num;
-                            } else {
-                                sys.log("searchForDriver: driver.num is NULL");
-                            }
-
-                            textDriverForConfirmation(driverNumber)
-                        }
-                        */
                     } else {
                         sys.log("searchForDriver: Error querying DB to find drivers, " + err);
                     }
