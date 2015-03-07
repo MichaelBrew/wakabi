@@ -55,6 +55,8 @@ var TWILIO_NUMBER = '+18443359847';
 /* HELPER FUNCTIONS */
 /********************/
 function isSenderDriver(senderNumber) {
+    return db.isSenderDriver(senderNumber);
+    /*
     pg.connect(process.env.DATABASE_URL, function(err, client) {
         if (!err) {
             // Look for driver
@@ -76,6 +78,7 @@ function isSenderDriver(senderNumber) {
             sys.log("isSenderDriver: Error connecting to DB, " + err);
         }
     });
+*/
 }
 
 function getRideStage(request, isDriver) {
@@ -99,6 +102,8 @@ function getRideStage(request, isDriver) {
 }
 
 function addRiderNumToDb(from) {
+    db.addRiderNumToDb(from);
+    /*
     pg.connect(process.env.DATABASE_URL, function(err, client) {
         if (!err) {
             // Look for rider
@@ -125,6 +130,7 @@ function addRiderNumToDb(from) {
             sys.log("addRiderNumToDb: Error connecting to DB, " + err);
         }
     });
+*/
 }
 
 function verifyRiderLocation(msg) {
@@ -158,6 +164,7 @@ function isRideStageReset(res, msg) {
 
 function isQuickDriverSignUp(res, message, from) {
     if (message.toLowerCase() == "signupdriver") {
+        /*
         pg.connect(process.env.DATABASE_URL, function(err, client) {
             if (!err) {
                 sys.log("isQuickDriverSignUp: connected to DB");
@@ -187,6 +194,21 @@ function isQuickDriverSignUp(res, message, from) {
                 sys.log("isQuickDriverSignUp: Error connecting to DB, " + err);
             }
         });
+*/
+        var responseText = "";
+
+        if (db.quickAddDriver(from)) {
+            responseText += "Ok, you are now registered as a driver!";
+            res.cookie('rideStage', rideStages.DRIVER);
+        } else {
+            responseText += "Error adding driver, " + err;
+        }
+
+        var response = new twilio.TwimlResponse();
+        response.sms(responseText);
+        res.send(response.toString(), {
+            'Content-Type':'text/xml'
+        }, 200);
 
         return true;
     }
@@ -196,6 +218,7 @@ function isQuickDriverSignUp(res, message, from) {
 
 function isQuickRemoveDriver(res, message, from) {
     if (message.toLowerCase() == "removedriver") {
+        /*
         pg.connect(process.env.DATABASE_URL, function(err, client) {
             if (!err) {
                 // Create query to add driver
@@ -223,6 +246,22 @@ function isQuickRemoveDriver(res, message, from) {
                 sys.log("isQuickRemoveDriver: Error connecting to DB, " + err);
             }
         });
+*/
+
+        var responseText = "";
+
+        if (db.isQuickRemoveDriver(from)) {
+            responseText += "Ok, you are no longer a driver!";
+            res.cookie('rideStage', rideStages.NOTHING);
+        } else {
+            responseText += "Error removing driver, " + err;
+        }
+
+        var response = new twilio.TwimlResponse();
+        response.sms(responseText);
+        res.send(response.toString(), {
+            'Content-Type':'text/xml'
+        }, 200);
 
         return true;
     }
@@ -241,7 +280,7 @@ function searchForDriver(from, location, needTrailer) {
             sys.log("searchForDriver: driver.num is NULL");
         }
     } else {
-        sys.log("serachForDriver: searchForDriver returned null, calling sendNoDriversText");
+        sys.log("searchForDriver: searchForDriver returned null, calling sendNoDriversText");
         sendNoDriversText(from);
     }
     /*
@@ -462,7 +501,7 @@ function sendNoDriversText(rider) {
             // Record time sent, so if nothing comes up in 30 mins, let them know
             sys.log("sendNoDriversText: successfully sent noDriversText")
         } else {
-            sys.log('sendNoDriversText: Failed to send noDriversText, ' + error);
+            sys.log('sendNoDriversText: Failed to send noDriversText, ' + error.message);
         }
     });
 }
