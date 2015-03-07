@@ -314,8 +314,6 @@ function handleTrailerResponse(res, message, from) {
     if (isYesMessage(message) || isNoMessage(message)) {
         sys.log('handleTrailerResponse: Trailer decision received');
 
-        res.cookie('rideStage', rideStages.CONTACTING_DRIVER);
-        res.cookie('Content-Type', 'text/xlm');
         sendWaitText(res);
 
         var location = req.cookies.originLocation;
@@ -435,9 +433,10 @@ function requestTrailerInfo(res, resend) {
 function sendWaitText(res) {
     var response = new twilio.TwimlResponse();
     response.sms(strings.waitText);
-    //res.cookie('rideStage', rideStages.CONTACTING_DRIVER);
-    //sys.log("sendWaitText: Just set the rideStage to " + rideStages.CONTACTING_DRIVER);
-    res.send(response.toString(), {}, 200);
+    res.cookie('rideStage', rideStages.CONTACTING_DRIVER);
+    res.send(response.toString(), {
+        'Content-Type':'text/xml'
+    }, 200);
     sys.log("sendWaitText: text sent");
 }
 
