@@ -241,6 +241,7 @@ function searchForDriver(from, location, needTrailer) {
             sys.log("searchForDriver: driver.num is NULL");
         }
     } else {
+        sys.log("serachForDriver: searchForDriver returned null, calling sendNoDriversText");
         sendNoDriversText(from);
     }
     /*
@@ -450,18 +451,17 @@ function defaultHelpResponse(res) {
 }
 
 function sendNoDriversText(rider) {
-    /*
-     * Set rideStage cookie to rideStages.AWAITING_DRIVER
-     */
-    twilioClient.sms.messages.create({
+    sys.log("sendNoDriversText: beginning of sendNoDriversText");
+    twilioClient.sendSms({
         to: rider,
         from: TWILIO_NUMBER,
         body: strings.noDriversAvailable
     }, function(error, message) {
         if (!error) {
             // Record time sent, so if nothing comes up in 30 mins, let them know
+            sys.log("sendNoDriversText: successfully sent noDriversText")
         } else {
-            sys.log('Failed to send noDriversText, ' + error);
+            sys.log('sendNoDriversText: Failed to send noDriversText, ' + error);
         }
     });
 }
