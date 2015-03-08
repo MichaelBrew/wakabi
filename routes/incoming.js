@@ -54,13 +54,8 @@ var TWILIO_NUMBER = '+18443359847';
 /********************/
 /* HELPER FUNCTIONS */
 /********************/
-function getRideStage(request, isDriver) {
-    var defaultReturnVal;
-    if (isDriver) {
-        defaultReturnVal = rideStages.DRIVER;
-    } else {
-        defaultReturnVal =  rideStages.NOTHING;
-    }
+function getRideStage(request) {
+    var defaultReturnVal = rideStages.NOTHING;
 
     if (request.cookies != null) {
         if (request.cookies.rideStage != null) {
@@ -113,7 +108,6 @@ function isQuickDriverSignUp(res, message, from) {
         } else {
             responseText += "Error adding driver, " + err;
         }
-        global.waitingForQuery = false;
 
         var response = new twilio.TwimlResponse();
         response.sms(responseText);
@@ -137,7 +131,6 @@ function isQuickRemoveDriver(res, message, from) {
         } else {
             responseText += "Error removing driver, " + err;
         }
-        global.waitingForQuery = false;
 
         var response = new twilio.TwimlResponse();
         response.sms(responseText);
@@ -154,7 +147,6 @@ function isQuickRemoveDriver(res, message, from) {
 function searchForDriver(from, location, needTrailer) {
     var driver = db.searchForDriver(from, location, needTrailer);
     sys.log("Driver returned from db.searchForDriver is " + driver + ", with num " + driver.num);
-    global.waitingForQuery = false;
 
     if (driver != null) {
         if (driver.num != null) {
@@ -372,12 +364,7 @@ function textDriverForConfirmation(driverNumber) {
 var receiveIncomingMessage = function(req, res, next) {
     var message   = req.body.Body;
     var from      = req.body.From;
-    var isDriver  = db.isSenderDriver(from);
-    var rideStage = getRideStage(req, isDriver);
-
-    global.waitingForQuery = false;
-
-    sys.log("receiveIncomingMessage: isDriver set to db.isSenderDriver, which is " + isDriver);
+    var rideStage = getRideStage(req);
 
     // Hacks/development/testing shortcuts
     if (isRideStageReset(res, message)) {
@@ -388,13 +375,41 @@ var receiveIncomingMessage = function(req, res, next) {
         return;
     }
 
-    if (isDriver) {
-        sys.log('From: ' + from + ', Status: Driver, Message: ' + message + ', rideStage: ' + rideStage);
-        handleDriverText(res, message, from);
-    } else {
-        sys.log('From: ' + from + ', Status: Rider, Message: ' + message + ', rideStage: ' + rideStage);
-        handleRiderText(req, res, message, from, rideStage);
-    }
+    sys.log('From: ' + from + ', Message: ' + message + ', rideStage: ' + rideStage);
+
+    pg.connect(process.env.DATABASE_URL, function(err, client) {
+        if (typeof req === 'undefined'
+            || typeof res === 'undefined'
+            || typeof message === 'undefined'
+            || typeof from === 'undefined'
+            || typeof rideStage === 'undefined')
+        {
+            sys.log("Cannot reference variables in async db query callback :(");
+            return;
+        }
+        if (!err) {
+            // Check if sender is a driver
+            var query = client.query("SELECT num FROM drivers WHERE num = '" + senderNumber + "'", function(err, result) {
+                if (!err) {
+                    if (result.rows.length == 0) {
+                        sys.log("receiveIncomingMessage: sender is a rider");
+                        handleRiderText(req, res, message, from, rideStage);
+                    } else {
+                        sys.log("receiveIncomingMessage: sender is a driver");
+                        handleDriverText(res, message, from);
+                    }
+                } else {
+                    sys.log("receiveIncomingMessage: Error querying DB to see if driver exists already, " + err);
+                    // Default to rider
+                    handleRiderText(req, res, message, from, rideStage);
+                }
+            });
+        } else {
+            sys.log("receiveIncomingMessage: Error connecting to DB, " + err);
+            // Default to rider
+            handleRiderText(req, res, message, from, rideStage);
+        }
+    });
 }
 
 /* Incoming SMS */

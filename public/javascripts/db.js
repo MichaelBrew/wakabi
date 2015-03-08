@@ -3,8 +3,6 @@ var sys          = require('sys');
 
 module.exports = {
     searchForDriver: function (from, location, needTrailer) {
-        global.waitingForQuery = true;
-
         pg.connect(process.env.DATABASE_URL, function(err, client) {
             if (!err) {
                 // Look for driver
@@ -27,12 +25,8 @@ module.exports = {
                 return null;
             }
         });
-
-        while (global.waitingForQuery);
     },
     isSenderDriver: function (senderNumber) {
-        global.waitingForQuery = true;
-
         pg.connect(process.env.DATABASE_URL, function(err, client) {
             if (!err) {
                 // Look for driver
@@ -56,8 +50,6 @@ module.exports = {
                 return false;
             }
         });
-
-        while (global.waitingForQuery);
     },
     addRiderNumToDb: function (from) {
         pg.connect(process.env.DATABASE_URL, function(err, client) {
@@ -88,8 +80,6 @@ module.exports = {
         });
     },
     quickAddDriver: function (from) {
-        global.waitingForQuery = true;
-
         pg.connect(process.env.DATABASE_URL, function(err, client) {
             if (!err) {
                 sys.log("quickAddDriver: connected to DB");
@@ -113,12 +103,8 @@ module.exports = {
                 return false;
             }
         });
-
-        while (global.waitingForQuery);
     },
     quickRemoveDriver: function (from) {
-        global.waitingForQuery = true;
-
         pg.connect(process.env.DATABASE_URL, function(err, client) {
             if (!err) {
                 var queryString = "DELETE FROM drivers WHERE num = '" + from + "'";
@@ -136,7 +122,5 @@ module.exports = {
                 return false;
             }
         });
-
-        while (global.waitingForQuery);
     }
 };
