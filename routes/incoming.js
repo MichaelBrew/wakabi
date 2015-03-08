@@ -390,7 +390,7 @@ var receiveIncomingMessage = function(req, res, next) {
         return;
     }
 
-    sys.log('From: ' + from + ', Message: ' + message + ', rideStage: ' + rideStage);
+    sys.log('From: ' + from + ', Message: ' + message);
 
     pg.connect(process.env.DATABASE_URL, function(err, client) {
         if (typeof req === 'undefined'
