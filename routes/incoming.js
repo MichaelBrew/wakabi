@@ -139,7 +139,7 @@ function isQuickDriverSignUp(res, message, from) {
                 });
             } else {
                 // Error connecting to DB
-                var errorString = "Error connecting to DB to add driver, " + err);
+                var errorString = "Error connecting to DB to add driver, " + err;
                 sys.log("isQuickDriverSignUp: " + errorString);
                 var response = new twilio.TwimlResponse();
                 response.sms(errorString);
@@ -179,7 +179,7 @@ function isQuickRemoveDriver(res, message, from) {
                     }, 200);
                 });
             } else {
-                var errorString = "Error connecting to DB to remove driver, " + err);
+                var errorString = "Error connecting to DB to remove driver, " + err;
                 sys.log("isQuickRemoveDriver: " + errorString);
                 var response = new twilio.TwimlResponse();
                 response.sms(errorString);
