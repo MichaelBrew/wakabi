@@ -45,5 +45,22 @@ module.exports = {
                 sys.log("addRiderNumToDb: Error connecting to DB, " + err);
             }
         });
+    },
+    addRiderNumToDriver: function (driverNum, riderNum) {
+        pg.connect(process.env.DATABASE_URL, function(err, client) {
+            if (!err) {
+                // Assign the rider's number to the driver's 'giving_ride_to' column
+                var query = client.query("UPDATE drivers SET giving_ride_to = '" + riderNum + "' WHERE num = '" + driverNum + "'", function(err, result) {
+                    if (!err) {
+                        sys.log("addRiderNumToDriver: Rider num " + riderNum + " successfully added to driver " + driverNum);
+                    } else {
+                        sys.log("addRiderNumToDriver: Error adding rider num " + riderNum + " to driver " + driverNum + ", error: " + err);
+                        // TODO: Try the query again? Can be taken care of as "error handling" work in spring quarter
+                    }
+                });
+            } else {
+                sys.log("addRiderNumToDriver: Error connecting to DB, " + err);
+            }
+        });
     }
 };

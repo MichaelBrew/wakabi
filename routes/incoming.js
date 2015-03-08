@@ -211,9 +211,9 @@ function searchForDriver(from, location, needTrailer) {
 
                     if (driver != null && driver.num != null) {
                         sys.log("searchForDriver: About to text driver " + driver.num);
-                        textDriverForConfirmation(driver.num);
 
-                        // TODO: Add rider's number to the driver's db column 'givingRideTo'
+                        textDriverForConfirmation(driver.num);
+                        db.addRiderNumToDriver(driver.num, from);
                     } else {
                         sys.log("searchForDriver: Driver or driver.num is NULL, sending noDriversText");
                         sendNoDriversText(from);
@@ -428,6 +428,9 @@ function textDriverForConfirmation(driverNumber) {
     }, function(error, message) {
         if (error) {
             sys.log('textDriverForConfirmation: Failed to send message asking if driver wanted to accept ride, ' + error.message);
+
+            // TODO: Either try resending text, or send text to next available driver? Can be part of "edge case/error handling"
+            //       work to be done spring quarter.
         }
     });
 }
