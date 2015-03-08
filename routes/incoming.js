@@ -5,7 +5,7 @@ var twilio       = require('twilio');
 var db           = require('../public/javascripts/db');
 var stages       = require('../public/javascripts/stages');
 
-var RiderMesseneger = require('../public/javascripts/RiderMessenger');
+var RiderMessenger  = require('../public/javascripts/RiderMessenger');
 var DriverMessenger = require('../public/javascripts/DriverMessenger');
 
 var router       = express.Router();
