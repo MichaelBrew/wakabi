@@ -12,6 +12,13 @@ var incoming = require('./routes/incoming')
 
 var app = express();
 
+/*
+ * HACK: Using global variable to track whether a db query has finished
+ *       in order to simulate a synchronous process. Should probably just
+ *       change program structure to be compliant with async calls.
+ */
+global.waitingForQuery;
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');

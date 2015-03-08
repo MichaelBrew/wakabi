@@ -113,6 +113,7 @@ function isQuickDriverSignUp(res, message, from) {
         } else {
             responseText += "Error adding driver, " + err;
         }
+        global.waitingForQuery = false;
 
         var response = new twilio.TwimlResponse();
         response.sms(responseText);
@@ -136,6 +137,7 @@ function isQuickRemoveDriver(res, message, from) {
         } else {
             responseText += "Error removing driver, " + err;
         }
+        global.waitingForQuery = false;
 
         var response = new twilio.TwimlResponse();
         response.sms(responseText);
@@ -152,6 +154,7 @@ function isQuickRemoveDriver(res, message, from) {
 function searchForDriver(from, location, needTrailer) {
     var driver = db.searchForDriver(from, location, needTrailer);
     sys.log("Driver returned from db.searchForDriver is " + driver + ", with num " + driver.num);
+    global.waitingForQuery = false;
 
     if (driver != null) {
         if (driver.num != null) {
@@ -371,6 +374,8 @@ var receiveIncomingMessage = function(req, res, next) {
     var from      = req.body.From;
     var isDriver  = db.isSenderDriver(from);
     var rideStage = getRideStage(req, isDriver);
+
+    global.waitingForQuery = false;
 
     sys.log("receiveIncomingMessage: isDriver set to db.isSenderDriver, which is " + isDriver);
 

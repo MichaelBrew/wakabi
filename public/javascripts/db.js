@@ -3,6 +3,8 @@ var sys          = require('sys');
 
 module.exports = {
     searchForDriver: function (from, location, needTrailer) {
+        global.waitingForQuery = true;
+
         pg.connect(process.env.DATABASE_URL, function(err, client) {
             if (!err) {
                 // Look for driver
@@ -17,14 +19,20 @@ module.exports = {
                         return result.rows[0];
                     } else {
                         sys.log("searchForDriver: Error querying DB to find drivers, " + err);
+                        return null;
                     }
                 });
             } else {
                 sys.log("searchForDriver: Error connecting to DB, " + err);
+                return null;
             }
         });
+
+        while (global.waitingForQuery);
     },
     isSenderDriver: function (senderNumber) {
+        global.waitingForQuery = true;
+
         pg.connect(process.env.DATABASE_URL, function(err, client) {
             if (!err) {
                 // Look for driver
@@ -40,12 +48,16 @@ module.exports = {
                         }
                     } else {
                         sys.log("isSenderDriver: Error querying DB to see if driver exists already, " + err);
+                        return false;
                     }
                 });
             } else {
                 sys.log("isSenderDriver: Error connecting to DB, " + err);
+                return false;
             }
         });
+
+        while (global.waitingForQuery);
     },
     addRiderNumToDb: function (from) {
         pg.connect(process.env.DATABASE_URL, function(err, client) {
@@ -76,6 +88,8 @@ module.exports = {
         });
     },
     quickAddDriver: function (from) {
+        global.waitingForQuery = true;
+
         pg.connect(process.env.DATABASE_URL, function(err, client) {
             if (!err) {
                 sys.log("quickAddDriver: connected to DB");
@@ -99,8 +113,12 @@ module.exports = {
                 return false;
             }
         });
+
+        while (global.waitingForQuery);
     },
     quickRemoveDriver: function (from) {
+        global.waitingForQuery = true;
+
         pg.connect(process.env.DATABASE_URL, function(err, client) {
             if (!err) {
                 var queryString = "DELETE FROM drivers WHERE num = '" + from + "'";
@@ -118,5 +136,7 @@ module.exports = {
                 return false;
             }
         });
+
+        while (global.waitingForQuery);
     }
 };
