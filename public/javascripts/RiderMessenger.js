@@ -5,6 +5,8 @@ var strings = require('./strings');
 var db      = require('./db');
 var parser  = require('./messageParser');
 
+var DriverMessenger = require('./DriverMessenger');
+
 /* Twilio Credentials */
 var accountSid    = 'ACf55ee981f914dc797efa85947d9f60b8';
 var authToken     = 'cc3c8f0a7949ce40356c029579934c0f';
@@ -149,7 +151,7 @@ function searchForDriver(from, location, needTrailer) {
                     if (driver != null && driver.num != null) {
                         sys.log("searchForDriver: About to text driver " + driver.num);
 
-                        textDriverForConfirmation(driver.num);
+                        DriverMessenger.textDriverForConfirmation(driver.num);
                         db.addRiderNumToDriver(driver.num, from);
                     } else {
                         sys.log("searchForDriver: Driver or driver.num is NULL, sending noDriversText");

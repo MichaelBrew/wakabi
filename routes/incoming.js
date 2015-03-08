@@ -124,7 +124,6 @@ function isQuickRemoveDriver(res, message, from) {
 /*********************/
 /* ROUTING FUNCTIONS */
 /*********************/
-
 function getStage(request, isDriver) {
     var defaultReturnVal;
 

@@ -1,6 +1,7 @@
 var sys     = require('sys');
 var stages  = require('./stages');
 var strings = require('./strings');
+var parser  = require('./messageParser');
 
 /* Twilio Credentials */
 var accountSid    = 'ACf55ee981f914dc797efa85947d9f60b8';
@@ -24,38 +25,34 @@ function textDriverForConfirmation(driverNumber) {
     });
 }
 
+function handleRequestResponse(res, message, from) {
+    if (parser.isYesMessage(message)) {
+        // sendNumberToDriver(res, from);
+        // rider's num is stored in db under driver's 'giving_ride_to' column
+        // markDriverUnavailable(from);
+    } else if (parser.isNoMessage(message)) {
+        // pass the request on to the next driver
+    } else {
+        // wasn't a response to the request, send back default message?
+    }
+}
+
 module.exports = {
     handleText: function(res, message, from, driveStage) {
         switch (driveStage) {
+            // TODO: what if driver randomly texts server? Can't assume it's in response
+            //       to a ride request. Leave for "edge case" work spring quarter
             case stages.driveStages.NOTHING:
-                // Expecting: Driver's decision to accept ride request
-                // TODO: what if driver randomly texts server? Can't assume it's in response
-                //       to a ride request
-                if (isYesMessage(message)) {
-                    // uh, where is the rider's number at this point?
-                    // may need to store rider's number in DB as an extra column for driver
-                    // entry, like 'riderNum'
-
-                    //sendNumberToDriver(res);
-                } else if (isNoMessage(message)) {
-                    // pass the request on to the next driver
-                } else {
-                    // wasn't a response to the request, send back default message?
-                }
+                handleRequestResponse(res, message, from);
                 break;
 
             case stages.driveStages.AWAITING_START_RIDE:
-                // Expecting: Start ride text
                 handleStartRideText(res, message);
                 break;
 
             case stages.driveStages.AWAITING_END_RIDE:
-                // Expecting: End ride text
                 handleEndRideText(res, message);
                 break;
-
-            default:
-                // Shouldn't happen, getStage() should default return driveStages.NOTHING
         }
     }
 };
