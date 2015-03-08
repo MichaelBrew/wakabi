@@ -1,3 +1,4 @@
+var sys     = require('sys');
 var strings = require('./strings');
 
 module.exports = {
