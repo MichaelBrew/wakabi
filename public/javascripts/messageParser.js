@@ -1,4 +1,4 @@
-var strings = require('strings');
+var strings = require('/javascripts/strings');
 
 module.exports = {
     isYesMessage: function(msg) {

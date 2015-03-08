@@ -1,5 +1,5 @@
-var stages  = require('stages');
-var strings = require('strings');
+var stages  = require('/javascripts/stages');
+var strings = require('/javascripts/strings');
 
 /* Twilio Credentials */
 var accountSid    = 'ACf55ee981f914dc797efa85947d9f60b8';
