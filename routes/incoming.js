@@ -393,13 +393,8 @@ var receiveIncomingMessage = function(req, res, next) {
     sys.log('From: ' + from + ', Message: ' + message);
 
     pg.connect(process.env.DATABASE_URL, function(err, client) {
-        if (typeof req === 'undefined'
-            || typeof res === 'undefined'
-            || typeof message === 'undefined'
-            || typeof from === 'undefined'
-            || typeof rideStage === 'undefined')
-        {
-            sys.log("Cannot reference variables in async db query callback :(");
+        if (typeof from === 'undefined') {
+            sys.log("Cannot reference variable 'from' within database connection");
             return;
         }
         if (!err) {
