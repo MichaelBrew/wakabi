@@ -75,7 +75,7 @@ function getStage(request, isDriver) {
         }
     }
 
-    sys.log("getStage: cookies are null, or cookies.stage was null, returning " + defaultReturnVal);
+    sys.log("getStage: cookies are null, or cookies.stage was null, returning '" + defaultReturnVal + "'");
     return defaultReturnVal;
 }
 
@@ -155,21 +155,41 @@ function isQuickRemoveDriver(res, message, from) {
 }
 
 function searchForDriver(from, location, needTrailer) {
-    var driver = db.searchForDriver(from, location, needTrailer);
-    sys.log("Driver returned from db.searchForDriver is " + driver + ", with num " + driver.num);
+    pg.connect(process.env.DATABASE_URL, function(err, client) {
+        if (!err) {
+            // Look for driver
+            var queryString = "SELECT num FROM drivers WHERE working = 'true' AND on_ride = 'false' AND current_zone = " + location;
+            if (needTrailer) {
+                queryString += " AND has_trailer = 'true'";
+            }
 
-    if (driver != null) {
-        if (driver.num != null) {
-            sys.log("searchForDriver: About to text driver " + driver.num);
-            textDriverForConfirmation(driver.num);
+            var query = client.query(queryString, function(err, result) {
+                if (!err) {
+                    sys.log("searchForDriver: successfully queried db, found " + result.rows.length + " eligible drivers");
+                    var driver = result.rows[0];
+
+                    if (driver != null && driver.num != null) {
+                        sys.log("searchForDriver: About to text driver " + driver.num);
+                        textDriverForConfirmation(driver.num);
+
+                        // TODO: Add rider's number to the driver's db column 'givingRideTo'
+                    } else {
+                        sys.log("searchForDriver: Driver or driver.num is NULL, sending noDriversText");
+                        sendNoDriversText(from);
+                    }
+                } else {
+                    sys.log("searchForDriver: Error querying DB to find drivers, " + err);
+                    sendNoDriversText(from);
+                }
+            });
         } else {
-            sys.log("searchForDriver: driver.num is NULL");
+            sys.log("searchForDriver: Error connecting to DB, " + err);
             sendNoDriversText(from);
         }
-    } else {
-        sys.log("searchForDriver: searchForDriver returned null, calling sendNoDriversText");
-        sendNoDriversText(from);
-    }
+    });
+
+    // TODO: Start the 30 min timeout. Cancel that timeout once a confirmation text has been received
+    //       from a driver for this rider's number.
 }
 
 /**********************/
@@ -203,7 +223,6 @@ function handleTrailerResponse(req, res, message, from) {
     if (isYesMessage(message) || isNoMessage(message)) {
         sys.log('handleTrailerResponse: Trailer decision received');
         var location = req.cookies.originLocation;
-        sys.log('handleTrailerResponse: Got location from cookies, is location ' + location);
 
         sendWaitText(res);
 
@@ -290,12 +309,12 @@ function isNoMessage(msg) {
 }
 
 function requestLocation (res, resend) {
-    var locationXml = "";
+    var locationList = "";
     for (var i = 1; i <= strings.availableLocations.length; i++) {
-        locationXml += (i + ": " + strings.availableLocations[i-1]);
+        locationList += (i + ": " + strings.availableLocations[i-1]);
 
         if (i != strings.availableLocations.length+1) {
-            locationXml += "\n";
+            locationList += "\n";
         }
     }
 
@@ -305,7 +324,7 @@ function requestLocation (res, resend) {
         responseText += strings.resendText;
     }
 
-    responseText += strings.askLocation + locationXml;
+    responseText += strings.askLocation + locationList;
 
     var response = new twilio.TwimlResponse();
     response.sms(responseText);
@@ -353,7 +372,6 @@ function sendNoDriversText(rider) {
         body: strings.noDriversAvailable
     }, function(error, message) {
         if (!error) {
-            // Record time sent, so if nothing comes up in 30 mins, let them know
             sys.log("sendNoDriversText: successfully sent noDriversText")
         } else {
             sys.log('sendNoDriversText: Failed to send noDriversText, ' + error.message);
@@ -367,12 +385,8 @@ function textDriverForConfirmation(driverNumber) {
         from: TWILIO_NUMBER,
         body: strings.acceptRideQuestion
     }, function(error, message) {
-        if (!error) {
-            // Record time sent, so if nothing comes up in 30 mins, let them know
-            // Actually, start timeout once the wait text is sent to rider, then
-            // cancel that if the ride is accepted
-        } else {
-            sys.log('Failed to send message asking if driver wanted to accept ride, ' + error);
+        if (error) {
+            sys.log('textDriverForConfirmation: Failed to send message asking if driver wanted to accept ride, ' + error.message);
         }
     });
 }
@@ -393,10 +407,6 @@ var receiveIncomingMessage = function(req, res, next) {
     sys.log('From: ' + from + ', Message: ' + message);
 
     pg.connect(process.env.DATABASE_URL, function(err, client) {
-        if (typeof from === 'undefined') {
-            sys.log("Cannot reference variable 'from' within database connection");
-            return;
-        }
         if (!err) {
             // Check if sender is a driver
             var query = client.query("SELECT num FROM drivers WHERE num = '" + from + "'", function(err, result) {
@@ -411,13 +421,13 @@ var receiveIncomingMessage = function(req, res, next) {
                 } else {
                     sys.log("receiveIncomingMessage: Error querying DB to see if driver exists already, " + err);
                     // Default to rider
-                    handleRiderText(req, res, message, from, rideStage);
+                    handleRiderText(req, res, message, from, getStage(req, false));
                 }
             });
         } else {
             sys.log("receiveIncomingMessage: Error connecting to DB, " + err);
             // Default to rider
-            handleRiderText(req, res, message, from, rideStage);
+            handleRiderText(req, res, message, from, getStage(req, false));
         }
     });
 }
