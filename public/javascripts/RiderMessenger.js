@@ -170,7 +170,7 @@ function searchForDriver(from, location, needTrailer) {
 
 module.exports = {
     handleText: function(req, res, message, from, rideStage) {
-        switch (riderStage) {
+        switch (rideStage) {
             case stages.rideStages.NOTHING:
                 handleRideRequest(res, message, from);
                 break;
