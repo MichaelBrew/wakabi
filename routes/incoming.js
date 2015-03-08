@@ -54,19 +54,29 @@ var TWILIO_NUMBER = '+18443359847';
 /********************/
 /* HELPER FUNCTIONS */
 /********************/
-function getRideStage(request) {
-    var defaultReturnVal = rideStages.NOTHING;
+function getStage(request, isDriver) {
+    var defaultReturnVal;
+
+    if (isDriver) {
+        defaultReturnVal = driveStages.NOTHING;
+    } else {
+        defaultReturnVal = rideStages.NOTHING;
+    }
 
     if (request.cookies != null) {
-        if (request.cookies.rideStage != null) {
-            return request.cookies.rideStage;
+        if (isDriver) {
+            if (request.cookies.driveStage != null) {
+                return request.cookies.driveStage;
+            }
         } else {
-            return defaultReturnVal;
+            if (request.cookies.rideStage != null) {
+                return request.cookies.rideStage;
+            }
         }
-    } else {
-        sys.log("getRideStage: cookies are null, returning " + defaultReturnVal);
-        return defaultReturnVal;
     }
+
+    sys.log("getStage: cookies are null, or cookies.stage was null, returning " + defaultReturnVal);
+    return defaultReturnVal;
 }
 
 function verifyRiderLocation(msg) {
@@ -226,8 +236,8 @@ function handleRiderText(req, res, message, from, riderStage) {
     }
 }
 
-function handleDriverText(res, message, from, driverStage) {
-    switch (driverStage) {
+function handleDriverText(res, message, from, driveStage) {
+    switch (driveStage) {
         case driveStages.NOTHING:
             // Expecting: Driver's decision to accept ride request
             // TODO: what if driver randomly texts server? Can't assume it's in response
@@ -236,7 +246,8 @@ function handleDriverText(res, message, from, driverStage) {
                 // uh, where is the rider's number at this point?
                 // may need to store rider's number in DB as an extra column for driver
                 // entry, like 'riderNum'
-                sendNumberToDriver(res);
+
+                //sendNumberToDriver(res);
             } else if (isNoMessage(message)) {
                 // pass the request on to the next driver
             } else {
@@ -244,14 +255,19 @@ function handleDriverText(res, message, from, driverStage) {
             }
             break;
 
-        case driverStages.AWAITING_START_RIDE:
+        case driveStages.AWAITING_START_RIDE:
             // Expecting: Start ride text
             handleStartRideText(res, message);
             break;
 
-        case driverStages.AWAITING_END_RIDE:
+        case driveStages.AWAITING_END_RIDE:
             // Expecting: End ride text
             handleEndRideText(res, message);
+            break;
+
+        default:
+            // Shouldn't happen, getStage() should default return driveStages.NOTHING
+
     }
 }
 
@@ -364,7 +380,6 @@ function textDriverForConfirmation(driverNumber) {
 var receiveIncomingMessage = function(req, res, next) {
     var message   = req.body.Body;
     var from      = req.body.From;
-    var rideStage = getRideStage(req);
 
     // Hacks/development/testing shortcuts
     if (isRideStageReset(res, message)) {
@@ -393,10 +408,10 @@ var receiveIncomingMessage = function(req, res, next) {
                 if (!err) {
                     if (result.rows.length == 0) {
                         sys.log("receiveIncomingMessage: sender is a rider");
-                        handleRiderText(req, res, message, from, rideStage);
+                        handleRiderText(req, res, message, from, getStage(req, false));
                     } else {
                         sys.log("receiveIncomingMessage: sender is a driver");
-                        handleDriverText(res, message, from);
+                        handleDriverText(res, message, from, getStage(req, true));
                     }
                 } else {
                     sys.log("receiveIncomingMessage: Error querying DB to see if driver exists already, " + err);
