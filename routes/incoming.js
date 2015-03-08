@@ -389,7 +389,7 @@ var receiveIncomingMessage = function(req, res, next) {
         }
         if (!err) {
             // Check if sender is a driver
-            var query = client.query("SELECT num FROM drivers WHERE num = '" + senderNumber + "'", function(err, result) {
+            var query = client.query("SELECT num FROM drivers WHERE num = '" + from + "'", function(err, result) {
                 if (!err) {
                     if (result.rows.length == 0) {
                         sys.log("receiveIncomingMessage: sender is a rider");
