@@ -1,56 +1,23 @@
-var pg           = require('pg');
-var sys          = require('sys');
+/*
+ * db.js
+ *
+ * This file is intended to hold asynchronous database queries.
+ * If a query is part of a sequential execution where future steps
+ * rely on the result of such query, it should not be included here.
+ *
+ * Examples:
+ * - GOOD: When receiving a text from a rider, query db to see if the number needs
+ *         to be added to the rider's table. Response to rider is handled separately
+ *         and does not rely on this result.
+ * - BAD:  When receiving a new text, query the db to see if that number is part of
+ *         the driver's table to decide whether to handle the text as a driver or rider.
+ *         The response handling DOES rely on this result.
+ */
+
+var pg  = require('pg');
+var sys = require('sys');
 
 module.exports = {
-    searchForDriver: function (from, location, needTrailer) {
-        pg.connect(process.env.DATABASE_URL, function(err, client) {
-            if (!err) {
-                // Look for driver
-                var queryString = "SELECT num FROM drivers WHERE working = 'true' AND on_ride = 'false' AND current_zone = " + location;
-                if (needTrailer) {
-                    queryString += " AND has_trailer = 'true'";
-                }
-
-                var query = client.query(queryString, function(err, result) {
-                    if (!err) {
-                        sys.log("searchForDriver: successfully queried db, found " + result.rows.length + " eligible drivers");
-                        return result.rows[0];
-                    } else {
-                        sys.log("searchForDriver: Error querying DB to find drivers, " + err);
-                        return null;
-                    }
-                });
-            } else {
-                sys.log("searchForDriver: Error connecting to DB, " + err);
-                return null;
-            }
-        });
-    },
-    isSenderDriver: function (senderNumber) {
-        pg.connect(process.env.DATABASE_URL, function(err, client) {
-            if (!err) {
-                // Look for driver
-                var query = client.query("SELECT num FROM drivers WHERE num = '" + senderNumber + "'", function(err, result) {
-                    if (!err) {
-                        if (result.rows.length == 0) {
-                            // Number is not in DB -> not driver
-                            return false;
-                        } else {
-                            // Number is in DB -> driver
-                            sys.log("isSenderDriver: true");
-                            return true;
-                        }
-                    } else {
-                        sys.log("isSenderDriver: Error querying DB to see if driver exists already, " + err);
-                        return false;
-                    }
-                });
-            } else {
-                sys.log("isSenderDriver: Error connecting to DB, " + err);
-                return false;
-            }
-        });
-    },
     addRiderNumToDb: function (from) {
         pg.connect(process.env.DATABASE_URL, function(err, client) {
             if (!err) {
@@ -76,50 +43,6 @@ module.exports = {
                 });
             } else {
                 sys.log("addRiderNumToDb: Error connecting to DB, " + err);
-            }
-        });
-    },
-    quickAddDriver: function (from) {
-        pg.connect(process.env.DATABASE_URL, function(err, client) {
-            if (!err) {
-                sys.log("quickAddDriver: connected to DB");
-                // Create query to add driver
-                // TODO: Should probably get current date and use that, but not high priority
-                //       since this is just for internal testing anyway
-                var queryString = "INSERT INTO drivers (num, working, on_ride, current_zone, has_trailer, rating, last_payment) VALUES ('"
-                        + from + "', true, false, 1, true, 100, '2015-02-26')";
-
-                var query = client.query(queryString, function(err, result) {
-                    if (!err) {
-                        sys.log("quickAddDriver: Driver added to DB successfully");
-                        return true;
-                    } else {
-                        sys.log("quickAddDriver: Error adding driver to DB, " + err);
-                        return false;
-                    }
-                });
-            } else {
-                sys.log("quickAddDriver: Error connecting to DB, " + err);
-                return false;
-            }
-        });
-    },
-    quickRemoveDriver: function (from) {
-        pg.connect(process.env.DATABASE_URL, function(err, client) {
-            if (!err) {
-                var queryString = "DELETE FROM drivers WHERE num = '" + from + "'";
-                var query = client.query(queryString, function(err, result) {
-                    if (!err) {
-                        sys.log("quickRemoveDriver: Driver removed from DB successfully");
-                        return true;
-                    } else {
-                        sys.log("quickRemoveDriver: Error removing driver from DB, " + err);
-                        return false;
-                    }
-                });
-            } else {
-                sys.log("quickRemoveDriver: Error connecting to DB, " + err);
-                return false;
             }
         });
     }

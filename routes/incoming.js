@@ -110,20 +110,44 @@ function isRideStageReset(res, msg) {
 
 function isQuickDriverSignUp(res, message, from) {
     if (message.toLowerCase() == "signupdriver") {
-        var responseText = "";
+        pg.connect(process.env.DATABASE_URL, function(err, client) {
+            if (!err) {
+                sys.log("isQuickDriverSignUp: connected to DB");
+                // Create query to add driver
+                // TODO: Should probably get current date and use that, but not high priority
+                //       since this is just for internal testing anyway
+                var queryString = "INSERT INTO drivers (num, working, on_ride, current_zone, has_trailer, rating, last_payment) VALUES ('"
+                        + from + "', true, false, 1, true, 100, '2015-02-26')";
 
-        if (db.quickAddDriver(from)) {
-            responseText += "Ok, you are now registered as a driver!";
-            res.cookie('rideStage', rideStages.DRIVER);
-        } else {
-            responseText += "Error adding driver, " + err;
-        }
+                var query = client.query(queryString, function(err, result) {
+                    var responseText = "";
+                    if (!err) {
+                        sys.log("isQuickDriverSignUp: Driver added to DB successfully");
+                        responseText += "Ok, you are now registered as a driver!";
+                        res.cookie('driveStage', driveStages.NOTHING);
+                    } else {
+                        sys.log("isQuickDriverSignUp: Error adding driver to DB, " + err);
+                        responseText += "Error adding driver, " + err;
+                    }
 
-        var response = new twilio.TwimlResponse();
-        response.sms(responseText);
-        res.send(response.toString(), {
-            'Content-Type':'text/xml'
-        }, 200);
+                    // Send response text to sender
+                    var response = new twilio.TwimlResponse();
+                    response.sms(responseText);
+                    res.send(response.toString(), {
+                        'Content-Type':'text/xml'
+                    }, 200);
+                });
+            } else {
+                // Error connecting to DB
+                var errorString = "Error connecting to DB to add driver, " + err);
+                sys.log("isQuickDriverSignUp: " + errorString);
+                var response = new twilio.TwimlResponse();
+                response.sms(errorString);
+                res.send(response.toString(), {
+                    'Content-Type':'text/xml'
+                }, 200);
+            }
+        });
 
         return true;
     }
@@ -133,20 +157,37 @@ function isQuickDriverSignUp(res, message, from) {
 
 function isQuickRemoveDriver(res, message, from) {
     if (message.toLowerCase() == "removedriver") {
-        var responseText = "";
+        pg.connect(process.env.DATABASE_URL, function(err, client) {
+            if (!err) {
+                var queryString = "DELETE FROM drivers WHERE num = '" + from + "'";
+                var query = client.query(queryString, function(err, result) {
+                    var responseText = "";
+                    if (!err) {
+                        sys.log("isQuickRemoveDriver: Driver removed from DB successfully");
+                        responseText += "Ok, you are no longer a driver!";
+                        res.cookie('rideStage', rideStages.NOTHING);
+                    } else {
+                        sys.log("isQuickRemoveDriver: Error removing driver from DB, " + err);
+                        responseText += "Error removing driver, " + err;
+                    }
 
-        if (db.isQuickRemoveDriver(from)) {
-            responseText += "Ok, you are no longer a driver!";
-            res.cookie('rideStage', rideStages.NOTHING);
-        } else {
-            responseText += "Error removing driver, " + err;
-        }
-
-        var response = new twilio.TwimlResponse();
-        response.sms(responseText);
-        res.send(response.toString(), {
-            'Content-Type':'text/xml'
-        }, 200);
+                    // Send response to sender
+                    var response = new twilio.TwimlResponse();
+                    response.sms(responseText);
+                    res.send(response.toString(), {
+                        'Content-Type':'text/xml'
+                    }, 200);
+                });
+            } else {
+                var errorString = "Error connecting to DB to remove driver, " + err);
+                sys.log("isQuickRemoveDriver: " + errorString);
+                var response = new twilio.TwimlResponse();
+                response.sms(errorString);
+                res.send(response.toString(), {
+                    'Content-Type':'text/xml'
+                }, 200);
+            }
+        });
 
         return true;
     }
