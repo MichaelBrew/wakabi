@@ -44,6 +44,7 @@ function handleTrailerResponse(req, res, message, from) {
         var location = req.cookies.originLocation;
 
         sendWaitText(res);
+        db.startTimeoutForRider(from);
 
         var needsTrailer = (parser.isYesMessage(message) ? true : false);
         searchForDriver(from, location, needsTrailer);
@@ -109,12 +110,12 @@ function defaultHelpResponse(res) {
     }, 200);
 }
 
-function sendNoDriversText(rider) {
+function sendNoDriversText(rider, afterTimeout) {
     sys.log("sendNoDriversText: beginning of sendNoDriversText");
     twilioClient.sendSms({
         to: rider,
         from: TWILIO_NUMBER,
-        body: strings.noDriversAvailable
+        body: afterTimeout ? strings.noDriversAvailable : (strings.noDriversAvailable + strings.willNotifyIn30)
     }, function(error, message) {
         if (!error) {
             sys.log("sendNoDriversText: successfully sent noDriversText")
@@ -122,6 +123,10 @@ function sendNoDriversText(rider) {
             sys.log('sendNoDriversText: Failed to send noDriversText, ' + error.message);
         }
     });
+
+    if (afterTimeout) {
+        db.cancelTimeoutForRider(rider);
+    }
 }
 
 function verifyRiderLocation(msg) {
@@ -155,21 +160,18 @@ function searchForDriver(from, location, needTrailer) {
                         db.addRiderNumToDriver(driver.num, from);
                     } else {
                         sys.log("searchForDriver: Driver or driver.num is NULL, sending noDriversText");
-                        sendNoDriversText(from);
+                        sendNoDriversText(from, false);
                     }
                 } else {
                     sys.log("searchForDriver: Error querying DB to find drivers, " + err);
-                    sendNoDriversText(from);
+                    sendNoDriversText(from, false);
                 }
             });
         } else {
             sys.log("searchForDriver: Error connecting to DB, " + err);
-            sendNoDriversText(from);
+            sendNoDriversText(from, false);
         }
     });
-
-    // TODO: Start the 30 min timeout. Cancel that timeout once a confirmation text has been received
-    //       from a driver for this rider's number.
 }
 
 module.exports = {

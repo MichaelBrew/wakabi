@@ -27,9 +27,12 @@ function textDriverForConfirmation(driverNumber) {
 
 function handleRequestResponse(res, message, from) {
     if (parser.isYesMessage(message)) {
-        // sendNumberToDriver(res, from);
-        // rider's num is stored in db under driver's 'giving_ride_to' column
+        var riderNum = 0; // Get rider's num from db under driver's 'giving_ride_to' column
+
+        // sendNumberToDriver(res, from, riderNum);
         // markDriverUnavailable(from);
+
+        db.cancelTimeoutForRider(riderNum);
     } else if (parser.isNoMessage(message)) {
         // pass the request on to the next driver
     } else {
