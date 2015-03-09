@@ -12,6 +12,9 @@ var incoming = require('./routes/incoming')
 
 var app = express();
 
+// Timeout dictionary used for ride request 30 min timers
+global.timeoutDictionary = [];
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');

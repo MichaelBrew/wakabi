@@ -67,6 +67,10 @@ module.exports = {
     startTimeoutForRider: function(riderNum) {
         var delay = 1000 * 60 * 30; // 1000ms = 1sec * 60 = 1min * 30 = 30min
         var timeout = setTimeout(RiderMessenger.sendNoDriversText(from, true), delay);
+        global.timeoutDictionary.push({
+            key: riderNum,
+            value: timeout
+        });
 
         pg.connect(process.env.DATABASE_URL, function(err, client) {
             if (!err) {
@@ -86,7 +90,7 @@ module.exports = {
     },
     cancelTimeoutForRider: function(riderNum) {
         // call clearTimeout(timeoutObject) here
-        // How to reference timeoutObject here though?
+        // Get timeoutObject from globa.timeoutDictionary with key riderNum
 
         pg.connect(process.env.DATABASE_URL, function(err, client) {
             if (!err) {
