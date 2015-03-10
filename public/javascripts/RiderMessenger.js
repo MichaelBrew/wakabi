@@ -5,8 +5,8 @@ var strings = require('./strings');
 var db      = require('./db');
 var parser  = require('./messageParser');
 
-var DriverMessenger = require('./DriverMessenger');
-//var RiderWaitingQueue = require('./RiderWaitingQueue');
+var DriverMessenger   = require('./DriverMessenger');
+var RiderWaitingQueue = require('./RiderWaitingQueue');
 
 /* Twilio Credentials */
 var accountSid    = 'ACf55ee981f914dc797efa85947d9f60b8';
@@ -22,7 +22,7 @@ function handleRideRequest(res, message, from) {
     if (message.toUpperCase() == strings.keywordRide) {
         sys.log('handleRideRequest: Ride request received');
 
-        db.addRiderNumToDb(from);
+        //db.addRiderNumToDb(from);
         requestLocation(res, false);
     } else {
         sys.log('handleRideRequest: invalid messages received');
@@ -115,11 +115,11 @@ function defaultHelpResponse(res) {
 
 function sendNoDriversText(rider, isTimeout) {
     if (isTimeout) {
-        //if (RiderWaitingQueue.isRiderWaiting(rider)) {
-          //  RiderWaitingQueue.removeRiderFromQueue(rider);
-        //} else {
-         //   return;
-       // }
+        if (RiderWaitingQueue.isRiderWaiting(rider)) {
+            RiderWaitingQueue.removeRiderFromQueue(rider);
+        } else {
+            return;
+        }
     }
 
     sys.log("sendNoDriversText: beginning of sendNoDriversText");
@@ -168,18 +168,18 @@ function searchForDriver(from, location, needTrailer) {
                     } else {
                         sys.log("searchForDriver: Driver or driver.num is NULL, sending noDriversText");
                         sendNoDriversText(from, false);
-                        //RiderWaitingQueue.addRiderToQueue(from);
+                        RiderWaitingQueue.addRiderToQueue(from);
                     }
                 } else {
                     sys.log("searchForDriver: Error querying DB to find drivers, " + err);
                     sendNoDriversText(from, false);
-                    //RiderWaitingQueue.addRiderToQueue(from);
+                    RiderWaitingQueue.addRiderToQueue(from);
                 }
             });
         } else {
             sys.log("searchForDriver: Error connecting to DB, " + err);
             sendNoDriversText(from, false);
-           // RiderWaitingQueue.addRiderToQueue(from);
+            RiderWaitingQueue.addRiderToQueue(from);
         }
     });
 }
