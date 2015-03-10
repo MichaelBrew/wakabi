@@ -63,49 +63,5 @@ module.exports = {
                 sys.log("addRiderNumToDriver: Error connecting to DB, " + err);
             }
         });
-    },
-    startTimeoutForRider: function(riderNum) {
-        var delay = 1000 * 60 * 30; // 1000ms = 1sec * 60 = 1min * 30 = 30min
-        var timeout = setTimeout(RiderMessenger.sendNoDriversText(from, true), delay);
-        global.timeoutDictionary.push({
-            key: riderNum,
-            value: timeout
-        });
-
-        pg.connect(process.env.DATABASE_URL, function(err, client) {
-            if (!err) {
-                var query = client.query("UPDATE riders SET waiting = true WHERE num = '" + riderNum + "'", function(err, result) {
-                    if (!err) {
-                        sys.log("startTimeoutForRider: Successfully updated waiting to true");
-                    } else {
-                        sys.log("startTimeoutForRider: Error setting waiting to true, " + err);
-                        // Implement error handling spring quarter
-                    }
-                });
-            } else {
-                sys.log("startTimeoutForRider: Error connecting to db, " + err);
-                // Implement error handling spring quarter
-            }
-        });
-    },
-    cancelTimeoutForRider: function(riderNum) {
-        // call clearTimeout(timeoutObject) here
-        // Get timeoutObject from globa.timeoutDictionary with key riderNum
-
-        pg.connect(process.env.DATABASE_URL, function(err, client) {
-            if (!err) {
-                var query = client.query("UPDATE riders SET waiting = false WHERE num = '" + riderNum + "'", function(err, result) {
-                    if (!err) {
-                        sys.log("cancelTimeoutForRider: Successfully updated waiting to false");
-                    } else {
-                        sys.log("cancelTimeoutForRider: Error setting waiting to true, " + err);
-                        // Implement error handling spring quarter
-                    }
-                });
-            } else {
-                sys.log("cancelTimeoutForRider: Error connecting to db, " + err);
-                // Implement error handling spring quarter
-            }
-        });
     }
 };
