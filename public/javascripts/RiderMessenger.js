@@ -191,6 +191,9 @@ function startTimeoutForRider(riderNum) {
 
 module.exports = {
     handleText: function(req, res, message, from, rideStage) {
+        //DEBUG
+        db.addRiderNumToDb(from);
+        
         switch (rideStage) {
             case stages.rideStages.NOTHING:
                 handleRideRequest(res, message, from);
