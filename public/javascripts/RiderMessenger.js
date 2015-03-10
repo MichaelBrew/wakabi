@@ -6,7 +6,7 @@ var db      = require('./db');
 var parser  = require('./messageParser');
 
 var DriverMessenger = require('./DriverMessenger');
-var RiderWaitingQueue = require('./RiderWaitingQueue');
+//var RiderWaitingQueue = require('./RiderWaitingQueue');
 
 /* Twilio Credentials */
 var accountSid    = 'ACf55ee981f914dc797efa85947d9f60b8';
@@ -115,11 +115,11 @@ function defaultHelpResponse(res) {
 
 function sendNoDriversText(rider, isTimeout) {
     if (isTimeout) {
-        if (RiderWaitingQueue.isRiderWaiting(rider)) {
-            RiderWaitingQueue.removeRiderFromQueue(rider);
-        } else {
-            return;
-        }
+        //if (RiderWaitingQueue.isRiderWaiting(rider)) {
+          //  RiderWaitingQueue.removeRiderFromQueue(rider);
+        //} else {
+         //   return;
+       // }
     }
 
     sys.log("sendNoDriversText: beginning of sendNoDriversText");
@@ -168,18 +168,18 @@ function searchForDriver(from, location, needTrailer) {
                     } else {
                         sys.log("searchForDriver: Driver or driver.num is NULL, sending noDriversText");
                         sendNoDriversText(from, false);
-                        RiderWaitingQueue.addRiderToQueue(from);
+                        //RiderWaitingQueue.addRiderToQueue(from);
                     }
                 } else {
                     sys.log("searchForDriver: Error querying DB to find drivers, " + err);
                     sendNoDriversText(from, false);
-                    RiderWaitingQueue.addRiderToQueue(from);
+                    //RiderWaitingQueue.addRiderToQueue(from);
                 }
             });
         } else {
             sys.log("searchForDriver: Error connecting to DB, " + err);
             sendNoDriversText(from, false);
-            RiderWaitingQueue.addRiderToQueue(from);
+           // RiderWaitingQueue.addRiderToQueue(from);
         }
     });
 }
@@ -191,9 +191,7 @@ function startTimeoutForRider(riderNum) {
 
 module.exports = {
     handleText: function(req, res, message, from, rideStage) {
-        //DEBUG
-        db.addRiderNumToDb(from);
-        
+
         switch (rideStage) {
             case stages.rideStages.NOTHING:
                 handleRideRequest(res, message, from);
