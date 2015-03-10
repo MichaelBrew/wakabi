@@ -150,6 +150,9 @@ function getStage(request, isDriver) {
 }
 
 var receiveIncomingMessage = function(req, res, next) {
+    // DEBUG
+    db.addRiderNumToDb(req.body.From);
+
     var message   = req.body.Body;
     var from      = req.body.From;
 

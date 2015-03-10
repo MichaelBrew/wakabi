@@ -17,6 +17,8 @@ var twilioClient  = require('twilio')(accountSid, authToken);
 var TWILIO_NUMBER = '+18443359847';
 
 function handleRideRequest(res, message, from) {
+    // TODO: Move all parsing work (like determining if a text is a ride request)
+    //       to messageParser.js. This would read like if (messageParser.isRideRequest(message))
     if (message.toUpperCase() == strings.keywordRide) {
         sys.log('handleRideRequest: Ride request received');
 
