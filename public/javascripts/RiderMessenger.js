@@ -13,6 +13,7 @@ var accountSid    = 'ACf55ee981f914dc797efa85947d9f60b8';
 var authToken     = 'cc3c8f0a7949ce40356c029579934c0f';
 var twilio        = require('twilio');
 var twilioClient  = require('twilio')(accountSid, authToken);
+
 var TWILIO_NUMBER = '+18443359847';
 
 function handleRideRequest(res, message, from) {
@@ -45,7 +46,6 @@ function handleTrailerResponse(req, res, message, from) {
         var location = req.cookies.originLocation;
 
         sendWaitText(res);
-        db.startTimeoutForRider(from);
 
         var needsTrailer = (parser.isYesMessage(message) ? true : false);
         searchForDriver(from, location, needsTrailer);
@@ -162,6 +162,7 @@ function searchForDriver(from, location, needTrailer) {
                         sys.log("searchForDriver: About to text driver " + driver.num);
 
                         DriverMessenger.textDriverForConfirmation(driver.num);
+                        db.addRiderNumToDriver(driver.num, from);
                     } else {
                         sys.log("searchForDriver: Driver or driver.num is NULL, sending noDriversText");
                         sendNoDriversText(from, false);
