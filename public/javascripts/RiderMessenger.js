@@ -162,7 +162,6 @@ function searchForDriver(from, location, needTrailer) {
                         sys.log("searchForDriver: About to text driver " + driver.num);
 
                         DriverMessenger.textDriverForConfirmation(driver.num);
-                        db.addRiderNumToDriver(driver.num, from);
                     } else {
                         sys.log("searchForDriver: Driver or driver.num is NULL, sending noDriversText");
                         sendNoDriversText(from, false);
