@@ -193,7 +193,7 @@ function startTimeoutForRider(riderNum) {
 }
 
 function isRiderWaiting(number) {
-    for (var i = 0; i < queue.length; i++) {
+    for (var i = 0; i < global.riderWaitingQueue.length; i++) {
         if (global.riderWaitingQueue[i] == number) {
             return true;
         }
