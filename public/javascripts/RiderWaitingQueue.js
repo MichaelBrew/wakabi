@@ -1,28 +1,31 @@
-function RiderWaitingQueue () {
-    this.isRiderWaiting = function (number) {
-        for (var i = 0; i < queue.length; i++) {
-            if (queue[i] == number) {
-                return true;
-            }
-        }
+// This way of exporting/mimicking a static variable is not working
+// For now, just using global.riderWaitingQueue and modfiying it in RiderMessenger.js
 
-        return false;
-    };
+// function RiderWaitingQueue () {
+//     this.isRiderWaiting = function (number) {
+//         for (var i = 0; i < queue.length; i++) {
+//             if (queue[i] == number) {
+//                 return true;
+//             }
+//         }
 
-    this.addRiderToQueue = function (number) {
-        queue.push(number);
-    };
+//         return false;
+//     };
 
-    this.removeRiderFromQueue = function (number) {
-        for (var i = 0; i < queue.length; i++) {
-            if (queue[i] == number) {
-                queue.splice(i, 1);
-                return;
-            }
-        }
-    };
-}
+//     this.addRiderToQueue = function (number) {
+//         queue.push(number);
+//     };
 
-RiderWaitingQueue.queue = [];
+//     this.removeRiderFromQueue = function (number) {
+//         for (var i = 0; i < queue.length; i++) {
+//             if (queue[i] == number) {
+//                 queue.splice(i, 1);
+//                 return;
+//             }
+//         }
+//     };
+// }
 
-module.exports = RiderWaitingQueue;
+// RiderWaitingQueue.queue = [];
+
+// module.exports = RiderWaitingQueue;

@@ -169,24 +169,27 @@ function searchForDriver(from, location, needTrailer) {
                         sys.log("searchForDriver: Driver or driver.num is NULL, sending noDriversText");
                         sendNoDriversText(from, false);
                         addRiderToQueue(from);
+                        startTimeoutForRider(from);
                     }
                 } else {
                     sys.log("searchForDriver: Error querying DB to find drivers, " + err);
                     sendNoDriversText(from, false);
                     addRiderToQueue(from);
+                    startTimeoutForRider(from);
                 }
             });
         } else {
             sys.log("searchForDriver: Error connecting to DB, " + err);
             sendNoDriversText(from, false);
             addRiderToQueue(from);
+            startTimeoutForRider(from);
         }
     });
 }
 
 function startTimeoutForRider(riderNum) {
-    var delay = 1000 * 60 * 30; // 1000ms = 1sec * 60 = 1min * 30 = 30min
-    setTimeout(RiderMessenger.sendNoDriversText(from, true), delay);
+    var delay = 1000 * 60 * 1; // 1000ms = 1sec * 60 = 1min * 30 = 30min
+    setTimeout(sendNoDriversText(from, true), delay);
 }
 
 function isRiderWaiting(number) {
