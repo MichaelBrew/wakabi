@@ -115,8 +115,8 @@ function defaultHelpResponse(res) {
 
 function sendNoDriversText(rider, isTimeout) {
     if (isTimeout) {
-        if (RiderWaitingQueue.isRiderWaiting(rider)) {
-            RiderWaitingQueue.removeRiderFromQueue(rider);
+        if (isRiderWaiting(rider)) {
+            removeRiderFromQueue(rider);
         } else {
             return;
         }
@@ -168,18 +168,18 @@ function searchForDriver(from, location, needTrailer) {
                     } else {
                         sys.log("searchForDriver: Driver or driver.num is NULL, sending noDriversText");
                         sendNoDriversText(from, false);
-                        RiderWaitingQueue.addRiderToQueue(from);
+                        addRiderToQueue(from);
                     }
                 } else {
                     sys.log("searchForDriver: Error querying DB to find drivers, " + err);
                     sendNoDriversText(from, false);
-                    RiderWaitingQueue.addRiderToQueue(from);
+                    addRiderToQueue(from);
                 }
             });
         } else {
             sys.log("searchForDriver: Error connecting to DB, " + err);
             sendNoDriversText(from, false);
-            RiderWaitingQueue.addRiderToQueue(from);
+            addRiderToQueue(from);
         }
     });
 }
@@ -187,6 +187,29 @@ function searchForDriver(from, location, needTrailer) {
 function startTimeoutForRider(riderNum) {
     var delay = 1000 * 60 * 30; // 1000ms = 1sec * 60 = 1min * 30 = 30min
     setTimeout(RiderMessenger.sendNoDriversText(from, true), delay);
+}
+
+function isRiderWaiting(number) {
+    for (var i = 0; i < queue.length; i++) {
+        if (global.riderWaitingQueue[i] == number) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function removeRiderFromQueue(number) {
+    for (var i = 0; i < global.riderWaitingQueue.length; i++) {
+        if (global.riderWaitingQueue[i] == number) {
+            global.riderWaitingQueue.splice(i, 1);
+            return;
+        }
+    }
+}
+
+function addRiderToQueue(number) {
+    global.riderWaitingQueue.push(number);
 }
 
 module.exports = {
