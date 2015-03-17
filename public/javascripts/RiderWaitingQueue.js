@@ -24,3 +24,5 @@ function RiderWaitingQueue () {
 }
 
 RiderWaitingQueue.queue = [];
+
+module.exports = RiderWaitingQueue;
