@@ -191,7 +191,7 @@ function searchForDriver(from, location, needTrailer) {
 function startTimeoutForRider(riderNum) {
     var delay = 1000 * 60 * 1; // 1000ms = 1sec * 60 = 1min * 30 = 30min
     sys.log("About to set timeout for rider waiting, delay is " + delay + "ms");
-    setTimeout(sendNoDriversText(riderNum, true), delay);
+    setTimeout(sendNoDriversText, delay, riderNum, true);
 }
 
 function isRiderWaiting(number) {
