@@ -43,6 +43,8 @@ function driverStartShift(res, from) {
                                 'Content-Type':'text/xml'
                             }, 200);
 
+                            client.end();
+                            sys.log("driverStartShift.js: closed connection to DB");
                             return;
                         });
                     }
@@ -124,6 +126,9 @@ function sendNumberToDriver(res, driverNum) {
                 } else {
                     // uh oh
                 }
+
+                client.end();
+                sys.log("sendNumberToDriver.js: closed connection to DB");
             });
         } else {
             // uh oh
@@ -160,6 +165,9 @@ function handleEndRideText(res, message, from) {
                             } else {
                                 // uh oh
                             }
+
+                            client.end();
+                            sys.log("textDriver.js: closed connection to DB");
                         });
                     } else {
                         // uh oh
@@ -206,6 +214,9 @@ module.exports = {
             } else {
 
             }
+
+            client.end();
+            sys.log("textDriver.js: closed connection to DB");
         });
 
         twilioClient.sendSms({
