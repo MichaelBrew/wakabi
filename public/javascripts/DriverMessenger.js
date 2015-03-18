@@ -106,17 +106,51 @@ function handleRequestResponse(res, message, from) {
     }
 
     if (parser.isYesMessage(message)) {
-        var riderNum = 0; // Get rider's num from db under driver's 'giving_ride_to' column
-
-        // sendNumberToDriver(res, from, riderNum);
-        // markDriverUnavailable(from);
-
-        db.cancelTimeoutForRider(riderNum);
+        sendNumberToDriver(res, from);
+        //markDriverUnavailable(from);
     } else if (parser.isNoMessage(message)) {
         // pass the request on to the next driver
     } else {
         // wasn't a response to the request, send back default message?
     }
+}
+
+function sendNumberToDriver(res, driverNum) {
+    pg.connect(process.env.DATABASE_URL, function(err, client) {
+        if (!err) {
+            // Get rider's number
+            var queryString = "SELECT giving_ride_to FROM drivers WHERE num = '" + driverNum + "'";
+            var query = client.query(queryString, function(err, result) {
+                if (!err) {
+                    // Text rider for feedback
+                    var riderNum = result.rows[0].giving_ride_to;
+                    var responseText = "Here is the rider's number: " + riderNum;
+
+                    twilioClient.sendSms({
+                        to: driverNum,
+                        from: TWILIO_NUMBER,
+                        body: responseText
+                    }, function(error, message) {
+                        if (error) {
+
+                        }
+                    });
+
+                    // Remove rider from waiting queue if there
+                    for (var i = 0; i < global.riderWaitingQueue; i++) {
+                        if (global.riderWaitingQueue[i] == riderNum) {
+                            global.riderWaitingQueue.splice(i, 1);
+                            return;
+                        }
+                    }
+                } else {
+                    // uh oh
+                }
+            });
+        } else {
+            // uh oh
+        }
+    });
 }
 
 function handleEndRideText(res, message, from) {
