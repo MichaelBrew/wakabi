@@ -97,15 +97,22 @@ function sendNumberToDriver(res, driverNum) {
                     var riderNum = result.rows[0].giving_ride_to;
                     var responseText = "Here is the rider's number: " + riderNum;
 
-                    twilioClient.sendSms({
-                        to: driverNum,
-                        from: TWILIO_NUMBER,
-                        body: responseText
-                    }, function(error, message) {
-                        if (error) {
+                    var response = new twilio.TwimlResponse();
+                    response.sms(responseText);
+                    res.cookie('driveStage', stages.driveStages.AWAITING_END_RIDE);
+                    res.send(response.toString(), {
+                        'Content-Type':'text/xml'
+                    }, 200);
 
-                        }
-                    });
+                    // twilioClient.sendSms({
+                    //     to: driverNum,
+                    //     from: TWILIO_NUMBER,
+                    //     body: responseText
+                    // }, function(error, message) {
+                    //     if (error) {
+
+                    //     }
+                    // });
 
                     // Remove rider from waiting queue if there
                     for (var i = 0; i < global.riderWaitingQueue; i++) {
@@ -133,7 +140,7 @@ function handleEndRideText(res, message, from) {
                 var query = client.query(queryString, function(err, result) {
                     if (!err) {
                         // Text rider for feedback
-                        var riderNum = result.rows[0];
+                        var riderNum = result.rows[0].giving_ride_to;
                         RiderMessenger.requestFeedback(riderNum);
 
                         // Clear 'giving_ride_to' value
