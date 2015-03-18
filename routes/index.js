@@ -13,7 +13,6 @@ router.get('/', function(req, res, next) {
               sys.log("index.js: Successfully got the drivers, there were " + result.rows.length);
               sys.log("index.js: For example, result.rows[0] is " + result.rows[0]);
               sys.log("index.js: result.rows[0].num is " + result.rows[0].num);
-              sys.log("index.js: result.rows[0](num) is " + result.rows[0](num));
               res.render('index', { title: 'Wakabi', drivers: result.rows })
             } else {
               // Error
