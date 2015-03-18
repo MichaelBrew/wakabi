@@ -154,6 +154,8 @@ var receiveIncomingMessage = function(req, res, next) {
     var message   = req.body.Body;
     var from      = req.body.From;
 
+    sys.log('From: ' + from + ', Message: ' + message);
+
     // Testing shortcuts
     if (isRideStageReset(res, message)) {
         return;
@@ -162,8 +164,6 @@ var receiveIncomingMessage = function(req, res, next) {
     } else if (isQuickRemoveDriver(res, message, from)) {
         return;
     }
-
-    sys.log('From: ' + from + ', Message: ' + message);
 
     pg.connect(process.env.DATABASE_URL, function(err, client) {
         if (!err) {
