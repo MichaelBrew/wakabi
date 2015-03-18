@@ -141,7 +141,16 @@ function handleEndRideText(res, message, from) {
                     if (!err) {
                         // Text rider for feedback
                         var riderNum = result.rows[0].giving_ride_to;
-                        RiderMessenger.requestFeedback(riderNum);
+                       // RiderMessenger.requestFeedback(riderNum);
+                       twilioClient.sendSms({
+                            to: riderNum,
+                            from: TWILIO_NUMBER,
+                            body: strings.feedbackQuestion
+                        }, function(error, message) {
+                            if (error) {
+                                // uh oh
+                            }
+                        });
 
                         // Clear 'giving_ride_to' value
                         var queryString = "UPDATE drivers SET on_ride = false, giving_ride_to = NULL WHERE num = '" + from + "'";
