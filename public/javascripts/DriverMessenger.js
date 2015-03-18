@@ -14,35 +14,6 @@ var twilio        = require('twilio');
 var twilioClient  = require('twilio')(accountSid, authToken);
 var TWILIO_NUMBER = '+18443359847';
 
-function textDriverForConfirmation(driverNumber, riderNumber) {
-    pg.connect(process.env.DATABASE_URL, function(err, client) {
-        if (!err) {
-            var queryString = "UPDATE drivers SET giving_ride_to = '" + riderNumber + "' WHERE num = '" + driverNumber + "'";
-            var query = client.query(queryString, function(err, result) {
-                if (!err) {
-
-                } else {
-
-                }
-            });
-        } else {
-
-        }
-    });
-
-    twilioClient.sendSms({
-        to: driverNumber,
-        from: TWILIO_NUMBER,
-        body: strings.acceptRideQuestion
-    }, function(error, message) {
-        if (error) {
-            sys.log('textDriverForConfirmation: Failed to send message asking if driver wanted to accept ride, ' + error.message);
-            // TODO: Either try resending text, or send text to next available driver? Can be part of "edge case/error handling"
-            //       work to be done spring quarter.
-        }
-    });
-}
-
 function driverStartShift(res, from) {
     pg.connect(process.env.DATABASE_URL, function(err, client) {
         if (!err) {
@@ -204,5 +175,33 @@ module.exports = {
                 handleEndRideText(res, message, from);
                 break;
         }
+    },
+    textDriverForConfirmation: function(driverNumber, riderNumber) {
+        pg.connect(process.env.DATABASE_URL, function(err, client) {
+            if (!err) {
+                var queryString = "UPDATE drivers SET giving_ride_to = '" + riderNumber + "' WHERE num = '" + driverNumber + "'";
+                var query = client.query(queryString, function(err, result) {
+                    if (!err) {
+
+                    } else {
+
+                    }
+                });
+            } else {
+
+            }
+        });
+
+        twilioClient.sendSms({
+            to: driverNumber,
+            from: TWILIO_NUMBER,
+            body: strings.acceptRideQuestion
+        }, function(error, message) {
+            if (error) {
+                sys.log('textDriverForConfirmation: Failed to send message asking if driver wanted to accept ride, ' + error.message);
+                // TODO: Either try resending text, or send text to next available driver? Can be part of "edge case/error handling"
+                //       work to be done spring quarter.
+            }
+        });
     }
 };
