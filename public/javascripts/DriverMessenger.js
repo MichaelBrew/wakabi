@@ -1,4 +1,5 @@
 var sys     = require('sys');
+var pg      = require('pg');
 var stages  = require('./stages');
 var strings = require('./strings');
 var parser  = require('./messageParser');
