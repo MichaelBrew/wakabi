@@ -44,7 +44,7 @@ function textDriverForConfirmation(driverNumber, riderNumber) {
 }
 
 function driverStartShift(res, from) {
-    var resonseText = "";
+    var responseText = "";
     pg.connect(process.env.DATABASE_URL, function(err, client) {
         if (!err) {
             sys.log("driverStartShift: connected to DB");
