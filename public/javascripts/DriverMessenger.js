@@ -43,7 +43,41 @@ function textDriverForConfirmation(driverNumber, riderNumber) {
 }
 
 function driverStartShift(res, from) {
+    var resonseText = "";
+    pg.connect(process.env.DATABASE_URL, function(err, client) {
+        if (!err) {
+            sys.log("driverStartShift: connected to DB");
+            var working = "";
+            var query = client.query("SELECT working FROM drivers WHERE num = '" + from + "'", function(err, result) {
+                if (!err) {
+                    //Successful query
+                    working += result.rows[0];
+                } else {
+                    sys.log("driverStartShift: Error querying the DB");
+                }
+            });
 
+            if (working == "true") {
+                responseText += "I can't do that, you are already working.";
+            } else {
+                //set working to true
+                var query = client.query("UPDATE drivers SET working = 'true' WHERE num = '" + from + "'", function(err, result) {
+
+
+                });
+                responseText += "You started your shift - good luck!";
+            }
+
+       } else {
+            //whoops
+       }
+    });
+
+    var response = new twilio.TwimlResponse();
+    response.sms(responseText);
+    res.send(response.toString(), {
+        'Content-Type':'text/xml'
+    }, 200);
 }
 
 function driverEndShift(res, from) {
