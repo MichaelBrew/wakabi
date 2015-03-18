@@ -185,11 +185,15 @@ var receiveIncomingMessage = function(req, res, next) {
                     RiderMessenger.handleText(req, res, message, from, getStage(req, false));
                 }
             });
+
         } else {
             sys.log("receiveIncomingMessage: Error connecting to DB, " + err);
             // Default to rider
             RiderMessenger.handleText(req, res, message, from, getStage(req, false));
         }
+
+        client.end();
+        sys.log("Incoming.js: closed connection to DB");
     });
 }
 
