@@ -53,6 +53,11 @@ function driverStartShift(res, from) {
                     //Successful query
                     if (result.rows.length == 1) {
                         responseText += "I can't do that, you are already working.";
+                        var response = new twilio.TwimlResponse();
+                        response.sms(responseText);
+                        res.send(response.toString(), {
+                            'Content-Type':'text/xml'
+                        }, 200);
                     } else {
                         var query = client.query("UPDATE drivers SET working = true WHERE num = '" + from + "'", function(err, result) {
                             if (!err) {
@@ -73,13 +78,13 @@ function driverStartShift(res, from) {
                 } else {
                     responseText += "We're sorry, there was an error with the DB";
                     sys.log("driverStartShift: Error querying the DB");
-                }
 
-                var response = new twilio.TwimlResponse();
-                response.sms(responseText);
-                res.send(response.toString(), {
-                    'Content-Type':'text/xml'
-                }, 200);
+                    var response = new twilio.TwimlResponse();
+                    response.sms(responseText);
+                    res.send(response.toString(), {
+                        'Content-Type':'text/xml'
+                    }, 200);
+                }
             });
        } else {
             //whoops
