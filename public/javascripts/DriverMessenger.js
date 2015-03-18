@@ -42,7 +42,23 @@ function textDriverForConfirmation(driverNumber, riderNumber) {
     });
 }
 
+function driverStartShift(res, from) {
+
+}
+
+function driverEndShift(res, from) {
+
+}
+
 function handleRequestResponse(res, message, from) {
+    if (message.toLowerCase() == 'start shift') {
+        driverStartShift(res, from);
+    }
+
+    if (message.toLowerCase() == 'end shift') {
+        driverEndShift(res, from);
+    }
+
     if (parser.isYesMessage(message)) {
         var riderNum = 0; // Get rider's num from db under driver's 'giving_ride_to' column
 
