@@ -51,7 +51,7 @@ function driverStartShift(res, from) {
                 var responseText = "";
                 if (!err) {
                     //Successful query
-                    if (results.rows.length == 1) {
+                    if (result.rows.length == 1) {
                         responseText += "I can't do that, you are already working.";
                     } else {
                         var query = client.query("UPDATE drivers SET working = true WHERE num = '" + from + "'", function(err, result) {
