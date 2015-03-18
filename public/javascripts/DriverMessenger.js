@@ -44,41 +44,47 @@ function textDriverForConfirmation(driverNumber, riderNumber) {
 }
 
 function driverStartShift(res, from) {
-    var responseText = "";
     pg.connect(process.env.DATABASE_URL, function(err, client) {
         if (!err) {
             sys.log("driverStartShift: connected to DB");
-            var working = "";
-            var query = client.query("SELECT working FROM drivers WHERE num = '" + from + "'", function(err, result) {
+            var query = client.query("SELECT num FROM drivers WHERE num = '" + from + "' AND working = true", function(err, result) {
+                var responseText = "";
                 if (!err) {
                     //Successful query
-                    working += result.rows[0];
+                    if (results.rows.length == 1) {
+                        responseText += "I can't do that, you are already working.";
+                    } else {
+                        var query = client.query("UPDATE drivers SET working = true WHERE num = '" + from + "'", function(err, result) {
+                            if (!err) {
+                                responseText += "You started your shift - good luck!";
+                            } else {
+                                responseText += "We're sorry, there was an error with the DB";
+                            }
+
+                            var response = new twilio.TwimlResponse();
+                            response.sms(responseText);
+                            res.send(response.toString(), {
+                                'Content-Type':'text/xml'
+                            }, 200);
+
+                            return;
+                        });
+                    }
                 } else {
+                    responseText += "We're sorry, there was an error with the DB";
                     sys.log("driverStartShift: Error querying the DB");
                 }
+
+                var response = new twilio.TwimlResponse();
+                response.sms(responseText);
+                res.send(response.toString(), {
+                    'Content-Type':'text/xml'
+                }, 200);
             });
-
-            if (working == "true") {
-                responseText += "I can't do that, you are already working.";
-            } else {
-                //set working to true
-                var query = client.query("UPDATE drivers SET working = 'true' WHERE num = '" + from + "'", function(err, result) {
-
-
-                });
-                responseText += "You started your shift - good luck!";
-            }
-
        } else {
             //whoops
        }
     });
-
-    var response = new twilio.TwimlResponse();
-    response.sms(responseText);
-    res.send(response.toString(), {
-        'Content-Type':'text/xml'
-    }, 200);
 }
 
 function driverEndShift(res, from) {
