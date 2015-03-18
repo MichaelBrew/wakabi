@@ -17,5 +17,12 @@ module.exports = {
                 return true;
             }
         }
+    },
+    isEndRideMessage: function(msg) {
+        if (msg.toUpperCase() == "END RIDE") {
+            return true;
+        }
+
+        return false;
     }
 };

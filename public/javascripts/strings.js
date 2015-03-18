@@ -28,3 +28,6 @@ exports.waitText = "Ok, a driver will call you to pick you up shortly!";
 exports.noDriversAvailable = "We're sorry, no drivers are available."
 exports.willNotifyIn30 = " If one becomes available within 30 minutes, we will let you know.";
 exports.acceptRideQuestion = "Do you want to accept a new ride request?"
+exports.feedbackQuestion = "Was your ride with Wakabi satisfactory?";
+exports.goodFeedback = "Glad to hear it, thanks for riding with us!";
+exports.badFeedback = "We're sorry to hear that, we hope your next trip with us will be more enjoyable!";

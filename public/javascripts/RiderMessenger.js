@@ -164,7 +164,7 @@ function searchForDriver(from, location, needTrailer) {
                     if (driver != null && driver.num != null) {
                         sys.log("searchForDriver: About to text driver " + driver.num);
 
-                        DriverMessenger.textDriverForConfirmation(driver.num);
+                        DriverMessenger.textDriverForConfirmation(driver.num, from);
                         db.addRiderNumToDriver(driver.num, from);
                     } else {
                         sys.log("searchForDriver: Driver or driver.num is NULL, sending noDriversText");
@@ -217,6 +217,16 @@ function addRiderToQueue(number) {
     global.riderWaitingQueue.push(number);
 }
 
+function handleFeedbackResponse(res, message) {
+    var responseText = parser.isYesMessage(message) ? strings.goodFeedback : strings.badFeedback;
+    var response = new twilio.TwimlResponse();
+    response.sms(responseText);
+    res.cookie('rideStage', stages.rideStages.NOTHING);
+    res.send(response.toString(), {
+        'Content-Type':'text/xml'
+    }, 200);
+}
+
 module.exports = {
     handleText: function(req, res, message, from, rideStage) {
 
@@ -234,9 +244,24 @@ module.exports = {
                 break;
 
             case stages.rideStages.CONTACTING_DRIVER:
-                sys.log('handleRiderText: received text from waiting rider');
-                sendWaitText(res);
+                if (parser.isYesMessage(message) || parser.isNoMessage(message)) {
+                    handleFeedbackResponse(res, message);
+                } else {
+                    sys.log('handleRiderText: received text from waiting rider');
+                    sendWaitText(res);
+                }
                 break;
         }
+    },
+    requestFeedback: function(riderNum) {
+        twilioClient.sendSms({
+            to: riderNum,
+            from: TWILIO_NUMBER,
+            body: strings.feedbackQuestion
+        }, function(error, message) {
+            if (error) {
+                // uh oh
+            }
+        });
     }
 };

@@ -2,6 +2,9 @@ var sys     = require('sys');
 var stages  = require('./stages');
 var strings = require('./strings');
 var parser  = require('./messageParser');
+var db      = require('./db');
+
+var RiderMessenger = require('./RiderMessenger');
 
 /* Twilio Credentials */
 var accountSid    = 'ACf55ee981f914dc797efa85947d9f60b8';
@@ -10,7 +13,22 @@ var twilio        = require('twilio');
 var twilioClient  = require('twilio')(accountSid, authToken);
 var TWILIO_NUMBER = '+18443359847';
 
-function textDriverForConfirmation(driverNumber) {
+function textDriverForConfirmation(driverNumber, riderNumber) {
+    pg.connect(process.env.DATABASE_URL, function(err, client) {
+        if (!err) {
+            var queryString = "UPDATE drivers SET giving_ride_to = '" + riderNumber + "' WHERE num = '" + driverNumber + "'";
+            var query = client.query(queryString, function(err, result) {
+                if (!err) {
+
+                } else {
+
+                }
+            });
+        } else {
+
+        }
+    });
+
     twilioClient.sendSms({
         to: driverNumber,
         from: TWILIO_NUMBER,
@@ -18,7 +36,6 @@ function textDriverForConfirmation(driverNumber) {
     }, function(error, message) {
         if (error) {
             sys.log('textDriverForConfirmation: Failed to send message asking if driver wanted to accept ride, ' + error.message);
-
             // TODO: Either try resending text, or send text to next available driver? Can be part of "edge case/error handling"
             //       work to be done spring quarter.
         }
@@ -40,6 +57,40 @@ function handleRequestResponse(res, message, from) {
     }
 }
 
+function handleEndRideText(res, message, from) {
+    if (parser.isEndRideMessage(message)) {
+        pg.connect(process.env.DATABASE_URL, function(err, client) {
+            if (!err) {
+                // Get rider's number
+                var queryString = "SELECT giving_ride_to FROM drivers WHERE num = '" + from + "'";
+                var query = client.query(queryString, function(err, result) {
+                    if (!err) {
+                        // Text rider for feedback
+                        var riderNum = result.rows[0];
+                        RiderMessenger.requestFeedback(riderNum);
+
+                        // Clear 'giving_ride_to' value
+                        var queryString = "UPDATE drivers SET on_ride = false, giving_ride_to = NULL WHERE num = '" + from + "'";
+                        var query = client.query(queryString, function(err, result) {
+                            if (!err) {
+                                // cool
+                            } else {
+                                // uh oh
+                            }
+                        });
+                    } else {
+                        // uh oh
+                    }
+                });
+            } else {
+                // uh oh
+            }
+        });
+    } else {
+        // ignore for now
+    }
+}
+
 module.exports = {
     handleText: function(res, message, from, driveStage) {
         switch (driveStage) {
@@ -54,7 +105,7 @@ module.exports = {
                 break;
 
             case stages.driveStages.AWAITING_END_RIDE:
-                handleEndRideText(res, message);
+                handleEndRideText(res, message, from);
                 break;
         }
     }
