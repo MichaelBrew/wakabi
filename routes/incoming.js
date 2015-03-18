@@ -165,6 +165,8 @@ var receiveIncomingMessage = function(req, res, next) {
         return;
     }
 
+    sys.log("Made it past the shortcut checks");
+
     pg.connect(process.env.DATABASE_URL, function(err, client) {
         if (!err) {
             // Check if sender is a driver
