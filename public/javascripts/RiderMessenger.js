@@ -165,7 +165,22 @@ function searchForDriver(from, location, needTrailer) {
                         sys.log("searchForDriver: About to text driver " + driver.num);
 
                         DriverMessenger.textDriverForConfirmation(driver.num, from);
-                        db.addRiderNumToDriver(driver.num, from);
+                        //db.addRiderNumToDriver(driver.num, from);
+                        pg.connect(process.env.DATABASE_URL, function(err, client) {
+                            if (!err) {
+                                // Assign the rider's number to the driver's 'giving_ride_to' column
+                                var query = client.query("UPDATE drivers SET giving_ride_to = '" + from + "' WHERE num = '" + driver.num + "'", function(err, result) {
+                                    if (!err) {
+                                        sys.log("addRiderNumToDriver: Rider num " + from + " successfully added to driver " + driver.num);
+                                    } else {
+                                        sys.log("addRiderNumToDriver: Error adding rider num " + from + " to driver " + driver.num + ", error: " + err);
+                                        // TODO: Try the query again? Can be taken care of as "error handling" work in spring quarter
+                                    }
+                                });
+                            } else {
+                                sys.log("addRiderNumToDriver: Error connecting to DB, " + err);
+                            }
+                        });
                     } else {
                         sys.log("searchForDriver: Driver or driver.num is NULL, sending noDriversText");
                         sendNoDriversText(from, false);
