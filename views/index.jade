@@ -8,8 +8,9 @@ block content
           tr
             th Activity Log
         tbody
-          tr
-            td Activity item
+          each driver in drivers
+            tr
+              td driver
       table#alert-table.table.table-bordered
         thead
           tr
@@ -17,14 +18,3 @@ block content
         tbody
           tr
             td Alert item
-  script.
-    console.log("index.jade: Starting script");
-
-    var html = "";
-    for (var i = 0; i < drivers.length; i++) {
-      html += "tr\n\ttd " + drivers[i] + "\n";
-    }
-
-    console.log("index.jade: Finished iterating through " + drivers.length + " drivers, changing html now");
-    $("#activity-table tbody").html(html)
-    console.log("index.jade: HTML successfully changed!");
