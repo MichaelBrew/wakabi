@@ -10,6 +10,12 @@ a {
 .table {
   border-radius: 10px;
   width: 45%;
+  margin: 5px;
+}
+
+.container {
+  margin-left: 10px;
+  margin-right: 10px;
 }
 
 .driveraddedicon {
@@ -34,5 +40,5 @@ a {
 }
 
 #alert-table {
-  float: right;
+  float: left;
 }
