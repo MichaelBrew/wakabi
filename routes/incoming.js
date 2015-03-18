@@ -184,6 +184,9 @@ var receiveIncomingMessage = function(req, res, next) {
                     // Default to rider
                     RiderMessenger.handleText(req, res, message, from, getStage(req, false));
                 }
+
+                client.end();
+                sys.log("Incoming.js: closed connection to DB");
             });
 
         } else {
@@ -191,9 +194,6 @@ var receiveIncomingMessage = function(req, res, next) {
             // Default to rider
             RiderMessenger.handleText(req, res, message, from, getStage(req, false));
         }
-
-        client.end();
-        sys.log("Incoming.js: closed connection to DB");
     });
 }
 
