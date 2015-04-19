@@ -232,8 +232,17 @@ function addRiderToQueue(number) {
     global.riderWaitingQueue.push(number);
 }
 
-function handleFeedbackResponse(res, message) {
-    var responseText = parser.isYesMessage(message) ? strings.goodFeedback : strings.badFeedback;
+function handleFeedbackResponse(res, message, from) {
+    var responseText;
+
+    if (parser.isYesMessage(message)) {
+        responseText = strings.goodFeedback;
+        db.updateDriverRatingWithRiderNum(from, true)
+    } else {
+        responseText = strings.badFeedback;
+        db.updateDriverRatingWithRiderNum(from, false)
+    }
+
     var response = new twilio.TwimlResponse();
     response.sms(responseText);
     res.cookie('rideStage', stages.rideStages.NOTHING);
@@ -244,7 +253,6 @@ function handleFeedbackResponse(res, message) {
 
 module.exports = {
     handleText: function(req, res, message, from, rideStage) {
-
         switch (rideStage) {
             case stages.rideStages.NOTHING:
                 handleRideRequest(res, message, from);
@@ -260,7 +268,7 @@ module.exports = {
 
             case stages.rideStages.CONTACTING_DRIVER:
                 if (parser.isYesMessage(message) || parser.isNoMessage(message)) {
-                    handleFeedbackResponse(res, message);
+                    handleFeedbackResponse(res, message, from);
                 } else {
                     sys.log('handleRiderText: received text from waiting rider');
                     sendWaitText(res);

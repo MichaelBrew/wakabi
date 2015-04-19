@@ -165,8 +165,6 @@ var receiveIncomingMessage = function(req, res, next) {
         return;
     }
 
-    sys.log("Made it past the shortcut checks");
-
     pg.connect(process.env.DATABASE_URL, function(err, client) {
         if (!err) {
             // Check if sender is a driver
@@ -186,7 +184,7 @@ var receiveIncomingMessage = function(req, res, next) {
                 }
 
                 client.end();
-                sys.log("Incoming.js: closed connection to DB");
+                sys.log("incoming.js: closed connection to DB");
             });
 
         } else {
