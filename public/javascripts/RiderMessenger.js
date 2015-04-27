@@ -113,6 +113,8 @@ function defaultHelpResponse(res) {
     }, 200);
 }
 
+// TODO: If we're sending this after the 30 min timeout, need to somehow reset their rideStage back
+//       to nothing or else they can't request a new ride.
 function sendNoDriversText(rider, isTimeout) {
     if (isTimeout) {
         sys.log("sendNoDrivers: Called from a timeout!");
