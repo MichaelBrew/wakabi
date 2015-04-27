@@ -63,9 +63,12 @@
                 var currentRating = result.rows[0].rating;
                 var totalRides = result.rows[0].total_rides_completed;
 
-                // example: totalRides = 26, currentRating = 97%
-                // GOOD: (1/(26+1))*100 + (26/(26+1))*97 = .037*100 + .962*97 = 3.7 + 93.4 = 97.1
-                // BAD:  (1/(26+1))*0   + (26/(26+1))*97 = .037*0   + .962*97 = 0   + 93.4 = 93.4
+                /*
+                 * EXAMPLE
+                 * totalRides = 26, currentRating = 97%
+                 * Good Feedback -> (1/(26+1))*100 + (26/(26+1))*97 = .037*100 + .962*97 = 3.7 + 93.4 = 97.1%
+                 * Bad Feedback  -> (1/(26+1))*0   + (26/(26+1))*97 = .037*0   + .962*97 = 0   + 93.4 = 93.4%
+                 */
                 var multiplier = goodFeedback ? 100 : 0;
                 var newRating = (1/(totalRides+1))*multiplier + (totalRides/(totalRides+1))*currentRating;
 
@@ -89,8 +92,8 @@
         var queryString = "UPDATE drivers SET on_ride = false, giving_ride_to = NULL WHERE num = '" + driverNum + "'";
         var query = client.query(queryString, function(err, result) {
           if (!err) {
-              // cool
-            }
+            // cool
+          }
           client.end();
         });
       }
