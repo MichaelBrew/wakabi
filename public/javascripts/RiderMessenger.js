@@ -62,8 +62,8 @@ function requestLocation(res, resend) {
     for (var i = 1; i <= strings.availableLocations.length; i++) {
         locationList += (i + ": " + strings.availableLocations[i-1]);
 
-        debugMessage = "i = " + i + "; length+1 = " + (strings.availableLocations.length+1) + "; i != strings.availableLocations.length+1 is "
-        if (i != strings.availableLocations.length+1) {
+        debugMessage = "i = " + i + "; length = " + (strings.availableLocations.length) + "; i != strings.availableLocations.length is "
+        if (i != strings.availableLocations.length) {
             locationList += "\n";
             debugMessage += "true"
         } else {
@@ -79,6 +79,7 @@ function requestLocation(res, resend) {
     }
 
     responseText += strings.askLocation + locationList;
+    sys.log("Response text is " + responseText);
 
     var response = new twilio.TwimlResponse();
     response.sms(responseText);
