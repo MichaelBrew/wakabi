@@ -62,9 +62,14 @@ function requestLocation(res, resend) {
     for (var i = 1; i <= strings.availableLocations.length; i++) {
         locationList += (i + ": " + strings.availableLocations[i-1]);
 
+        debugMessage = "i = " + i + "; length+1 = " + (strings.availableLocations.length+1) + "; i != strings.availableLocations.length+1 is "
         if (i != strings.availableLocations.length+1) {
             locationList += "\n";
+            debugMessage += "true"
+        } else {
+            debugMessage += "false"
         }
+        sys.log(debugMessage)
     }
 
     var responseText = "";
