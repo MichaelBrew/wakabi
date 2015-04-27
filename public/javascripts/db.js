@@ -47,7 +47,8 @@
             sys.log("addRiderNumToDriver: Rider num " + riderNum + " successfully added to driver " + driverNum);
           }
         });
-      });
+      }
+    });
   },
   updateDriverRatingWithRiderNum: function(riderNum, goodFeedback) {
     pg.connect(process.env.DATABASE_URL, function(err, client) {
@@ -90,8 +91,8 @@
           if (!err) {
               // cool
             }
-            client.end();
-          });
+          client.end();
+        });
       }
     });
   }
