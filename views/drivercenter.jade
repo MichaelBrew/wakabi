@@ -1,0 +1,13 @@
+extends layout
+
+block content
+  div.container
+    div.content
+      table#drivers-table.table.table-bordered
+        thead
+          tr
+            th Drivers
+        tbody
+          each driver in drivers
+            tr
+              td= driver.num

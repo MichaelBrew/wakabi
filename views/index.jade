@@ -2,19 +2,15 @@ extends layout
 
 block content
   div.container
-    div.content
-      table#drivers-table.table.table-bordered
-        thead
-          tr
-            th Drivers
-        tbody
-          each driver in drivers
-            tr
-              td= driver.num
-      table#alert-table.table.table-bordered
-        thead
-          tr
-            th Alerts
-        tbody
-          tr
-            td Alert item
+    div.dashboard-wrapper
+      h1 Dashboard
+      p March 14, 2016
+      div.dashboard-content-wrapper
+        div.dashboard-section.driver-content
+          img(src='/images/dashboard-motorcycle.png')
+        div.dashboard-section.rider-content
+          img(src='/images/dashboard-riders.png')
+        div.rdashboard-section.ating-content
+          img(src='/images/dashboard-ratings.png')
+    div.alerts-wrapper
+      h1 Alerts

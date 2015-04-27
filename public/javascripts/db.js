@@ -14,11 +14,11 @@
  *         The response handling DOES rely on this result.
  */
 
-var pg             = require('pg');
-var sys            = require('sys');
-var RiderMessenger = require('./RiderMessenger');
+ var pg             = require('pg');
+ var sys            = require('sys');
+ var RiderMessenger = require('./RiderMessenger');
 
-module.exports = {
+ module.exports = {
     addRiderNumToDb: function (from) {
         pg.connect(process.env.DATABASE_URL, function(err, client) {
             if (!err) {
@@ -67,13 +67,13 @@ module.exports = {
     updateDriverRatingWithRiderNum: function(riderNum, goodFeedback) {
         pg.connect(process.env.DATABASE_URL, function(err, client) {
             if (!err) {
-                var query = client.query("SELECT num FROM drivers WHERE giving_ride_to = '" + riderNum + "'"), function(err, result) {
+                var query = client.query("SELECT num FROM drivers WHERE giving_ride_to = '" + riderNum + "'", function(err, result) {
                     if (!err) {
                         if (result.length == 1) {
                             var driverNum = result.rows[0].num;
 
                             var queryString = "SELECT rating AND total_rides_completed FROM drivers WHERE num = '" + driverNum + "'";
-                            var query = client.query(queryString), function(err, result) {
+                            var query = client.query(queryString, function(err, result) {
                                 if (!err) {
                                     if (result.length == 1) {
                                         var currentRating = result.rows[0].rating;
@@ -86,27 +86,27 @@ module.exports = {
                                         var newRating = (1/(totalRides+1))*multiplier + (totalRides/(totalRides+1))*currentRating;
 
                                         var queryString = "UPDATE drivers SET rating = " + newRating + ", total_rides_completed = " 
-                                                        + (totalRides+1) + " WHERE num = '" + driverNum + "'";
+                                        + (totalRides+1) + " WHERE num = '" + driverNum + "'";
 
-                                        var query = client.query(queryString), function(err, result) {
+                                        var query = client.query(queryString, function(err, result) {
                                             if (!err) {
                                                 clearGivingRideTo(driverNum);
                                             } else {
                                                 // ERROR
                                             }
-                                        }
+                                        });
                                     }
                                 } else {
                                     // error querying DB
                                 }
-                            }
+                            });
                         } else {
                             // Driver not found
                         }
                     } else {
                         // ERROR
                     }
-                }
+                });
             } else {
                 // error connecting to db
             }
@@ -126,6 +126,6 @@ module.exports = {
                     client.end();
                 });
             }
-        }
-    }
+        });
+     }
 };
