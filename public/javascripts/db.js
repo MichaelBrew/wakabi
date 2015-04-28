@@ -19,6 +19,9 @@
  var RiderMessenger = require('./RiderMessenger');
 
 module.exports = {
+  testFunc: function(testString) {
+    sys.log("testFunc successfully called, testString: " + testString);
+  },
   addRiderNumToDb: function (from) {
     pg.connect(process.env.DATABASE_URL, function(err, client) {
       if (!err) {

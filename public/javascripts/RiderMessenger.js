@@ -236,6 +236,7 @@ function addRiderToQueue(number) {
 
 function handleFeedbackResponse(res, message, from) {
     var responseText;
+    db.testFunc("yoyoyo");
 
     if (parser.isYesMessage(message)) {
         responseText = strings.goodFeedback;

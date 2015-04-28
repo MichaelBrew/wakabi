@@ -22,7 +22,7 @@ function isRideStageReset(res, msg) {
         response.sms(responseText);
         res.cookie('rideStage', stages.rideStages.NOTHING);
         res.cookie('driveStage', stages.driveStages.NOTHING);
-        sys.log("isRideStageReset: Just set the rideStage to " + stages.rideStages.NOTHING);
+        sys.log("isRideStageReset: Just set the rideStage/driveStage to " + stages.rideStages.NOTHING);
         res.send(response.toString(), {
             'Content-Type':'text/xml'
         }, 200);
