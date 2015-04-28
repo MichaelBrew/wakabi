@@ -18,7 +18,7 @@ function isRideStageReset(res, msg) {
     if (msg.toLowerCase() == "reset") {
         sys.log("isRideStageReset: message was a reset");
         var response = new twilio.TwimlResponse();
-        var responseText = "Ok, rideStage has been reset to NOTHING";
+        var responseText = "Ok, rideStage/driveStage has been reset to NOTHING";
         response.sms(responseText);
         res.cookie('rideStage', stages.rideStages.NOTHING);
         res.cookie('driveStage', stages.driveStages.NOTHING);
