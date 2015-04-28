@@ -21,6 +21,7 @@ function isRideStageReset(res, msg) {
         var responseText = "Ok, rideStage has been reset to NOTHING";
         response.sms(responseText);
         res.cookie('rideStage', stages.rideStages.NOTHING);
+        res.cookie('driveStage', stages.driveStages.NOTHING);
         sys.log("isRideStageReset: Just set the rideStage to " + stages.rideStages.NOTHING);
         res.send(response.toString(), {
             'Content-Type':'text/xml'

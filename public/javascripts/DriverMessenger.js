@@ -184,15 +184,18 @@ module.exports = {
             // TODO: what if driver randomly texts server? Can't assume it's in response
             //       to a ride request. Leave for "edge case" work spring quarter
             case stages.driveStages.NOTHING:
+                sys.log("DriverMessenger.handleText: Driver stage is NOTHING");
                 handleRequestResponse(res, message, from);
                 break;
 
             case stages.driveStages.AWAITING_START_RIDE:
+                sys.log("DriverMessenger.handleText: Driver stage is NOTHING");
                 handleStartRideText(res, message);
                 break;
 
             case stages.driveStages.AWAITING_END_RIDE:
                 handleEndRideText(res, message, from);
+                sys.log("DriverMessenger.handleText: Driver stage is NOTHING");
                 break;
         }
     },
