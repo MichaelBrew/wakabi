@@ -265,6 +265,11 @@ function handleFeedbackResponse(res, message, from) {
                 var multiplier = parser.isYesMessage(message) ? 100 : 0;
                 var newRating = (1/(totalRides+1))*multiplier + (totalRides/(totalRides+1))*currentRating;
 
+                if (multiplier == 100) {
+                    sys.log("updateDriverRating: feedback: GOOD; oldRating = " + currentRating + "; oldTotalRides = " + totalRides + "; newRating = " + newRating + "; newTotalRides = " + (totalRides+1));
+                } else {
+                    sys.log("updateDriverRating: feedback: BAD; oldRating = " + currentRating + "; oldTotalRides = " + totalRides + "; newRating = " + newRating + "; newTotalRides = " + (totalRides+1));
+                }
                 var queryString = "UPDATE drivers SET rating = " + newRating + ", total_rides_completed = " + (totalRides+1) + " WHERE num = '" + driverNum + "'";
 
                 var query = client.query(queryString, function(err, result) {
