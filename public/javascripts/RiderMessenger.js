@@ -74,7 +74,6 @@ function requestLocation(res, resend) {
     }
 
     responseText += strings.askLocation + locationList;
-    sys.log("Response text is " + responseText);
 
     var response = new twilio.TwimlResponse();
     response.sms(responseText);
@@ -240,10 +239,10 @@ function handleFeedbackResponse(res, message, from) {
 
     if (parser.isYesMessage(message)) {
         responseText = strings.goodFeedback;
-        db.updateDriverRatingWithRiderNum(from, true)
+        db.updateDriverRatingWithRiderNum(from, true);
     } else {
         responseText = strings.badFeedback;
-        db.updateDriverRatingWithRiderNum(from, false)
+        db.updateDriverRatingWithRiderNum(from, false);
     }
 
     var response = new twilio.TwimlResponse();
