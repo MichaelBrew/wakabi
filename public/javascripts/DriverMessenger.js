@@ -95,7 +95,6 @@ function sendNumberToDriver(res, driverNum) {
             var queryString = "SELECT giving_ride_to FROM drivers WHERE num = '" + driverNum + "'";
             var query = client.query(queryString, function(err, result) {
                 if (!err) {
-                    // Text rider for feedback
                     var riderNum = result.rows[0].giving_ride_to;
                     var responseText = "Here is the rider's number: " + riderNum;
 
