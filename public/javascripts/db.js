@@ -18,7 +18,7 @@
  var sys            = require('sys');
  var RiderMessenger = require('./RiderMessenger');
 
-db = {
+module.exports = {
   addRiderNumToDb: function (from) {
     pg.connect(process.env.DATABASE_URL, function(err, client) {
       if (!err) {
@@ -100,5 +100,3 @@ db = {
     });
   }
 };
-
-module.exports = db;
