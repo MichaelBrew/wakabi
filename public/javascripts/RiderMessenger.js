@@ -235,6 +235,7 @@ function addRiderToQueue(number) {
 }
 
 function handleFeedbackResponse(res, message, from) {
+    sys.log("handleFeedbackResponse");
     var responseText = parser.isYesMessage(message) ? strings.goodFeedback : strings.badFeedback;
 
     var response = new twilio.TwimlResponse();
@@ -243,18 +244,24 @@ function handleFeedbackResponse(res, message, from) {
     res.send(response.toString(), {
         'Content-Type':'text/xml'
     }, 200);
+    sys.log("handleFeedbackResponse: Just sent response: " + responseText);
 
     pg.connect(process.env.DATABASE_URL, function(err, client) {
       if (!err) {
+        sys.log("handleFeedbackResponse: connected to DB");
         var query = client.query("SELECT num FROM drivers WHERE giving_ride_to = '" + from + "'", function(err, result) {
           if (!err && result.length == 1) {
             var driverNum = result.rows[0].num;
+            sys.log("handleFeedbackResponse: found the driver, num is " + driverNum);
 
             var queryString = "SELECT rating AND total_rides_completed FROM drivers WHERE num = '" + driverNum + "'";
             var query = client.query(queryString, function(err, result) {
               if (!err && result.length == 1) {
                 var currentRating = result.rows[0].rating;
                 var totalRides = result.rows[0].total_rides_completed;
+
+                sys.log("handleFeedbackResponse: got his rating = " + currentRating);
+                sys.log("handleFeedbackResponse: got his totalRides = " + totalRides);
 
                 /*
                  * EXAMPLE
@@ -270,18 +277,15 @@ function handleFeedbackResponse(res, message, from) {
                 } else {
                     sys.log("updateDriverRating: feedback: BAD; oldRating = " + currentRating + "; oldTotalRides = " + totalRides + "; newRating = " + newRating + "; newTotalRides = " + (totalRides+1));
                 }
-                var queryString = "UPDATE drivers SET rating = " + newRating + ", total_rides_completed = " + (totalRides+1) + " WHERE num = '" + driverNum + "'";
+                var queryString = "UPDATE drivers SET rating = " + newRating + ", total_rides_completed = " + (totalRides+1) + ", on_ride = false, giving_ride_to = NULL WHERE num = '" + driverNum + "'";
 
                 var query = client.query(queryString, function(err, result) {
-                  if (!err) {
-                    var queryString = "UPDATE drivers SET on_ride = false, giving_ride_to = NULL WHERE num = '" + driverNum + "'";
-                    var query = client.query(queryString, function(err, result) {
-                      if (!err) {
-                        // cool
-                      }
-                      client.end();
-                    });
-                  }
+                    if (!err) {
+                        sys.log("handleFeedbackResponse: updated rating, totalrides, on_ride, and giving_ride_to successfully");
+                        client.end();
+                    } else {
+                        sys.log("handleFeedbackResponse: Failed to updated rating, totalrides, on_ride, and giving_ride_to");
+                    }
                 });
               }
             });
