@@ -238,14 +238,6 @@ function handleFeedbackResponse(res, message, from) {
     sys.log("handleFeedbackResponse");
     var responseText = parser.isYesMessage(message) ? strings.goodFeedback : strings.badFeedback;
 
-    var response = new twilio.TwimlResponse();
-    response.sms(responseText);
-    res.cookie('rideStage', stages.rideStages.NOTHING);
-    res.send(response.toString(), {
-        'Content-Type':'text/xml'
-    }, 200);
-    sys.log("handleFeedbackResponse: Just sent response: " + responseText);
-
     pg.connect(process.env.DATABASE_URL, function(err, client) {
       if (!err) {
         sys.log("handleFeedbackResponse: connected to DB");
@@ -273,24 +265,33 @@ function handleFeedbackResponse(res, message, from) {
                 var newRating = (1/(totalRides+1))*multiplier + (totalRides/(totalRides+1))*currentRating;
 
                 if (multiplier == 100) {
-                    sys.log("updateDriverRating: feedback: GOOD; oldRating = " + currentRating + "; oldTotalRides = " + totalRides + "; newRating = " + newRating + "; newTotalRides = " + (totalRides+1));
+                  sys.log("updateDriverRating: feedback: GOOD; oldRating = " + currentRating + "; oldTotalRides = " + totalRides + "; newRating = " + newRating + "; newTotalRides = " + (totalRides+1));
                 } else {
-                    sys.log("updateDriverRating: feedback: BAD; oldRating = " + currentRating + "; oldTotalRides = " + totalRides + "; newRating = " + newRating + "; newTotalRides = " + (totalRides+1));
+                  sys.log("updateDriverRating: feedback: BAD; oldRating = " + currentRating + "; oldTotalRides = " + totalRides + "; newRating = " + newRating + "; newTotalRides = " + (totalRides+1));
                 }
                 var queryString = "UPDATE drivers SET rating = " + newRating + ", total_rides_completed = " + (totalRides+1) + ", on_ride = false, giving_ride_to = NULL WHERE num = '" + driverNum + "'";
 
                 var query = client.query(queryString, function(err, result) {
-                    if (!err) {
-                        sys.log("handleFeedbackResponse: updated rating, totalrides, on_ride, and giving_ride_to successfully");
-                        client.end();
-                    } else {
-                        sys.log("handleFeedbackResponse: Failed to updated rating, totalrides, on_ride, and giving_ride_to");
-                    }
+                  if (!err) {
+                    sys.log("handleFeedbackResponse: updated rating, totalrides, on_ride, and giving_ride_to successfully");
+                    var response = new twilio.TwimlResponse();
+                    response.sms(responseText);
+                    res.cookie('rideStage', stages.rideStages.NOTHING);
+                    res.send(response.toString(), {
+                        'Content-Type':'text/xml'
+                    }, 200);
+                    sys.log("handleFeedbackResponse: Just sent response: " + responseText);
+                  } else {
+                    sys.log("handleFeedbackResponse: Failed to updated rating, totalrides, on_ride, and giving_ride_to");
+                  }
+                  client.end();
                 });
               }
             });
           }
         });
+      } else {
+        sys.log("handleFeedbackResponse: error connecting to DB");
       }
     });
 }
