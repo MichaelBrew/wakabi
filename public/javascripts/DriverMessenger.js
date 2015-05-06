@@ -236,8 +236,12 @@ module.exports = {
         break;
 
       case stages.driveStages.AWAITING_END_RIDE:
-        handleEndRideText(res, message, from);
         sys.log("DriverMessenger.handleText: Driver stage is AWAITING_END_RIDE");
+        if (parser.isEndShift(message)) {
+          driverEndShift(res, from);
+        } else {
+          handleEndRideText(res, message, from);
+        }
         break;
     }
   },
