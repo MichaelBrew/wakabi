@@ -90,6 +90,9 @@ function requestLocation(res, resend) {
 
   responseText += strings.askLocation + locationList;
 
+  sys.log("About to text driver for location as he starts shift, responseText is " + responseText + ", res object is " + res);
+
+
   var response = new twilio.TwimlResponse();
   response.sms(responseText);
   res.cookie('driveStage', stages.driveStages.AWAITING_START_LOCATION);
