@@ -222,19 +222,13 @@ function handleFeedbackResponse(res, message, from) {
     if (!err) {
       sys.log("handleFeedbackResponse: connected to DB");
       var query = client.query("SELECT * FROM drivers WHERE giving_ride_to = '" + from + "'", function(err, result) {
-        if (!err && result.length == 1) {
+        if (!err) {
           var driverNum = result.rows[0].num;
           var currentRating = result.rows[0].rating;
           var totalRides = result.rows[0].total_rides_completed;
           sys.log("handleFeedbackResponse: found the driver, num is " + driverNum);
 
-          /*
-          * New rating = (# of positive feedback / # of total feedback)
-          * EXAMPLE
-          * totalRides = 26, currentRating = 97%
-          * Good Feedback -> (1/(26+1))*100 + (26/(26+1))*97 = .037*100 + .962*97 = 3.7 + 93.4 = 97.1%
-          * Bad Feedback  -> (1/(26+1))*0   + (26/(26+1))*97 = .037*0   + .962*97 = 0   + 93.4 = 93.4%
-          */
+          //New rating = (# of positive feedback / # of total feedback)
           var multiplier = parser.isYesMessage(message) ? 100 : 0;
           var newRating = (1/(totalRides+1))*multiplier + (totalRides/(totalRides+1))*currentRating;
 
@@ -260,6 +254,8 @@ function handleFeedbackResponse(res, message, from) {
             }
             client.end();
           });
+        } else {
+          sys.log("handleFeedbackResponse: Error with query to find driver, err = " + err);
         }
       });
     }
