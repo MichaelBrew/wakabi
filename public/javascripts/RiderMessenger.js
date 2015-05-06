@@ -166,11 +166,7 @@ function searchForDriver(from, location, needTrailer) {
             sys.log("searchForDriver: About to text driver " + driver.num);
 
             DriverMessenger.textDriverForConfirmation(driver.num, from);
-            pg.connect(process.env.DATABASE_URL, function(err, client) {
-              if (!err) {
-                var query = client.query("UPDATE drivers SET giving_ride_to = '" + from + "' WHERE num = '" + driver.num + "'", function(err, result) {});
-              }
-            });
+            var query = client.query("UPDATE drivers SET giving_ride_to = '" + from + "' WHERE num = '" + driver.num + "'", function(err, result) {});
           } else {
             noDriversFound(from, false);
           }
@@ -219,13 +215,13 @@ function addRiderToQueue(number) {
 }
 
 function handleFeedbackResponse(res, message, from) {
-  sys.log("handleFeedbackResponse");
+  sys.log("handleFeedbackResponse: from = " + from);
   var responseText = parser.isYesMessage(message) ? strings.goodFeedback : strings.badFeedback;
 
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
       sys.log("handleFeedbackResponse: connected to DB");
-      var query = client.query("SELECT num AND rating AND total_rides_completed FROM drivers WHERE giving_ride_to = '" + from + "'", function(err, result) {
+      var query = client.query("SELECT * FROM drivers WHERE giving_ride_to = '" + from + "'", function(err, result) {
         if (!err && result.length == 1) {
           var driverNum = result.rows[0].num;
           var currentRating = result.rows[0].rating;
