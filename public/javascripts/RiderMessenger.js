@@ -168,21 +168,21 @@ function searchForDriver(from, location, needTrailer) {
             DriverMessenger.textDriverForConfirmation(driver.num, from);
             var query = client.query("UPDATE drivers SET giving_ride_to = '" + from + "' WHERE num = '" + driver.num + "'", function(err, result) {});
           } else {
-            noDriversFound(from, false);
+            noDriversFound(from, location, false);
           }
         } else {
-          noDriversFound(from, false);
+          noDriversFound(from, location, false);
         }
       });
     } else {
-      noDriversFound(from, false);
+      noDriversFound(from, location, false);
     }
   });
 }
 
-function noDriversFound(from, resend) {
+function noDriversFound(from, location, resend) {
   sendNoDriversText(from, false);
-  addRiderToQueue(from);
+  addRiderToQueue(from, location);
   startTimeoutForRider(from);
 }
 
@@ -194,7 +194,7 @@ function startTimeoutForRider(riderNum) {
 
 function isRiderWaiting(number) {
   for (var i = 0; i < global.riderWaitingQueue.length; i++) {
-    if (global.riderWaitingQueue[i] == number) {
+    if (global.riderWaitingQueue[i].number == number) {
       return true;
     }
   }
@@ -203,15 +203,19 @@ function isRiderWaiting(number) {
 
 function removeRiderFromQueue(number) {
   for (var i = 0; i < global.riderWaitingQueue.length; i++) {
-    if (global.riderWaitingQueue[i] == number) {
+    if (global.riderWaitingQueue[i].number == number) {
       global.riderWaitingQueue.splice(i, 1);
       return;
     }
   }
 }
 
-function addRiderToQueue(number) {
-  global.riderWaitingQueue.push(number);
+function addRiderToQueue(number, location) {
+  rider = {
+    number: number,
+    location: location
+  }
+  global.riderWaitingQueue.push(rider);
 }
 
 function handleFeedbackResponse(res, message, from) {

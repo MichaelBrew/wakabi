@@ -90,9 +90,6 @@ function requestLocation(res, resend) {
 
   responseText += strings.askLocation + locationList;
 
-  sys.log("About to text driver for location as he starts shift, responseText is " + responseText + ", res object is " + res);
-
-
   var response = new twilio.TwimlResponse();
   response.sms(responseText);
   res.cookie('driveStage', stages.driveStages.AWAITING_START_LOCATION);
@@ -120,12 +117,23 @@ function receiveStartShiftLocation(res, location, from) {
           'Content-Type':'text/xml'
         }, 200);
 
+        checkRiderWaitingQueue(from, location);
+
         client.end();
         sys.log("receiveStartShiftLocation.js: closed connection to DB");
         return;
       });
     }
   });
+}
+
+function checkRiderWaitingQueue(driverNum, location) {
+  for (var i = 0; i < global.riderWaitingQueue.length; i++) {
+    if (global.riderWaitingQueue[i].location == location) {
+      textDriverForConfirmation(driverNum, global.riderWaitingQueue[i].number);
+      return;
+    }
+  }
 }
 
 function handleRequestResponse(res, message, from) {
