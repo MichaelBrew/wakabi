@@ -224,8 +224,8 @@ function handleFeedbackResponse(res, message, from) {
       var query = client.query("SELECT * FROM drivers WHERE giving_ride_to = '" + from + "'", function(err, result) {
         if (!err) {
           var driverNum = result.rows[0].num;
-          var currentRating = result.rows[0].rating;
-          var totalRides = result.rows[0].total_rides_completed;
+          var currentRating = (result.rows[0].rating == null) ? 100 : result.rows[0].rating;
+          var totalRides = (result.rows[0].total_rides_completed == null) ? 0 : result.rows[0].total_rides_completed;
           sys.log("handleFeedbackResponse: found the driver, num is " + driverNum);
 
           //New rating = (# of positive feedback / # of total feedback)
