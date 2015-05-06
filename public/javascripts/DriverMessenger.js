@@ -105,7 +105,7 @@ function requestLocation(res, resend) {
 function receiveStartShiftLocation(res, location, from) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
-      var query = client.query("UPDATE drivers SET working = true AND current_zone = " + location + " WHERE num = '" + from + "'", function(err, result) {
+      var query = client.query("UPDATE drivers SET working = true AND current_zone = " + parseInt(location) + " WHERE num = '" + from + "'", function(err, result) {
         var responseText = ""
         if (!err) {
           responseText += "You started your shift - good luck!";
