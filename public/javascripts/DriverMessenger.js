@@ -214,7 +214,7 @@ module.exports = {
 
         if (parser.isStartShift(message)) {
           driverStartShift(res, from);
-        } else if (parse.isEndShift(message)) {
+        } else if (parser.isEndShift(message)) {
           driverEndShift(res, from);
         } else {
           handleRequestResponse(res, message, from);
