@@ -50,6 +50,7 @@ function driverEndShift(res, from) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
       var query = client.query("UPDATE drivers SET working = false WHERE num = '" + from + "'", function(err, result) {
+        responseText = "";
         if (!err) {
           responseText += "You have successfully ended shift!";
         } else {
