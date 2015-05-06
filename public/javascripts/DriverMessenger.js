@@ -50,7 +50,7 @@ function driverEndShift(res, from) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
       var query = client.query("UPDATE drivers SET working = false WHERE num = '" + from + "'", function(err, result) {
-        responseText = "";
+        var responseText = "";
         if (!err) {
           responseText += "You have successfully ended shift!";
         } else {
@@ -103,6 +103,7 @@ function receiveStartShiftLocation(res, location, from) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
       var query = client.query("UPDATE drivers SET working = true AND current_zone = " + location + " WHERE num = '" + from + "'", function(err, result) {
+        var responseText = ""
         if (!err) {
           responseText += "You started your shift - good luck!";
         } else {
