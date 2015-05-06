@@ -20,7 +20,18 @@ module.exports = {
     if (msg.toUpperCase() == "END RIDE") {
       return true;
     }
-
+    return false;
+  },
+  isStartShift: function(msg) {
+    if (msg.toLowerCase() == 'start shift') {
+      return true;
+    }
+    return false;
+  },
+  isEndShift: function(msg) {
+    if (msg.toLowerCase() == 'end shift') {
+      return true;
+    }
     return false;
   }
 };

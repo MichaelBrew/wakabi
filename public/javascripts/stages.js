@@ -29,8 +29,9 @@ module.exports = {
      * RIDE_ENDED        : The driver has indicated the end of the ride
      */
     driveStages: {
-        NOTHING             : "nothing",
-        AWAITING_START_RIDE : "awaitingStartRide",
-        AWAITING_END_RIDE   : "awaitingEndRide"
+        NOTHING                 : "nothing",
+        AWAITING_START_LOCATION : "awaitingStartLocation",
+        AWAITING_START_RIDE     : "awaitingStartRide",
+        AWAITING_END_RIDE       : "awaitingEndRide"
     }
 };
