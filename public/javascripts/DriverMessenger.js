@@ -62,7 +62,7 @@ function requestLocation(res, resend) {
   cookies = {
     "driveStage": stages.driveStages.AWAITING_START_LOCATION
   }
-  TextMessenger.requestLocation(res, resend, cookies);
+  Messenger.requestLocation(res, resend, cookies);
 }
 
 function receiveStartShiftLocation(res, location, from) {

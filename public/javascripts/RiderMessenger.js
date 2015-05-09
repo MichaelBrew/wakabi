@@ -50,7 +50,7 @@ function requestLocation(res, resend) {
   cookies = {
     "rideStage": stages.rideStages.AWAITING_LOCATION
   }
-  TextMessenger.requestLocation(res, resend, cookies);
+  Messenger.requestLocation(res, resend, cookies);
 }
 
 function requestTrailerInfo(res, resend) {
