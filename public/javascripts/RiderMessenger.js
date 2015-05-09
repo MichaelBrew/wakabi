@@ -241,7 +241,7 @@ function handleFeedbackResponse(res, message, from) {
           } else {
             sys.log("updateDriverRating: feedback: BAD; oldRating = " + currentRating + "; oldTotalRides = " + totalRides + "; newRating = " + newRating + "; newTotalRides = " + (totalRides+1));
           }
-          var queryString = "UPDATE drivers SET rating = " + newRating + ", total_rides_completed = " + (totalRides+1) + ", on_ride = false, giving_ride_to = NULL WHERE num = '" + driverNum + "'";
+          var queryString = "UPDATE drivers SET rating = " + newRating + ", total_rides_completed = " + (totalRides+1) + ", giving_ride_to = NULL WHERE num = '" + driverNum + "'";
 
           var query = client.query(queryString, function(err, result) {
             if (!err) {

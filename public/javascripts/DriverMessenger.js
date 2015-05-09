@@ -196,20 +196,15 @@ function handleEndRideText(res, message, from) {
               body: strings.feedbackQuestion
             }, function(error, message) {});
 
-            // Mark driver available for new ride
-            var queryString = "UPDATE drivers SET giving_ride_to = NULL WHERE num = '" + from + "'";
-            var query = client.query(queryString, function(err, result) {
-              if (!err) {
-                var responseText = "Ok, ride marked as over."
-                var response = new twilio.TwimlResponse();
-                response.sms(responseText);
-                res.cookie('driveStage', stages.driveStages.NOTHING);
-                res.send(response.toString(), {
-                  'Content-Type':'text/xml'
-                }, 200);
-              }
+            var responseText = "Ok, ride marked as over."
+            var response = new twilio.TwimlResponse();
+            response.sms(responseText);
+            res.cookie('driveStage', stages.driveStages.NOTHING);
+            res.send(response.toString(), {
+              'Content-Type':'text/xml'
+            }, 200);
 
-              client.end();
+            client.end();
             });
           }
         });
