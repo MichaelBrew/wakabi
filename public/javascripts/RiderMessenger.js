@@ -152,7 +152,7 @@ function verifyRiderLocation(msg) {
 function searchForDriver(from, location, needTrailer) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
-      var queryString = "SELECT num FROM drivers WHERE working = 'true' AND giving_ride_to = '' AND current_zone = " + location;
+      var queryString = "SELECT num FROM drivers WHERE working = 'true' AND giving_ride_to IS NULL AND current_zone = " + location;
       if (needTrailer) {
         queryString += " AND has_trailer = 'true'";
       }
