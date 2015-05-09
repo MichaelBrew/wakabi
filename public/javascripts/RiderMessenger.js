@@ -1,9 +1,10 @@
-var sys     = require('sys');
-var pg      = require('pg');
-var stages  = require('./stages');
-var strings = require('./strings');
-var db      = require('./db');
-var parser  = require('./messageParser');
+var sys       = require('sys');
+var pg        = require('pg');
+var stages    = require('./stages');
+var strings   = require('./strings');
+var db        = require('./db');
+var parser    = require('./messageParser');
+var Messenger = require('./TextMessenger');
 
 var DriverMessenger   = require('./DriverMessenger');
 var RiderWaitingQueue = require('./RiderWaitingQueue');
@@ -74,14 +75,19 @@ function requestLocation(res, resend) {
   }
 
   responseText += strings.askLocation + locationList;
+  cookies = {
+    "rideStage": stages.rideStages.AWAITING_LOCATION
+  }
 
-  var response = new twilio.TwimlResponse();
-  response.sms(responseText);
-  res.cookie('rideStage', stages.rideStages.AWAITING_LOCATION);
-  sys.log("requestLocation: Just set the rideStage to " + stages.rideStages.AWAITING_LOCATION);
-  res.send(response.toString(), {
-    'Content-Type':'text/xml'
-  }, 200);
+  Messenger.textResponse(res, responseText, cookies);
+
+  // var response = new twilio.TwimlResponse();
+  // response.sms(responseText);
+  // res.cookie('rideStage', stages.rideStages.AWAITING_LOCATION);
+  // sys.log("requestLocation: Just set the rideStage to " + stages.rideStages.AWAITING_LOCATION);
+  // res.send(response.toString(), {
+  //   'Content-Type':'text/xml'
+  // }, 200);
 }
 
 function requestTrailerInfo(res, resend) {
