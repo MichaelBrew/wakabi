@@ -27,6 +27,8 @@ function driverStartShift(res, from) {
           sys.log("driverStartShift: Error querying the DB");
           Messenger.textResponse(res, responseText);
         }
+
+        client.end();
       });
     }
   });
@@ -185,10 +187,10 @@ function textForConfirmation(driverNumber, riderNumber) {
         } else {
           sys.log("textForConfirmation: Error querying db, err: " + err);
         }
+        client.end();
       });
     }
 
-    client.end();
     sys.log("textDriver.js: closed connection to DB");
   });
 }

@@ -128,15 +128,15 @@ function searchForDriver(from, location, needTrailer) {
 
           if (driver != null && driver.num != null) {
             sys.log("searchForDriver: About to text driver " + driver.num);
-
             DriverMessenger.textDriverForConfirmation(driver.num, from);
-            var query = client.query("UPDATE drivers SET giving_ride_to = '" + from + "' WHERE num = '" + driver.num + "'", function(err, result) {});
           } else {
             noDriversFound(from, location, false);
           }
         } else {
           noDriversFound(from, location, false);
         }
+
+        client.end();
       });
     } else {
       noDriversFound(from, location, false);
