@@ -1,5 +1,5 @@
 var sys     = require('sys');
-var strings = require('strings');
+var strings = require('./strings');
 
 /* Twilio Credentials */
 var accountSid    = 'ACf55ee981f914dc797efa85947d9f60b8';
