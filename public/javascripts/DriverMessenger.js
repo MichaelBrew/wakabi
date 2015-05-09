@@ -59,26 +59,10 @@ function driverEndShift(res, from) {
 }
 
 function requestLocation(res, resend) {
-  var locationList = "";
-  for (var i = 1; i <= strings.availableLocations.length; i++) {
-    locationList += (i + ": " + strings.availableLocations[i-1]);
-
-    if (i != strings.availableLocations.length) {
-      locationList += "\n";
-    }
-  }
-
-  var responseText = "";
-
-  if (resend) {
-    responseText += strings.resendText;
-  }
-
-  responseText += strings.askLocation + locationList;
   cookies = {
     "driveStage": stages.driveStages.AWAITING_START_LOCATION
   }
-  Messenger.textResponse(res, responseText, cookies);
+  TextMessenger.requestLocation(res, resend, cookies);
 }
 
 function receiveStartShiftLocation(res, location, from) {

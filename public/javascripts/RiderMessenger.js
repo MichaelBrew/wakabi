@@ -47,26 +47,10 @@ function handleTrailerResponse(req, res, message, from) {
 }
 
 function requestLocation(res, resend) {
-  var locationList = "";
-  for (var i = 1; i <= strings.availableLocations.length; i++) {
-    locationList += (i + ": " + strings.availableLocations[i-1]);
-
-    if (i != strings.availableLocations.length) {
-      locationList += "\n";
-    }
-  }
-
-  var responseText = "";
-
-  if (resend) {
-    responseText += strings.resendText;
-  }
-
-  responseText += strings.askLocation + locationList;
   cookies = {
     "rideStage": stages.rideStages.AWAITING_LOCATION
   }
-  Messenger.textResponse(res, responseText, cookies);
+  TextMessenger.requestLocation(res, resend, cookies);
 }
 
 function requestTrailerInfo(res, resend) {
@@ -109,7 +93,6 @@ function verifyRiderLocation(msg) {
       return true;
     }
   }
-
   return false;
 }
 

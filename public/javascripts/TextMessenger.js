@@ -1,4 +1,5 @@
 var sys     = require('sys');
+var strings = require('strings');
 
 /* Twilio Credentials */
 var accountSid    = 'ACf55ee981f914dc797efa85947d9f60b8';
@@ -39,5 +40,23 @@ module.exports = {
     }, 200);
 
     sys.log("TextMessenger.textResponse: response sent");
+  },
+  requestLocation: function(res, resend, cookies) {
+    var locationList = "";
+    for (var i = 1; i <= strings.availableLocations.length; i++) {
+      locationList += (i + ": " + strings.availableLocations[i-1]);
+
+      if (i != strings.availableLocations.length) {
+        locationList += "\n";
+      }
+    }
+
+    var responseText = "";
+    if (resend) {
+      responseText += strings.resendText;
+    }
+
+    responseText += strings.askLocation + locationList;
+    textResponse(res, responseText, cookies);
   }
 };
