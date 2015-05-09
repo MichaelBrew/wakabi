@@ -9,17 +9,7 @@ var Messenger = require('./TextMessenger');
 var DriverMessenger   = require('./DriverMessenger');
 var RiderWaitingQueue = require('./RiderWaitingQueue');
 
-/* Twilio Credentials */
-var accountSid    = 'ACf55ee981f914dc797efa85947d9f60b8';
-var authToken     = 'cc3c8f0a7949ce40356c029579934c0f';
-var twilio        = require('twilio');
-var twilioClient  = require('twilio')(accountSid, authToken);
-
-var TWILIO_NUMBER = '+18443359847';
-
 function handleRideRequest(res, message, from) {
-  // TODO: Move all parsing work (like determining if a text is a ride request)
-  //       to messageParser.js. This would read like if (messageParser.isRideRequest(message))
   if (message.toUpperCase() == strings.keywordRide) {
     sys.log('handleRideRequest: Ride request received');
     requestLocation(res, false);
@@ -102,8 +92,8 @@ function defaultHelpResponse(res) {
 function sendNoDriversText(rider, isTimeout) {
   if (isTimeout) {
     sys.log("sendNoDrivers: Called from a timeout!");
-    if (isRiderWaiting(rider)) {
-      removeRiderFromQueue(rider);
+    if (RiderWaitingQueue.isRiderWaiting(rider)) {
+      RiderWaitingQueue.removeRiderFromQueue(rider);
     } else {
       return;
     }
@@ -156,7 +146,7 @@ function searchForDriver(from, location, needTrailer) {
 
 function noDriversFound(from, location, resend) {
   sendNoDriversText(from, false);
-  addRiderToQueue(from, location);
+  RiderWaitingQueue.addRiderWithZoneToQueue(from, location);
   startTimeoutForRider(from);
 }
 
@@ -164,32 +154,6 @@ function startTimeoutForRider(riderNum) {
   var delay = 1000 * 60 * 1; // 1000ms = 1sec * 60 = 1min * 30 = 30min
   sys.log("About to set timeout for rider waiting, delay is " + delay + "ms");
   setTimeout(sendNoDriversText, delay, riderNum, true);
-}
-
-function isRiderWaiting(number) {
-  for (var i = 0; i < global.riderWaitingQueue.length; i++) {
-    if (global.riderWaitingQueue[i].number == number) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function removeRiderFromQueue(number) {
-  for (var i = 0; i < global.riderWaitingQueue.length; i++) {
-    if (global.riderWaitingQueue[i].number == number) {
-      global.riderWaitingQueue.splice(i, 1);
-      return;
-    }
-  }
-}
-
-function addRiderToQueue(number, location) {
-  rider = {
-    number: number,
-    location: location
-  }
-  global.riderWaitingQueue.push(rider);
 }
 
 function handleFeedbackResponse(res, message, from) {
@@ -262,8 +226,5 @@ module.exports = {
       }
       break;
     }
-  },
-  requestFeedback: function(riderNum) {
-    Messenger.text(riderNum, strings.feedbackQuestion);
   }
 };

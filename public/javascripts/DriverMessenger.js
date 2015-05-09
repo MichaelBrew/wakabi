@@ -5,15 +5,9 @@ var strings = require('./strings');
 var parser  = require('./messageParser');
 var db      = require('./db');
 var Messenger = require('./TextMessenger');
+var RiderWaitingQueue = require('./RiderWaitingQueue');
 
 var RiderMessenger = require('./RiderMessenger');
-
-/* Twilio Credentials */
-var accountSid    = 'ACf55ee981f914dc797efa85947d9f60b8';
-var authToken     = 'cc3c8f0a7949ce40356c029579934c0f';
-var twilio        = require('twilio');
-var twilioClient  = require('twilio')(accountSid, authToken);
-var TWILIO_NUMBER = '+18443359847';
 
 function driverStartShift(res, from) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
@@ -112,11 +106,10 @@ function receiveStartShiftLocation(res, location, from) {
 }
 
 function checkRiderWaitingQueue(driverNum, location) {
-  for (var i = 0; i < global.riderWaitingQueue.length; i++) {
-    if (global.riderWaitingQueue[i].location == location) {
-      textForConfirmation(driverNum, global.riderWaitingQueue[i].number);
-      return;
-    }
+  ridersWaiting = RiderWaitingQueue.getRidersWaitingInZone(location);
+
+  if (ridersWaiting.length > 0) {
+    textForConfirmation(driverNum, ridersWaiting[0]);
   }
 }
 
@@ -146,13 +139,7 @@ function sendNumberToDriver(res, driverNum) {
           }
           Messenger.textResponse(res, responseText, cookies);
 
-          // Remove rider from waiting queue if there
-          for (var i = 0; i < global.riderWaitingQueue; i++) {
-            if (global.riderWaitingQueue[i] == riderNum) {
-              global.riderWaitingQueue.splice(i, 1);
-              return;
-            }
-          }
+          RiderWaitingQueue.removeRiderFromQueue(riderNum);
         }
 
         client.end();
@@ -192,14 +179,18 @@ function textForConfirmation(driverNumber, riderNumber) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
       var queryString = "UPDATE drivers SET giving_ride_to = '" + riderNumber + "' WHERE num = '" + driverNumber + "'";
-      var query = client.query(queryString, function(err, result) {});
+      var query = client.query(queryString, function(err, result) {
+        if (!err) {
+          Messenger.text(driverNumber, strings.acceptRideQuestion);
+        } else {
+          sys.log("textForConfirmation: Error querying db, err: " + err);
+        }
+      });
     }
 
     client.end();
     sys.log("textDriver.js: closed connection to DB");
   });
-
-  Messenger.text(driverNumber, strings.acceptRideQuestion);
 }
 
 module.exports = {
