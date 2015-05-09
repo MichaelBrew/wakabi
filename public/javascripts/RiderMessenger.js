@@ -80,43 +80,45 @@ function requestLocation(res, resend) {
   }
 
   Messenger.textResponse(res, responseText, cookies);
+}
+
+function requestTrailerInfo(res, resend) {
+  cookies = {
+    "rideStage": stages.rideStages.AWAITING_TRAILER
+  }
+  Messenger.textResponse(res, strings.askTrailer, cookies);
 
   // var response = new twilio.TwimlResponse();
-  // response.sms(responseText);
-  // res.cookie('rideStage', stages.rideStages.AWAITING_LOCATION);
-  // sys.log("requestLocation: Just set the rideStage to " + stages.rideStages.AWAITING_LOCATION);
+  // response.sms(strings.askTrailer);
+  // res.cookie('rideStage', stages.rideStages.AWAITING_TRAILER);
+  // sys.log("requestTrailerInfo: Just set the rideStage to " + stages.rideStages.AWAITING_TRAILER);
   // res.send(response.toString(), {
   //   'Content-Type':'text/xml'
   // }, 200);
 }
 
-function requestTrailerInfo(res, resend) {
-  var response = new twilio.TwimlResponse();
-  response.sms(strings.askTrailer);
-  res.cookie('rideStage', stages.rideStages.AWAITING_TRAILER);
-  sys.log("requestTrailerInfo: Just set the rideStage to " + stages.rideStages.AWAITING_TRAILER);
-  res.send(response.toString(), {
-    'Content-Type':'text/xml'
-  }, 200);
-}
-
 function sendWaitText(res) {
-  var response = new twilio.TwimlResponse();
-  response.sms(strings.waitText);
-  res.cookie('rideStage', stages.rideStages.CONTACTING_DRIVER);
-  res.send(response.toString(), {
-    'Content-Type':'text/xml'
-  }, 200);
-  sys.log("sendWaitText: text sent");
+  cookies = {
+    "rideStage": stages.rideStages.CONTACTING_DRIVER
+  }
+  Messenger.textResponse(res, strings.waitText, cookies);
+  // var response = new twilio.TwimlResponse();
+  // response.sms(strings.waitText);
+  // res.cookie('rideStage', stages.rideStages.CONTACTING_DRIVER);
+  // res.send(response.toString(), {
+  //   'Content-Type':'text/xml'
+  // }, 200);
+  // sys.log("sendWaitText: text sent");
 }
 
 function defaultHelpResponse(res) {
-  var responseText = strings.resendText + strings.helpText;
-  var response = new twilio.TwimlResponse();
-  response.sms(responseText);
-  res.send(response.toString(), {
-    'Content-Type':'text/xml'
-  }, 200);
+  Messenger.textResponse(res, strings.resendText + strings.helpText);
+  // var responseText = strings.resendText + strings.helpText;
+  // var response = new twilio.TwimlResponse();
+  // response.sms(responseText);
+  // res.send(response.toString(), {
+  //   'Content-Type':'text/xml'
+  // }, 200);
 }
 
 // TODO: If we're sending this after the 30 min timeout, need to somehow reset their rideStage back
@@ -252,12 +254,16 @@ function handleFeedbackResponse(res, message, from) {
           var query = client.query(queryString, function(err, result) {
             if (!err) {
               sys.log("handleFeedbackResponse: updated rating, totalrides, on_ride, and giving_ride_to successfully");
-              var response = new twilio.TwimlResponse();
-              response.sms(responseText);
-              res.cookie('rideStage', stages.rideStages.NOTHING);
-              res.send(response.toString(), {
-                'Content-Type':'text/xml'
-              }, 200);
+              cookies = {
+                "rideStage": stages.rideStages.NOTHING
+              }
+              Messenger.textResponse(res, responseText, cookies);
+              // var response = new twilio.TwimlResponse();
+              // response.sms(responseText);
+              // res.cookie('rideStage', stages.rideStages.NOTHING);
+              // res.send(response.toString(), {
+              //   'Content-Type':'text/xml'
+              // }, 200);
               sys.log("handleFeedbackResponse: Just sent response: " + responseText);
             } else {
               sys.log("handleFeedbackResponse: Failed to updated rating, totalrides, on_ride, and giving_ride_to");
