@@ -197,7 +197,7 @@ function handleEndRideText(res, message, from) {
             }, function(error, message) {});
 
             // Mark driver available for new ride
-            var queryString = "UPDATE drivers SET giving_ride_to = NULL WHERE num = '" + from + "'";
+            var queryString = "UPDATE drivers SET giving_ride_to = '' WHERE num = '" + from + "'";
             var query = client.query(queryString, function(err, result) {
               if (!err) {
                 var responseText = "Ok, ride marked as over."
