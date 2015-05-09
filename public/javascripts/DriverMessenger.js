@@ -205,7 +205,6 @@ function handleEndRideText(res, message, from) {
             }, 200);
 
             client.end();
-            });
           }
         });
       }
