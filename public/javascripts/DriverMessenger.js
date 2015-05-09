@@ -4,6 +4,7 @@ var stages  = require('./stages');
 var strings = require('./strings');
 var parser  = require('./messageParser');
 var db      = require('./db');
+var Messenger = require('./TextMessenger');
 
 var RiderMessenger = require('./RiderMessenger');
 
@@ -23,23 +24,14 @@ function driverStartShift(res, from) {
         if (!err) {
           if (result.rows.length == 1) {
             responseText += "I can't do that, you are already working.";
-            var response = new twilio.TwimlResponse();
-            response.sms(responseText);
-            res.send(response.toString(), {
-              'Content-Type':'text/xml'
-            }, 200);
+            Messenger.textResponse(res, responseText);
           } else {
             requestLocation(res, false);
           }
         } else {
           responseText += "We're sorry, there was an error with the DB";
           sys.log("driverStartShift: Error querying the DB");
-
-          var response = new twilio.TwimlResponse();
-          response.sms(responseText);
-          res.send(response.toString(), {
-            'Content-Type':'text/xml'
-          }, 200);
+          Messenger.textResponse(res, responseText);
         }
       });
     }
@@ -57,12 +49,10 @@ function driverEndShift(res, from) {
           responseText += "We're sorry, there was an error with the DB";
         }
 
-        var response = new twilio.TwimlResponse();
-        response.sms(responseText);
-        res.cookie('driveStage', stages.driveStages.NOTHING);
-        res.send(response.toString(), {
-          'Content-Type':'text/xml'
-        }, 200);
+        cookies = {
+          "driveStage": stages.driveStages.NOTHING
+        }
+        Messenger.textResponse(res, responseText, cookies);
 
         client.end();
         sys.log("driverEndShift.js: closed connection to DB");
@@ -89,14 +79,10 @@ function requestLocation(res, resend) {
   }
 
   responseText += strings.askLocation + locationList;
-
-  var response = new twilio.TwimlResponse();
-  response.sms(responseText);
-  res.cookie('driveStage', stages.driveStages.AWAITING_START_LOCATION);
-  sys.log("requestLocation: Just set the driveStage to " + stages.driveStages.AWAITING_START_LOCATION);
-  res.send(response.toString(), {
-    'Content-Type':'text/xml'
-  }, 200);
+  cookies = {
+    "driveStage": stages.driveStages.AWAITING_START_LOCATION
+  }
+  Messenger.textResponse(res, responseText, cookies);
 }
 
 function receiveStartShiftLocation(res, location, from) {
@@ -110,12 +96,10 @@ function receiveStartShiftLocation(res, location, from) {
           responseText += "We're sorry, there was an error with the DB";
         }
 
-        var response = new twilio.TwimlResponse();
-        response.sms(responseText);
-        res.cookie('driveStage', stages.driveStages.AWAITING_END_RIDE);
-        res.send(response.toString(), {
-          'Content-Type':'text/xml'
-        }, 200);
+        cookies = {
+          "driveStage": stages.driveStages.AWAITING_END_RIDE
+        }
+        Messenger.textResponse(res, responseText, cookies);
 
         checkRiderWaitingQueue(from, location);
 
@@ -157,12 +141,10 @@ function sendNumberToDriver(res, driverNum) {
           var riderNum = result.rows[0].giving_ride_to;
           var responseText = "Here is the rider's number: " + riderNum;
 
-          var response = new twilio.TwimlResponse();
-          response.sms(responseText);
-          res.cookie('driveStage', stages.driveStages.AWAITING_END_RIDE);
-          res.send(response.toString(), {
-            'Content-Type':'text/xml'
-          }, 200);
+          cookies = {
+            "driveStage": stages.driveStages.AWAITING_END_RIDE
+          }
+          Messenger.textResponse(res, responseText, cookies);
 
           // Remove rider from waiting queue if there
           for (var i = 0; i < global.riderWaitingQueue; i++) {
@@ -197,12 +179,11 @@ function handleEndRideText(res, message, from) {
             }, function(error, message) {});
 
             var responseText = "Ok, ride marked as over."
-            var response = new twilio.TwimlResponse();
-            response.sms(responseText);
-            res.cookie('driveStage', stages.driveStages.NOTHING);
-            res.send(response.toString(), {
-              'Content-Type':'text/xml'
-            }, 200);
+
+            cookies = {
+              "driveStage": stages.driveStages.NOTHING
+            }
+            Messenger.textResponse(res, responseText, cookies);
 
             client.end();
           }

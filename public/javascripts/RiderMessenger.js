@@ -22,8 +22,6 @@ function handleRideRequest(res, message, from) {
   //       to messageParser.js. This would read like if (messageParser.isRideRequest(message))
   if (message.toUpperCase() == strings.keywordRide) {
     sys.log('handleRideRequest: Ride request received');
-
-    //db.addRiderNumToDb(from);
     requestLocation(res, false);
   } else {
     sys.log('handleRideRequest: invalid messages received');
@@ -87,14 +85,6 @@ function requestTrailerInfo(res, resend) {
     "rideStage": stages.rideStages.AWAITING_TRAILER
   }
   Messenger.textResponse(res, strings.askTrailer, cookies);
-
-  // var response = new twilio.TwimlResponse();
-  // response.sms(strings.askTrailer);
-  // res.cookie('rideStage', stages.rideStages.AWAITING_TRAILER);
-  // sys.log("requestTrailerInfo: Just set the rideStage to " + stages.rideStages.AWAITING_TRAILER);
-  // res.send(response.toString(), {
-  //   'Content-Type':'text/xml'
-  // }, 200);
 }
 
 function sendWaitText(res) {
@@ -102,23 +92,10 @@ function sendWaitText(res) {
     "rideStage": stages.rideStages.CONTACTING_DRIVER
   }
   Messenger.textResponse(res, strings.waitText, cookies);
-  // var response = new twilio.TwimlResponse();
-  // response.sms(strings.waitText);
-  // res.cookie('rideStage', stages.rideStages.CONTACTING_DRIVER);
-  // res.send(response.toString(), {
-  //   'Content-Type':'text/xml'
-  // }, 200);
-  // sys.log("sendWaitText: text sent");
 }
 
 function defaultHelpResponse(res) {
   Messenger.textResponse(res, strings.resendText + strings.helpText);
-  // var responseText = strings.resendText + strings.helpText;
-  // var response = new twilio.TwimlResponse();
-  // response.sms(responseText);
-  // res.send(response.toString(), {
-  //   'Content-Type':'text/xml'
-  // }, 200);
 }
 
 // TODO: If we're sending this after the 30 min timeout, need to somehow reset their rideStage back
@@ -258,12 +235,6 @@ function handleFeedbackResponse(res, message, from) {
                 "rideStage": stages.rideStages.NOTHING
               }
               Messenger.textResponse(res, responseText, cookies);
-              // var response = new twilio.TwimlResponse();
-              // response.sms(responseText);
-              // res.cookie('rideStage', stages.rideStages.NOTHING);
-              // res.send(response.toString(), {
-              //   'Content-Type':'text/xml'
-              // }, 200);
               sys.log("handleFeedbackResponse: Just sent response: " + responseText);
             } else {
               sys.log("handleFeedbackResponse: Failed to updated rating, totalrides, on_ride, and giving_ride_to");
