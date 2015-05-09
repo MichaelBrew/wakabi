@@ -141,6 +141,7 @@ function handleRequestResponse(res, message, from) {
     sendNumberToDriver(res, from);
   } else if (parser.isNoMessage(message)) {
     // pass the request on to the next driver
+    // Here we have to clear the 'giving_ride_to' field of this driver
   } else {
     // wasn't a response to the request, send back default message?
   }
@@ -196,7 +197,7 @@ function handleEndRideText(res, message, from) {
             }, function(error, message) {});
 
             // Mark driver available for new ride
-            var queryString = "UPDATE drivers SET on_ride = false WHERE num = '" + from + "'";
+            var queryString = "UPDATE drivers SET giving_ride_to = NULL WHERE num = '" + from + "'";
             var query = client.query(queryString, function(err, result) {
               if (!err) {
                 var responseText = "Ok, ride marked as over."
