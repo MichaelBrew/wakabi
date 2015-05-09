@@ -172,14 +172,9 @@ function handleEndRideText(res, message, from) {
           if (!err) {
             // Text rider for feedback
             var riderNum = result.rows[0].giving_ride_to;
-            twilioClient.sendSms({
-              to: riderNum,
-              from: TWILIO_NUMBER,
-              body: strings.feedbackQuestion
-            }, function(error, message) {});
+            Messenger.text(riderNum, strings.feedbackQuestion);
 
             var responseText = "Ok, ride marked as over."
-
             cookies = {
               "driveStage": stages.driveStages.NOTHING
             }
@@ -204,17 +199,7 @@ function textForConfirmation(driverNumber, riderNumber) {
     sys.log("textDriver.js: closed connection to DB");
   });
 
-  twilioClient.sendSms({
-    to: driverNumber,
-    from: TWILIO_NUMBER,
-    body: strings.acceptRideQuestion
-  }, function(error, message) {
-    if (error) {
-      sys.log('textDriverForConfirmation: Failed to send message asking if driver wanted to accept ride, ' + error.message);
-      // TODO: Either try resending text, or send text to next available driver? Can be part of "edge case/error handling"
-      //       work to be done spring quarter.
-    }
-  });
+  Messenger.text(driverNumber, strings.acceptRideQuestion);
 }
 
 module.exports = {

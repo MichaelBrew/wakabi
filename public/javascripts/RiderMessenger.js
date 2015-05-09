@@ -76,7 +76,6 @@ function requestLocation(res, resend) {
   cookies = {
     "rideStage": stages.rideStages.AWAITING_LOCATION
   }
-
   Messenger.textResponse(res, responseText, cookies);
 }
 
@@ -110,18 +109,8 @@ function sendNoDriversText(rider, isTimeout) {
     }
   }
 
-  sys.log("sendNoDriversText: beginning of sendNoDriversText");
-  twilioClient.sendSms({
-    to: rider,
-    from: TWILIO_NUMBER,
-    body: isTimeout ? strings.noDriversAvailable : (strings.noDriversAvailable + strings.willNotifyIn30)
-  }, function(error, message) {
-    if (!error) {
-      sys.log("sendNoDriversText: successfully sent noDriversText")
-    } else {
-      sys.log('sendNoDriversText: Failed to send noDriversText, ' + error.message);
-    }
-  });
+  msg = isTimeout ? strings.noDriversAvailable : (strings.noDriversAvailable + strings.willNotifyIn30);
+  Messenger.text(rider, msg);
 }
 
 function verifyRiderLocation(msg) {
@@ -275,10 +264,6 @@ module.exports = {
     }
   },
   requestFeedback: function(riderNum) {
-    twilioClient.sendSms({
-      to: riderNum,
-      from: TWILIO_NUMBER,
-      body: strings.feedbackQuestion
-    }, function(error, message) {});
+    Messenger.text(riderNum, strings.feedbackQuestion);
   }
 };

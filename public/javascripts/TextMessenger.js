@@ -8,6 +8,19 @@ var twilioClient  = require('twilio')(accountSid, authToken);
 var TWILIO_NUMBER = '+18443359847';
 
 module.exports = {
+  text: function(to, message) {
+    twilioClient.sendSms({
+      to: to,
+      from: TWILIO_NUMBER,
+      body: message
+    }, function(error, message) {
+      if (!error) {
+        sys.log("TextMessenger.text: successfully sent message: " + message + "; to " + to);
+      } else {
+        sys.log("TextMessenger.text: error sending to " + to + " the message: " + message);
+      }
+    });
+  },
   textResponse: function(res, message, cookies) {
     var response = new twilio.TwimlResponse();
     response.sms(message);
