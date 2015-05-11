@@ -184,7 +184,7 @@ function handleUpdatedLocation(res, message, driverNum) {
           cookies = {
             "driveStage": stages.driveStages.NOTHING
           }
-          Messenger.textResponse(driverNum, strings.updatedDriverLocation, cookies);
+          Messenger.textResponse(res, strings.updatedDriverLocation, cookies);
         } else {
           sys.log("handleUpdatedLocation: Error querying db, err: " + err);
         }
