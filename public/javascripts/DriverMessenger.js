@@ -197,10 +197,10 @@ function handleUpdatedLocation(res, message, driverNum) {
 module.exports = {
   handleText: function(res, message, from, driveStage) {
     if (driveStage !== stages.driveStages.AWAITING_END_RIDE) {
-      if (parse.isStartShift(message)) {
+      if (parser.isStartShift(message)) {
         driverStartShift(res, from);
         return;
-      } else if (parse.isEndShift(message)) {
+      } else if (parser.isEndShift(message)) {
         driverEndShift(res, from);
         return;
       }
