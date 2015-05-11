@@ -185,6 +185,7 @@ function handleUpdatedLocation(res, message, driverNum) {
             "driveStage": stages.driveStages.NOTHING
           }
           Messenger.textResponse(res, strings.updatedDriverLocation, cookies);
+          checkRiderWaitingQueue(driverNum, parseInt(message));
         } else {
           sys.log("handleUpdatedLocation: Error querying db, err: " + err);
         }
@@ -197,7 +198,6 @@ function handleUpdatedLocation(res, message, driverNum) {
 module.exports = {
   handleText: function(res, message, from, driveStage) {
     if (driveStage !== stages.driveStages.AWAITING_END_RIDE) {
-      sys.log("DriverMessenger.handleText: driveStage is NOT awaitingEndRide");
       if (parser.isStartShift(message)) {
         driverStartShift(res, from);
         return;
@@ -205,8 +205,6 @@ module.exports = {
         driverEndShift(res, from);
         return;
       }
-    } else {
-      sys.log("DriverMessenger.handleText: driveStage IS awaitingEndRide");
     }
 
     switch (driveStage) {
