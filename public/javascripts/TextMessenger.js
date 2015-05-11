@@ -65,6 +65,17 @@ module.exports = {
     }
 
     responseText += strings.askLocation + locationList;
-    sendResponseText(res, responseText, cookies);
+
+    // Following is basically copy of sendResponseText()
+    var response = new twilio.TwimlResponse();
+    response.sms(responseText);
+    for (var key in cookies) {
+      if (cookies.hasOwnProperty(key)) {
+        res.cookie(key, cookies[key]);
+      }
+    }
+    res.send(response.toString(), {
+      'Content-Type':'text/xml'
+    }, 200);
   }
 };
