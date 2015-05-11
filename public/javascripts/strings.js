@@ -31,3 +31,4 @@ exports.acceptRideQuestion = "Do you want to accept a new ride request?"
 exports.feedbackQuestion = "Was your ride with Wakabi satisfactory?";
 exports.goodFeedback = "Glad to hear it, thanks for riding with us!";
 exports.badFeedback = "We're sorry to hear that, we hope your next trip with us will be more enjoyable!";
+exports.updatedDriverLocation = "Ok, we'll let you know when you have a new request!";

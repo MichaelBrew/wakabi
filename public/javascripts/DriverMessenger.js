@@ -20,7 +20,7 @@ function driverStartShift(res, from) {
             responseText += "I can't do that, you are already working.";
             Messenger.textResponse(res, responseText);
           } else {
-            requestLocation(res, false);
+            requestLocation(res, false, stages.driveStages.AWAITING_START_LOCATION);
           }
         } else {
           responseText += "We're sorry, there was an error with the DB";
@@ -58,9 +58,9 @@ function driverEndShift(res, from) {
   });
 }
 
-function requestLocation(res, resend) {
+function requestLocation(res, resend, stage) {
   cookies = {
-    "driveStage": stages.driveStages.AWAITING_START_LOCATION
+    "driveStage": stage
   }
   Messenger.requestLocation(res, resend, cookies);
 }
@@ -77,7 +77,7 @@ function receiveStartShiftLocation(res, location, from) {
         }
 
         cookies = {
-          "driveStage": stages.driveStages.AWAITING_END_RIDE
+          "driveStage": stages.driveStages.NOTHING
         }
         Messenger.textResponse(res, responseText, cookies);
 
@@ -147,11 +147,7 @@ function handleEndRideText(res, message, from) {
             var riderNum = result.rows[0].giving_ride_to;
             Messenger.text(riderNum, strings.feedbackQuestion);
 
-            var responseText = "Ok, ride marked as over."
-            cookies = {
-              "driveStage": stages.driveStages.NOTHING
-            }
-            Messenger.textResponse(res, responseText, cookies);
+            requestLocation(res, false, stages.driveStages.AWAITING_UPDATED_LOCATION);
 
             client.end();
           }
@@ -179,39 +175,57 @@ function textForConfirmation(driverNumber, riderNumber) {
   });
 }
 
+function handleUpdatedLocation(res, message, driverNum) {
+  pg.connect(process.env.DATABASE_URL, function(err, client) {
+    if (!err) {
+      var queryString = "UPDATE drivers SET current_zone = " + parseInt(message) + " WHERE num = '" + driverNum + "'";
+      var query = client.query(queryString, function(err, result) {
+        if (!err) {
+          cookies = {
+            "driveStage": stages.driveStages.NOTHING
+          }
+          Messenger.textResponse(driverNum, strings.updatedDriverLocation, cookies);
+        } else {
+          sys.log("handleUpdatedLocation: Error querying db, err: " + err);
+        }
+        client.end();
+      });
+    }
+  });
+}
+
 module.exports = {
   handleText: function(res, message, from, driveStage) {
+    if (driveStage !== stages.driveStages.AWAITING_END_RIDE) {
+      if (parse.isStartShift(message)) {
+        driverStartShift(res, from);
+        return;
+      } else if (parse.isEndShift(message)) {
+        driverEndShift(res, from);
+        return;
+      }
+    }
+
     switch (driveStage) {
       // TODO: what if driver randomly texts server? Can't assume it's in response
       //       to a ride request. Leave for "edge case" work spring quarter
       case stages.driveStages.NOTHING:
         sys.log("DriverMessenger.handleText: Driver stage is NOTHING");
-
-        if (parser.isStartShift(message)) {
-          driverStartShift(res, from);
-        } else if (parser.isEndShift(message)) {
-          driverEndShift(res, from);
-        } else {
-          handleRequestResponse(res, message, from);
-        }
+        handleRequestResponse(res, message, from);
         break;
 
       case stages.driveStages.AWAITING_START_LOCATION:
         receiveStartShiftLocation(res, message, from);
         break;
 
-      case stages.driveStages.AWAITING_START_RIDE:
-        sys.log("DriverMessenger.handleText: Driver stage is AWAITING_START_RIDE");
-        handleStartRideText(res, message);
-        break;
-
       case stages.driveStages.AWAITING_END_RIDE:
         sys.log("DriverMessenger.handleText: Driver stage is AWAITING_END_RIDE");
-        if (parser.isEndShift(message)) {
-          driverEndShift(res, from);
-        } else {
-          handleEndRideText(res, message, from);
-        }
+        handleEndRideText(res, message, from);
+        break;
+
+      case stages.driveStages.AWAITING_UPDATED_LOCATION:
+        sys.log("DriverMessenger.handleText: Driver stage is AWAITING_UPDATED_LOCATION");
+        handleUpdatedLocation(res, message, from);
         break;
     }
   },
