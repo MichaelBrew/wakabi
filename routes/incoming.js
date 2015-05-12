@@ -133,8 +133,8 @@ function getStage(request, isDriver) {
 
 var receiveIncomingMessage = function(req, res, next) {
 
-  var message   = req.body.Body;
-  var from      = req.body.From;
+  var message = req.body.Body;
+  var from    = req.body.From;
 
   sys.log('From: ' + from + ', Message: ' + message);
 
