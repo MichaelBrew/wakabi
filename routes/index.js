@@ -14,11 +14,13 @@ router.get('/', function(req, res, next) {
           var numIdleDrivers = 0;
           var numBusyDrivers = 0;
 
-          for driver in result.rows
-            if driver.giving_ride_to == null
+          for (var driver in result.rows) {
+            if (driver.giving_ride_to == null) {
               numIdleDrivers++;
-            else
+            } else {
               numBusyDrivers++;
+            }
+          }
 
           res.render('index', { 
             title: 'Wakabi', 
