@@ -4,7 +4,7 @@ block content
   div.container
     div.dashboard-wrapper
       h1 Dashboard
-      p March 14, 2016
+      p #{moment(Date.now()).format('MMMM DD, YYYY')}
       div.dashboard-content-wrapper
         div.dashboard-section.driver-content
           img(src='/images/dashboard-motorcycle.png')
