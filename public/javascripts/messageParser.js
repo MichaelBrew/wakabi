@@ -3,6 +3,7 @@ var strings = require('./strings');
 
 module.exports = {
   isYesMessage: function(msg) {
+    msg = msg.replace(/\s+/g, '');
     for (var i = 0; i < strings.validYesWords.length; i++) {
       if (msg == strings.validYesWords[i]) {
         return true;
@@ -10,6 +11,7 @@ module.exports = {
     }
   },
   isNoMessage: function(msg) {
+    msg = msg.replace(/\s+/g, '');
     for (var i = 0; i < strings.validNoWords.length; i++) {
       if (msg == strings.validNoWords[i]) {
         return true;
