@@ -9,9 +9,13 @@ h1 {
   font-size: 48px;
 }
 
-p {
+p, li {
   color: #A0A0A0;
   font-size: 14px;
+}
+
+li {
+  line-height: 2.0;
 }
 
 /* navbar */
