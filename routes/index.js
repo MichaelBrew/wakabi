@@ -24,9 +24,9 @@ router.get('/', function(req, res, next) {
 
           res.render('index', { 
             title: 'Wakabi', 
-            numDrivers: numDrivers
-            numIdleDrivers: numIdleDrivers
-            numBusyDrivers: numBusyDrivers
+            numDrivers: numDrivers,
+            numIdleDrivers: numIdleDrivers,
+            numBusyDrivers: numBusyDrivers,
             date: moment().format('MMMM DD, YYYY')
           })
         } else {
