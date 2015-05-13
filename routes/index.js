@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var pg = require('pg');
 var sys = require('sys');
+var moment = require('moment');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -9,7 +10,11 @@ router.get('/', function(req, res, next) {
     if (!err) {
       var query = client.query("SELECT num FROM drivers", function(err, result) {
         if (!err) {
-          res.render('index', { title: 'Wakabi', drivers: result.rows })
+          res.render('index', { 
+            title: 'Wakabi', 
+            drivers: result.rows,
+            date: moment().format('MMMM DD, YYYY')
+          })
         } else {
           sys.log("index.js: Error querying DB for drivers, " + err);
           res.render('index', { title: 'Wakabi', drivers: null })
