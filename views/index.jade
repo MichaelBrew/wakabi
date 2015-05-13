@@ -7,10 +7,24 @@ block content
       p #{date}
       div.dashboard-content-wrapper
         div.dashboard-section.driver-content
-          img(src='/images/dashboard-motorcycle.png')
+          img(src='/images/motorcycle.png')
+          div.driver-stats
+            div.total-drivers
+              h1 #{numDrivers}
+              p Total Drivers
+            div.idle-drivers
+              h1 #{numIdleDrivers}
+              p Idle Drivers
+            div.busy-drivers
+              h1 #{numBusyDrivers}
+              p Rides in Progress
         div.dashboard-section.rider-content
-          img(src='/images/dashboard-riders.png')
-        div.rdashboard-section.ating-content
-          img(src='/images/dashboard-ratings.png')
+          img(src='/images/people.png')
+        div.dashboard-section.rating-content
+          img(src='/images/ratings.png')
     div.alerts-wrapper
       h1 Alerts
+      ul
+        li Alert1
+        li Alert2
+        li Alert3

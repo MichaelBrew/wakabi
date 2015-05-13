@@ -1,20 +1,17 @@
-.container {
-  /*display: inline-block;*/
-}
-
 .container div {
   display: inline-block;
 }
 
-.dashboard {
-  /*display: inline-block;*/
-  margin-right: 20px;
+.dashboard-wrapper {
+  width: 80%;
+}
+
+.alerts-wrapper {
+  width: 20%;
+  vertical-align: top;
 }
 
 .dashboard-section {
   width: 100%;
-}
-
-.alerts {
-  /*display: inline-block;*/
+  margin-bottom: 40px;
 }
