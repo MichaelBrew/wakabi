@@ -9,9 +9,9 @@ block content
         div.dashboard-section.driver-content
           img(src='/images/motorcycle.png')
           div.driver-stats
-            div.total-drivers
+            div.drivers-on-shift
               h1 #{numDrivers}
-              p Total Drivers
+              p Drivers on Shift
             div.idle-drivers
               h1 #{numIdleDrivers}
               p Idle Drivers
@@ -20,6 +20,16 @@ block content
               p Rides in Progress
         div.dashboard-section.rider-content
           img(src='/images/people.png')
+          div.rider-stats
+            div.rides-requested
+              h1 #{ridesRequested}
+              p Rides Requested
+            div.rides-completed
+              h1 #{ridesCompleted}
+              p Rides Completed
+            div.rides-failed
+              h1 #{ridesFailed}
+              p Rides Failed
         div.dashboard-section.rating-content
           img(src='/images/ratings.png')
     div.alerts-wrapper

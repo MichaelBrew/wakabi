@@ -6,6 +6,10 @@
   width: 80%;
 }
 
+.dashboard-content-wrapper {
+  margin-top: 20px;
+}
+
 .alerts-wrapper {
   width: 20%;
   vertical-align: top;
@@ -22,10 +26,10 @@
 }
 
 .dashboard-section img {
-  margin-right: 40px;
+  margin-right: 80px;
 }
 
 .dashboard-section div > div {
-  margin-right: 30px;
+  margin-right: 100px;
   text-align: center;
 }
