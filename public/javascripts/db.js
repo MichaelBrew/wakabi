@@ -18,25 +18,33 @@ var pg             = require('pg');
 var sys            = require('sys');
 var RiderMessenger = require('./RiderMessenger');
 
-module.exports.addRiderNumToDb = function(from) {
-  pg.connect(process.env.DATABASE_URL, function(err, client) {
-    if (!err) {
-      // Look for rider
-      var query = client.query("SELECT num FROM riders WHERE num = '" + from + "'", function(err, result) {
-        if (!err) {
-          if (result.rows.length == 0) {
-            // Rider is not in DB yet, add them
-            var addRiderQuery = client.query("INSERT INTO riders (num, onride) VALUES ('" + from + "', false)", function(err, result) {
-              if (!err) {
-                sys.log("addRiderNumToDb: Rider " + from + " successfully added to DB");
-              }
-            });
+db = {
+  addRiderNumToDb: function(from) {
+    pg.connect(process.env.DATABASE_URL, function(err, client) {
+      if (!err) {
+        // Look for rider
+        var query = client.query("SELECT num FROM riders WHERE num = '" + from + "'", function(err, result) {
+          if (!err) {
+            if (result.rows.length == 0) {
+              // Rider is not in DB yet, add them
+              var addRiderQuery = client.query("INSERT INTO riders (num, onride) VALUES ('" + from + "', false)", function(err, result) {
+                if (!err) {
+                  sys.log("addRiderNumToDb: Rider " + from + " successfully added to DB");
+                }
+              });
+            } else {
+              sys.log ("addRiderNumToDb: Rider is already in DB")
+            }
           }
-        }
-      });
-    }
-  });
-};
+        });
+      }
+    });
+  }
+}
+
+// module.exports.addRiderNumToDb = function(from) {
+  
+// };
 
 // module.exports = {
 //   addRiderNumToDb: function (from) {
