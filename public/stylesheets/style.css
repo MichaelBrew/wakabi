@@ -9,9 +9,13 @@ h1 {
   font-size: 48px;
 }
 
-p {
+p, li {
   color: #A0A0A0;
   font-size: 14px;
+}
+
+li {
+  line-height: 2.0;
 }
 
 /* navbar */
@@ -49,36 +53,4 @@ p {
 .navbar-default .navbar-nav > .dropdown > a .caret {
     border-top-color: #FFFFFF;
     border-bottom-color: #FFFFFF;
-}
-
-.table {
-  border-radius: 10px;
-  width: 45%;
-  margin: 5px;
-}
-
-.container {
-  margin-left: 10px;
-  margin-right: 10px;
-}
-
-.driveraddedicon {
-  height: 45px;
-  width: 45px;
-  float: left;
-  background: green;
-}
-
-.driveradded h3 {
-  vertical-align: top;
-  margin-top: 0px;
-  margin-left: 55px; /* width of driveraddedicon + 10 */
-}
-
-.content table {
-  padding: 10px;
-}
-
-#drivers-table {
-  float: left;
 }
