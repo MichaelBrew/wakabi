@@ -14,7 +14,10 @@ router.get('/', function(req, res, next) {
     numBusyDrivers: 0,
     ridesRequested: 0,
     ridesCompleted: 0,
-    ridesFailed: 0
+    ridesFailed: 0,
+    positiveFeedback: 0,
+    negativeFeedback: 0,
+    netFeedback: 0
   }
 
   pg.connect(process.env.DATABASE_URL, function(err, client) {
@@ -46,18 +49,29 @@ router.get('/', function(req, res, next) {
 
                 ridesRequested = result.rows.length
                 ridesCompleted = 0
+                positiveFeedback = 0
+                negativeFeedback = 0
 
                 for (var ride in result.rows) {
                   if (ride.end_time != null) {
                     ridesCompleted++
                   }
-                }
 
-                ridesFailed =  ridesRequested - ridesCompleted
+                  if (ride.feedback != null) {
+                    if (ride.feedback == "good") {
+                      positiveFeedback++
+                    } else {
+                      negativeFeedback++
+                    }
+                  }
+                }
 
                 params.ridesRequested = ridesRequested
                 params.ridesCompleted = ridesCompleted
-                params.ridesRequested = ridesFailed
+                params.ridesFailed = ridesRequested - ridesCompleted
+                params.positiveFeedback = positiveFeedback
+                params.negativeFeedback = negativeFeedback
+                params.netFeedback = positiveFeedback - negativeFeedback
               } else {
                 sys.log("At least 1 ride has been requested today!")
               }

@@ -13,6 +13,7 @@ function handleRideRequest(res, message, from) {
   if (message.toUpperCase() == strings.keywordRide) {
     sys.log('handleRideRequest: Ride request received');
     requestLocation(res, false);
+    db.addRiderNumToDb(from);
   } else {
     sys.log('handleRideRequest: invalid messages received');
     defaultHelpResponse(res);

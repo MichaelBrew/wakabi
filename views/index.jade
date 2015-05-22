@@ -6,32 +6,43 @@ block content
       h1 Dashboard
       p #{date}
       div.dashboard-content-wrapper
-        div.dashboard-section.driver-content
-          img(src='/images/motorcycle.png')
-          div.driver-stats
-            div.drivers-on-shift
+        table.analytics-table
+          tr
+            td
+              img(src='/images/motorcycle.png')
+            td
               h1 #{numDrivers}
               p Drivers on Shift
-            div.idle-drivers
+            td
               h1 #{numIdleDrivers}
               p Idle Drivers
-            div.busy-drivers
+            td
               h1 #{numBusyDrivers}
               p Rides in Progress
-        div.dashboard-section.rider-content
-          img(src='/images/people.png')
-          div.rider-stats
-            div.rides-requested
+          tr
+            td
+              img(src='/images/people.png')
+            td
               h1 #{ridesRequested}
               p Rides Requested
-            div.rides-completed
+            td
               h1 #{ridesCompleted}
               p Rides Completed
-            div.rides-failed
+            td
               h1 #{ridesFailed}
               p Rides Failed
-        div.dashboard-section.rating-content
-          img(src='/images/ratings.png')
+          tr
+            td
+              img(src='/images/ratings.png')
+            td
+              h1 #{positiveFeedback}
+              p Good Feedback
+            td
+              h1 #{negativeFeedback}
+              p Bad Feedback
+            td
+              h1 #{netFeedback}
+              p Net Feedback
     div.alerts-wrapper
       h1 Alerts
       ul
