@@ -39,8 +39,8 @@ function isQuickDriverSignUp(res, message, from) {
         // Create query to add driver
         // TODO: Should probably get current date and use that, but not high priority
         //       since this is just for internal testing anyway
-        var queryString = "INSERT INTO drivers (num, working, on_ride, current_zone, has_trailer, rating, last_payment) VALUES ('"
-          + from + "', true, false, 1, true, 100, '2015-02-26')";
+        var queryString = "INSERT INTO drivers (num, working, current_zone, has_trailer, rating, last_payment) VALUES ('"
+          + from + "', true, 1, true, 100, '2015-02-26')";
 
         var query = client.query(queryString, function(err, result) {
           var responseText = "";

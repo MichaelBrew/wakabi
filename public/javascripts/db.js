@@ -70,7 +70,7 @@ module.exports.updateDriverRatingWithRiderNum = function(res, riderNum, message)
 
           var query = client.query(queryString, function(err, result) {
             if (!err) {
-              sys.log("handleFeedbackResponse: updated rating, totalrides, on_ride, and giving_ride_to successfully");
+              sys.log("handleFeedbackResponse: updated rating, totalrides, and giving_ride_to successfully");
               cookies = {
                 "rideStage": stages.rideStages.NOTHING
               }
@@ -87,7 +87,7 @@ module.exports.updateDriverRatingWithRiderNum = function(res, riderNum, message)
 module.exports.clearGivingRideTo = function(driverNum) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
-      var queryString = "UPDATE drivers SET on_ride = false, giving_ride_to = NULL WHERE num = '" + driverNum + "'";
+      var queryString = "UPDATE drivers SET giving_ride_to = NULL WHERE num = '" + driverNum + "'";
       var query = client.query(queryString, function(err, result) {
         if (!err) {
           // cool
