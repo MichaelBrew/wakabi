@@ -16,7 +16,9 @@
 
 var pg             = require('pg');
 var sys            = require('sys');
-var RiderMessenger = require('./RiderMessenger');
+var RiderMessenger = require('./RiderMessenger.js');
+var parser = require('./messageParser.js');
+var Messenger = require('./TextMessenger.js')
 
 module.exports.addRiderNumToDb = function(from) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
@@ -49,35 +51,31 @@ module.exports.addRiderNumToDriver = function(driverNum, riderNum) {
   });
 }
 
-module.exports.updateDriverRatingWithRiderNum = function(riderNum, goodFeedback) {
+module.exports.updateDriverRatingWithRiderNum = function(res, riderNum, message) {
+  var responseText = parser.isYesMessage(message) ? strings.goodFeedback : strings.badFeedback;
+
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
-      var query = client.query("SELECT num FROM drivers WHERE giving_ride_to = '" + riderNum + "'", function(err, result) {
-        if (!err && result.length == 1) {
+      var query = client.query("SELECT * FROM drivers WHERE giving_ride_to = '" + riderNum + "'", function(err, result) {
+        if (!err) {
           var driverNum = result.rows[0].num;
+          var currentRating = (result.rows[0].rating == null) ? 100 : result.rows[0].rating;
+          var totalRides = (result.rows[0].total_rides_completed == null) ? 0 : result.rows[0].total_rides_completed;
 
-          var queryString = "SELECT rating AND total_rides_completed FROM drivers WHERE num = '" + driverNum + "'";
+          //New rating = (# of positive feedback / # of total feedback)
+          var multiplier = parser.isYesMessage(message) ? 100 : 0;
+          var newRating = (1/(totalRides+1))*multiplier + (totalRides/(totalRides+1))*currentRating;
+          var queryString = "UPDATE drivers SET rating = " + newRating + ", total_rides_completed = " + (totalRides+1) + ", giving_ride_to = NULL WHERE num = '" + driverNum + "'";
+
           var query = client.query(queryString, function(err, result) {
-            if (!err && result.length == 1) {
-              var currentRating = result.rows[0].rating;
-              var totalRides = result.rows[0].total_rides_completed;
-
-               // * EXAMPLE
-               // * totalRides = 26, currentRating = 97%
-               // * Good Feedback -> (1/(26+1))*100 + (26/(26+1))*97 = .037*100 + .962*97 = 3.7 + 93.4 = 97.1%
-               // * Bad Feedback  -> (1/(26+1))*0   + (26/(26+1))*97 = .037*0   + .962*97 = 0   + 93.4 = 93.4%
-               
-              var multiplier = goodFeedback ? 100 : 0;
-              var newRating = (1/(totalRides+1))*multiplier + (totalRides/(totalRides+1))*currentRating;
-
-              var queryString = "UPDATE drivers SET rating = " + newRating + ", total_rides_completed = " + (totalRides+1) + " WHERE num = '" + driverNum + "'";
-
-              var query = client.query(queryString, function(err, result) {
-                if (!err) {
-                  clearGivingRideTo(driverNum);
-                }
-              });
+            if (!err) {
+              sys.log("handleFeedbackResponse: updated rating, totalrides, on_ride, and giving_ride_to successfully");
+              cookies = {
+                "rideStage": stages.rideStages.NOTHING
+              }
+              Messenger.textResponse(res, responseText, cookies);
             }
+            client.end();
           });
         }
       });
