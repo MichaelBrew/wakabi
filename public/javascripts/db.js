@@ -14,13 +14,13 @@
  *         The response handling DOES rely on this result.
  */
 
-var pg             = require('pg');
-var sys            = require('sys');
+var pg = require('pg');
+var sys = require('sys');
 var RiderMessenger = require('./RiderMessenger.js');
 var parser = require('./messageParser.js');
 var Messenger = require('./TextMessenger.js');
 var strings = require('./strings.js');
-var stages    = require('./stages');
+var stages = require('./stages');
 
 module.exports.addRiderNumToDb = function(from) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {

@@ -37,10 +37,10 @@ function handleTrailerResponse(req, res, message, from) {
     sys.log('handleTrailerResponse: Trailer decision received');
     var location = req.cookies.originLocation;
 
-    sendWaitText(res);
+    // sendWaitText(res);
 
     var needsTrailer = (parser.isYesMessage(message) ? true : false);
-    searchForDriver(from, location, needsTrailer);
+    searchForDriver(res, from, location, needsTrailer);
   } else {
     sys.log('handleTrailerResponse: Invalid response for trailer decision');
     requestTrailerInfo(res, true);
@@ -97,7 +97,7 @@ function verifyRiderLocation(msg) {
   return false;
 }
 
-function searchForDriver(from, location, needTrailer) {
+function searchForDriver(res, from, location, needTrailer) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
       var queryString = "SELECT num FROM drivers WHERE working = 'true' AND giving_ride_to IS NULL AND current_zone = " + location;
@@ -109,10 +109,16 @@ function searchForDriver(from, location, needTrailer) {
         if (!err) {
           sys.log("searchForDriver: successfully queried db, found " + result.rows.length + " eligible drivers");
           var driver = result.rows[0];
+          // TODO: instead of grabbing first one, look to time_last_ride and pick the one that's waited longest
 
           if (driver != null && driver.num != null) {
             sys.log("searchForDriver: About to text driver " + driver.num);
             DriverMessenger.textDriverForConfirmation(driver.num, from);
+
+            cookies = {
+              "rideStage": stages.rideStages.CONTACTING_DRIVER
+            }
+            Messenger.textResponse(res, strings.waitText, cookies)
           } else {
             noDriversFound(from, location, false);
           }
@@ -142,50 +148,6 @@ function startTimeoutForRider(riderNum) {
 
 function handleFeedbackResponse(res, message, from) {
   db.updateDriverRatingWithRiderNum(res, from, message)
-
-  // sys.log("handleFeedbackResponse: from = " + from);
-  // var responseText = parser.isYesMessage(message) ? strings.goodFeedback : strings.badFeedback;
-
-  // pg.connect(process.env.DATABASE_URL, function(err, client) {
-  //   if (!err) {
-  //     sys.log("handleFeedbackResponse: connected to DB");
-  //     var query = client.query("SELECT * FROM drivers WHERE giving_ride_to = '" + from + "'", function(err, result) {
-  //       if (!err) {
-  //         var driverNum = result.rows[0].num;
-  //         var currentRating = (result.rows[0].rating == null) ? 100 : result.rows[0].rating;
-  //         var totalRides = (result.rows[0].total_rides_completed == null) ? 0 : result.rows[0].total_rides_completed;
-  //         sys.log("handleFeedbackResponse: found the driver, num is " + driverNum);
-
-  //         //New rating = (# of positive feedback / # of total feedback)
-  //         var multiplier = parser.isYesMessage(message) ? 100 : 0;
-  //         var newRating = (1/(totalRides+1))*multiplier + (totalRides/(totalRides+1))*currentRating;
-
-  //         if (multiplier == 100) {
-  //           sys.log("updateDriverRating: feedback: GOOD; oldRating = " + currentRating + "; oldTotalRides = " + totalRides + "; newRating = " + newRating + "; newTotalRides = " + (totalRides+1));
-  //         } else {
-  //           sys.log("updateDriverRating: feedback: BAD; oldRating = " + currentRating + "; oldTotalRides = " + totalRides + "; newRating = " + newRating + "; newTotalRides = " + (totalRides+1));
-  //         }
-  //         var queryString = "UPDATE drivers SET rating = " + newRating + ", total_rides_completed = " + (totalRides+1) + ", giving_ride_to = NULL WHERE num = '" + driverNum + "'";
-
-  //         var query = client.query(queryString, function(err, result) {
-  //           if (!err) {
-  //             sys.log("handleFeedbackResponse: updated rating, totalrides, on_ride, and giving_ride_to successfully");
-  //             cookies = {
-  //               "rideStage": stages.rideStages.NOTHING
-  //             }
-  //             Messenger.textResponse(res, responseText, cookies);
-  //             sys.log("handleFeedbackResponse: Just sent response: " + responseText);
-  //           } else {
-  //             sys.log("handleFeedbackResponse: Failed to updated rating, totalrides, on_ride, and giving_ride_to");
-  //           }
-  //           client.end();
-  //         });
-  //       } else {
-  //         sys.log("handleFeedbackResponse: Error with query to find driver, err = " + err);
-  //       }
-  //     });
-  //   }
-  // });
 }
 
 module.exports = {
