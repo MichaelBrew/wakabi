@@ -18,7 +18,8 @@ var pg             = require('pg');
 var sys            = require('sys');
 var RiderMessenger = require('./RiderMessenger.js');
 var parser = require('./messageParser.js');
-var Messenger = require('./TextMessenger.js')
+var Messenger = require('./TextMessenger.js');
+var strings = require('./strings.js');
 
 module.exports.addRiderNumToDb = function(from) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
