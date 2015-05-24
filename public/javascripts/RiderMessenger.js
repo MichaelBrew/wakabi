@@ -15,7 +15,7 @@ function handleRideRequest(res, message, from) {
     requestLocation(res, false);
     db.addRiderNumToDb(from);
   } else {
-    sys.log('handleRideRequest: invalid messages received');
+    sys.log('handleRideRequest: Invalid message received');
     defaultHelpResponse(res);
   }
 }
@@ -36,8 +36,6 @@ function handleTrailerResponse(req, res, message, from) {
   if (parser.isYesMessage(message) || parser.isNoMessage(message)) {
     sys.log('handleTrailerResponse: Trailer decision received');
     var location = req.cookies.originLocation;
-
-    // sendWaitText(res);
 
     var needsTrailer = (parser.isYesMessage(message) ? true : false);
     searchForDriver(res, from, location, needsTrailer);
@@ -74,18 +72,22 @@ function defaultHelpResponse(res) {
 
 // TODO: If we're sending this after the 30 min timeout, need to somehow reset their rideStage back
 //       to nothing or else they can't request a new ride.
-function sendNoDriversText(rider, isTimeout) {
+function sendNoDriversText(rider, isTimeout, res) {
+  msg = isTimeout ? strings.noDriversAvailable : (strings.noDriversAvailable + strings.willNotifyIn30);
+
   if (isTimeout) {
     sys.log("sendNoDrivers: Called from a timeout!");
+    cookies = {
+      rideStage: stages.rideStages.NOTHING
+    }
+    Messenger.textReponse(res, msg, cookies);
+
     if (RiderWaitingQueue.isRiderWaiting(rider)) {
       RiderWaitingQueue.removeRiderFromQueue(rider);
-    } else {
-      return;
     }
+  } else {
+    Messenger.text(rider, msg);
   }
-
-  msg = isTimeout ? strings.noDriversAvailable : (strings.noDriversAvailable + strings.willNotifyIn30);
-  Messenger.text(rider, msg);
 }
 
 function verifyRiderLocation(msg) {
@@ -120,30 +122,30 @@ function searchForDriver(res, from, location, needTrailer) {
             }
             Messenger.textResponse(res, strings.waitText, cookies)
           } else {
-            noDriversFound(from, location, false);
+            noDriversFound(from, location, false, res);
           }
         } else {
-          noDriversFound(from, location, false);
+          noDriversFound(from, location, false, res);
         }
 
         client.end();
       });
     } else {
-      noDriversFound(from, location, false);
+      noDriversFound(from, location, false, res);
     }
   });
 }
 
-function noDriversFound(from, location, resend) {
-  sendNoDriversText(from, false);
+function noDriversFound(from, location, resend, res) {
+  sendNoDriversText(from, false, null);
   RiderWaitingQueue.addRiderWithZoneToQueue(from, location);
-  startTimeoutForRider(from);
+  startTimeoutForRider(from, res);
 }
 
-function startTimeoutForRider(riderNum) {
+function startTimeoutForRider(riderNum, res) {
   var delay = 1000 * 60 * 1; // 1000ms = 1sec * 60 = 1min * 30 = 30min
   sys.log("About to set timeout for rider waiting, delay is " + delay + "ms");
-  setTimeout(sendNoDriversText, delay, riderNum, true);
+  setTimeout(sendNoDriversText, delay, riderNum, true, res);
 }
 
 function handleFeedbackResponse(res, message, from) {
