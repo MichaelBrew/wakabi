@@ -15,9 +15,9 @@ function sendInitialText(to, msg) {
     body: msg
   }, function(error, message) {
     if (!error) {
-      sys.log("TextMessenger.text: successfully sent message: " + msg + "; to " + to);
+      sys.log("TextMessenger: successfully sent message: " + msg + "; to " + to);
     } else {
-      sys.log("TextMessenger.text: error sending to " + to + " the message: " + msg);
+      sys.log("TextMessenger: error sending to " + to + " the message: " + msg);
     }
   });
 }
@@ -30,7 +30,7 @@ function sendResponsetext(res, message, cookies) {
     for (var key in cookies) {
       if (cookies.hasOwnProperty(key)) {
         res.cookie(key, cookies[key]);
-        sys.log("Twilio.textResponse: cookie " + key + " set to " + cookies[key]);
+        sys.log("TextMessenger: cookie " + key + " set to " + cookies[key]);
       }
     }
   }
@@ -39,7 +39,7 @@ function sendResponsetext(res, message, cookies) {
     'Content-Type':'text/xml'
   }, 200);
 
-  sys.log("TextMessenger.textResponse: response sent");
+  sys.log("TextMessenger: response sent: " + message);
 }
 
 module.exports = {

@@ -70,8 +70,6 @@ function defaultHelpResponse(res) {
   Messenger.textResponse(res, strings.resendText + strings.helpText);
 }
 
-// TODO: If we're sending this after the 30 min timeout, need to somehow reset their rideStage back
-//       to nothing or else they can't request a new ride.
 function sendNoDriversText(rider, isTimeout, res) {
   msg = isTimeout ? strings.noDriversAvailable : (strings.noDriversAvailable + strings.willNotifyIn30);
 
@@ -86,7 +84,7 @@ function sendNoDriversText(rider, isTimeout, res) {
       RiderWaitingQueue.removeRiderFromQueue(rider);
     }
   } else {
-    Messenger.text(rider, msg);
+    Messenger.textResponse(res, msg, null);
   }
 }
 
@@ -137,7 +135,7 @@ function searchForDriver(res, from, location, needTrailer) {
 }
 
 function noDriversFound(from, location, resend, res) {
-  sendNoDriversText(from, false, null);
+  sendNoDriversText(from, false, res);
   RiderWaitingQueue.addRiderWithZoneToQueue(from, location);
   startTimeoutForRider(from, res);
 }

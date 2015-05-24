@@ -136,7 +136,7 @@ var receiveIncomingMessage = function(req, res, next) {
   var message = req.body.Body;
   var from    = req.body.From;
 
-  sys.log('From: ' + from + ', Message: ' + message);
+  sys.log('incoming: From: ' + from + ', Message: ' + message);
 
   // Testing shortcuts
   if (isRideStageReset(res, message)) {
@@ -153,20 +153,19 @@ var receiveIncomingMessage = function(req, res, next) {
       var query = client.query("SELECT num FROM drivers WHERE num = '" + from + "'", function(err, result) {
         if (!err) {
           if (result.rows.length == 0) {
-            sys.log("receiveIncomingMessage: sender is a rider");
+            sys.log("incoming: sender is a rider");
             RiderMessenger.handleText(req, res, message, from, getStage(req, false));
           } else {
-            sys.log("receiveIncomingMessage: sender is a driver");
+            sys.log("incoming: sender is a driver");
             DriverMessenger.handleText(res, message, from, getStage(req, true));
           }
         } else {
-          sys.log("receiveIncomingMessage: Error querying DB to see if driver exists already, " + err);
+          sys.log("incoming: Error querying DB to see if driver exists already, " + err);
           // Default to rider
           RiderMessenger.handleText(req, res, message, from, getStage(req, false));
         }
 
         client.end();
-        sys.log("incoming.js: closed connection to DB");
       });
 
     } else {
