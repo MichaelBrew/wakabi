@@ -80,7 +80,7 @@ function sendNoDriversText(rider, isTimeout, res) {
     cookies = {
       rideStage: stages.rideStages.NOTHING
     }
-    Messenger.textReponse(res, msg, cookies);
+    Messenger.textResponse(res, msg, cookies);
 
     if (RiderWaitingQueue.isRiderWaiting(rider)) {
       RiderWaitingQueue.removeRiderFromQueue(rider);
