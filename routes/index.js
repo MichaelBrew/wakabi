@@ -40,7 +40,8 @@ router.get('/', function(req, res, next) {
           params.numIdleDrivers = numIdleDrivers;
           params.numBusyDrivers = numBusyDrivers;
 
-          currentDay = moment().startOf('day').toDate()
+          var currentDay = moment().startOf('day').toDate()
+          sys.log("Current day at midnight is " + currentDay)
 
           var query = client.query("SELECT * FROM rides WHERE request_time >= " + currentDay, function(err, result) {
             if (!err) {

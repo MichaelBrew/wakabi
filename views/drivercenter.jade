@@ -4,7 +4,7 @@ block content
   div.container
     div.content
       h1 Drivers
-      if drivers
+      if drivers && drivers.length > 0
         table.drivers-table
           thead
             tr
