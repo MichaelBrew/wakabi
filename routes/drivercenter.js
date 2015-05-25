@@ -15,7 +15,7 @@ router.get('/', function(req, res, next) {
         if (!err) {
           params.drivers = result.rows
           params.removeDriver = function(driverNum) {
-            console.log "wanna remove " + driverNum
+            sys.log("wanna remove " + driverNum);
           }
 
           res.render('drivercenter', params)
