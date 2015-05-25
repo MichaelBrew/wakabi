@@ -7,7 +7,7 @@ var moment = require('moment');
 /* GET home page. */
 router.get('/', function(req, res, next) {
   var params = {
-    title: 'Wakabi',
+    tab: 'Home',
     date: moment().format('MMMM DD, YYYY'),
     numDrivers: 0,
     numIdleDrivers: 0,
