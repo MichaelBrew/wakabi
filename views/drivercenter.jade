@@ -3,11 +3,22 @@ extends layout
 block content
   div.container
     div.content
-      table#drivers-table.table.table-bordered
-        thead
-          tr
-            th Drivers
-        tbody
-          each driver in drivers
+      h1 Drivers
+      if drivers && drivers.length > 0
+        table.drivers-table
+          thead
             tr
-              td= driver.num
+              th Drivers
+          tbody
+            each driver in drivers
+              tr
+                td
+                  driver.num
+                td
+                  driver.rating
+                td
+                  driver.total_rides_completed
+                td
+                  button(type="button", onClick="javascript:removeDriver.bind(this, driver.num)")
+      else
+        h4 No drivers in system

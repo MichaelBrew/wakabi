@@ -1,7 +1,7 @@
 doctype html
 html
   head
-    title= title
+    title= Wakabi
     link(rel='stylesheet', href='//maxcdn.bootstrapcdn.com/bootswatch/3.3.2/flatly/bootstrap.min.css' )
     link(rel='stylesheet', href='/stylesheets/style.css')
     link(rel='stylesheet/less', href='/stylesheets/index.less')
@@ -20,9 +20,21 @@ html
 
       #navbar-inverse.collapse.navbar-collapse
         ul.nav.navbar-nav
-          li.active: a( href="#") Home
-            li: a( href="#drivercenter" ) Driver Center
-            li: a( href="#ridercenter" ) Rider Center
-            li: a( href="#analytics") Analytics
+          if tab == 'Home'
+            li.active: a( href="/") Home
+          else
+            li: a(href="/") Home
+          if tab == 'Driver Center'
+            li.active: a( href="/drivercenter" ) Driver Center
+          else
+            li: a( href="/drivercenter" ) Driver Center
+          if tab == 'Rider Center'
+            li.active: a( href="/ridercenter" ) Rider Center
+          else
+            li: a( href="/ridercenter" ) Rider Center
+          if tab == 'Analytics'
+            li.active: a( href="/analytics") Analytics
+          else
+            li: a( href="/analytics") Analytics
 
     block content
