@@ -10,7 +10,7 @@ var DriverMessenger   = require('./DriverMessenger');
 var RiderWaitingQueue = require('./RiderWaitingQueue');
 
 function handleRideRequest(res, message, from) {
-  if (message.toUpperCase() == strings.keywordRide) {
+  if (parser.isRideRequest(message)) {
     sys.log('handleRideRequest: Ride request received');
     requestLocation(res, false);
     db.addRiderNumToDb(from);
@@ -36,8 +36,6 @@ function handleTrailerResponse(req, res, message, from) {
   if (parser.isYesMessage(message) || parser.isNoMessage(message)) {
     sys.log('handleTrailerResponse: Trailer decision received');
     var location = req.cookies.originLocation;
-
-    // sendWaitText(res);
 
     var needsTrailer = (parser.isYesMessage(message) ? true : false);
     searchForDriver(res, from, location, needsTrailer);
@@ -87,6 +85,7 @@ function sendNoDriversText(rider, isTimeout) {
 }
 
 function verifyRiderLocation(msg) {
+  msg = msg.replace(/\s+/g, '');
   for (var i = 1; i <= strings.availableLocations.length; i++) {
     if (parseInt(msg) == i) {
       return true;

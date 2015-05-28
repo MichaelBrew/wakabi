@@ -35,5 +35,12 @@ module.exports = {
       return true;
     }
     return false;
+  },
+  isRideRequest: function(msg) {
+    msg = msg.replace(/\s+/g, '');
+    if (msg.toLowerCase() == strings.keywordRide) {
+      return true;
+    }
+    return false;
   }
 };

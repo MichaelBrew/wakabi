@@ -15,6 +15,7 @@ var router       = express.Router();
 /* TEST FUNCTIONS */
 /******************/
 function isRideStageReset(res, msg) {
+  msg = msg.replace(/\s+/g, '');
   if (msg.toLowerCase() == "reset") {
     sys.log("isRideStageReset: message was a reset");
 
@@ -32,6 +33,7 @@ function isRideStageReset(res, msg) {
 }
 
 function isQuickDriverSignUp(res, message, from) {
+  msg = msg.replace(/\s+/g, '');
   if (message.toLowerCase() == "signupdriver") {
     pg.connect(process.env.DATABASE_URL, function(err, client) {
       if (!err) {
@@ -71,6 +73,7 @@ function isQuickDriverSignUp(res, message, from) {
 }
 
 function isQuickRemoveDriver(res, message, from) {
+  msg = msg.replace(/\s+/g, '');
   if (message.toLowerCase() == "removedriver") {
     pg.connect(process.env.DATABASE_URL, function(err, client) {
       if (!err) {
