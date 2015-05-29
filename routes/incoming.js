@@ -162,7 +162,11 @@ var receiveIncomingMessage = function(req, res, next) {
   // Testing shortcuts
   if (isRideStageReset(res, message)) {
     return;
-  } else if (isQuickDriverSignUp(res, message, from)) {
+  } else {
+    sys.log("Wasn't a ride stage reset!");
+  }
+
+  if (isQuickDriverSignUp(res, message, from)) {
     return;
   } else if (isQuickRemoveDriver(res, message, from)) {
     return;
