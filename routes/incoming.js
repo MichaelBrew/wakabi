@@ -15,7 +15,9 @@ var router       = express.Router();
 /* TEST FUNCTIONS */
 /******************/
 function isRideStageReset(res, msg) {
+  sys.log("isRideStageReset: msg before removing blanks = " + msg)
   msg = msg.replace(/\s+/g, '');
+  sys.log("isRideStageReset: msg after removing blanks = " + msg)
   if (msg.toLowerCase() == "reset") {
     sys.log("isRideStageReset: message was a reset");
 
@@ -33,7 +35,9 @@ function isRideStageReset(res, msg) {
 }
 
 function isQuickDriverSignUp(res, message, from) {
+  sys.log("isQuickDriverSignUp: msg before removing blanks = " + msg)
   msg = msg.replace(/\s+/g, '');
+  sys.log("isQuickDriverSignUp: msg after removing blanks = " + msg)
   if (message.toLowerCase() == "signupdriver") {
     pg.connect(process.env.DATABASE_URL, function(err, client) {
       if (!err) {
@@ -73,7 +77,9 @@ function isQuickDriverSignUp(res, message, from) {
 }
 
 function isQuickRemoveDriver(res, message, from) {
+  sys.log("isQuickRemoveDriver: msg before removing blanks = " + msg)
   msg = msg.replace(/\s+/g, '');
+  sys.log("isQuickRemoveDriver: msg after removing blanks = " + msg)
   if (message.toLowerCase() == "removedriver") {
     pg.connect(process.env.DATABASE_URL, function(err, client) {
       if (!err) {
