@@ -1,4 +1,4 @@
-exports.keywordRide = "RIDE";
+exports.keywordRide = "ride";
 exports.availableLocations = [
   "Kawempe",
   "Nangaiza",
