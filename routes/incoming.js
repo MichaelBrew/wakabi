@@ -144,18 +144,18 @@ var receiveIncomingMessage = function(req, res, next) {
 
   var message = req.body.Body;
   var from    = req.body.From;
-  // var fromCity = req.body.FromCity;
-  // var fromState = req.body.FromState;
-  // var fromZip = req.body.FromZip;
-  // var fromCountry = req.body.FromCountry;
+  var fromCity = req.body.FromCity;
+  var fromState = req.body.FromState;
+  var fromZip = req.body.FromZip;
+  var fromCountry = req.body.FromCountry;
 
-  // // These all come from the phone number itself
-  // // But not from the sender's actual location (unless they're in the same
-  // // place that their phone number is registered)
-  // if (fromCity) sys.log("incoming: fromCity = " + fromCity);
-  // if (fromState) sys.log("incoming: fromState = " + fromState);
-  // if (fromZip) sys.log("incoming: fromZip = " + fromZip);
-  // if (fromCountry) sys.log("incoming: fromCountry = " + fromCountry);
+  // These all come from the phone number itself
+  // But not from the sender's actual location (unless they're in the same
+  // place that their phone number is registered)
+  if (fromCity) sys.log("incoming: fromCity = " + fromCity);
+  if (fromState) sys.log("incoming: fromState = " + fromState);
+  if (fromZip) sys.log("incoming: fromZip = " + fromZip);
+  if (fromCountry) sys.log("incoming: fromCountry = " + fromCountry);
 
   sys.log('incoming: From: ' + from + ', Message: ' + message);
 
