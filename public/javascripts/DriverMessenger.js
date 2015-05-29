@@ -17,13 +17,13 @@ function driverStartShift(res, from) {
         var responseText = "";
         if (!err) {
           if (result.rows.length == 1) {
-            responseText += "I can't do that, you are already working.";
+            responseText += strings.cantRestartShift;
             Messenger.textResponse(res, responseText);
           } else {
             requestLocation(res, false, stages.driveStages.AWAITING_START_LOCATION);
           }
         } else {
-          responseText += "We're sorry, there was an error with the DB";
+          responseText += strings.dbError;
           sys.log("driverStartShift: Error querying the DB");
           Messenger.textResponse(res, responseText);
         }
@@ -40,9 +40,9 @@ function driverEndShift(res, from) {
       var query = client.query("UPDATE drivers SET working = false WHERE num = '" + from + "'", function(err, result) {
         var responseText = "";
         if (!err) {
-          responseText += "You have successfully ended shift!";
+          responseText += strings.successfulEndShift;
         } else {
-          responseText += "We're sorry, there was an error with the DB";
+          responseText += strings.dbError;
         }
 
         cookies = {
@@ -71,9 +71,9 @@ function receiveStartShiftLocation(res, location, from) {
       var query = client.query("UPDATE drivers SET working = true, current_zone = " + parseInt(location) + " WHERE num = '" + from + "'", function(err, result) {
         var responseText = ""
         if (!err) {
-          responseText += "You started your shift - good luck!";
+          responseText += strings.successfulStartShift;
         } else {
-          responseText += "We're sorry, there was an error with the DB";
+          responseText += strings.dbError;
         }
 
         cookies = {
@@ -118,7 +118,7 @@ function sendNumberToDriver(res, driverNum) {
       var query = client.query(queryString, function(err, result) {
         if (!err) {
           var riderNum = result.rows[0].giving_ride_to;
-          var responseText = "Here is the rider's number: " + riderNum;
+          var responseText = strings.hereIsRiderNum + riderNum;
 
           cookies = {
             "driveStage": stages.driveStages.AWAITING_END_RIDE
@@ -129,7 +129,6 @@ function sendNumberToDriver(res, driverNum) {
         }
 
         client.end();
-        sys.log("sendNumberToDriver.js: closed connection to DB");
       });
     }
   });
@@ -178,8 +177,6 @@ function textForConfirmation(driverNumber, riderNumber) {
         client.end();
       });
     }
-
-    sys.log("textDriver.js: closed connection to DB");
   });
 }
 
