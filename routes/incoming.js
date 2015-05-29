@@ -35,9 +35,9 @@ function isRideStageReset(res, msg) {
 }
 
 function isQuickDriverSignUp(res, message, from) {
-  sys.log("isQuickDriverSignUp: msg before removing blanks = " + msg)
-  msg = msg.replace(/\s+/g, '');
-  sys.log("isQuickDriverSignUp: msg after removing blanks = " + msg)
+  sys.log("isQuickDriverSignUp: msg before removing blanks = " + message)
+  message = message.replace(/\s+/g, '');
+  sys.log("isQuickDriverSignUp: msg after removing blanks = " + message)
   if (message.toLowerCase() == "signupdriver") {
     pg.connect(process.env.DATABASE_URL, function(err, client) {
       if (!err) {
@@ -77,9 +77,9 @@ function isQuickDriverSignUp(res, message, from) {
 }
 
 function isQuickRemoveDriver(res, message, from) {
-  sys.log("isQuickRemoveDriver: msg before removing blanks = " + msg)
-  msg = msg.replace(/\s+/g, '');
-  sys.log("isQuickRemoveDriver: msg after removing blanks = " + msg)
+  sys.log("isQuickRemoveDriver: msg before removing blanks = " + message)
+  message = message.replace(/\s+/g, '');
+  sys.log("isQuickRemoveDriver: msg after removing blanks = " + message)
   if (message.toLowerCase() == "removedriver") {
     pg.connect(process.env.DATABASE_URL, function(err, client) {
       if (!err) {
@@ -166,11 +166,11 @@ var receiveIncomingMessage = function(req, res, next) {
     sys.log("Wasn't a ride stage reset!");
   }
 
-  // if (isQuickDriverSignUp(res, message, from)) {
-  //   return;
-  // } else if (isQuickRemoveDriver(res, message, from)) {
-  //   return;
-  // }
+  if (isQuickDriverSignUp(res, message, from)) {
+    return;
+  } else if (isQuickRemoveDriver(res, message, from)) {
+    return;
+  }
 
   sys.log('incoming: got past all the test shortcut checks')
 
