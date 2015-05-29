@@ -166,11 +166,11 @@ var receiveIncomingMessage = function(req, res, next) {
     sys.log("Wasn't a ride stage reset!");
   }
 
-  if (isQuickDriverSignUp(res, message, from)) {
-    return;
-  } else if (isQuickRemoveDriver(res, message, from)) {
-    return;
-  }
+  // if (isQuickDriverSignUp(res, message, from)) {
+  //   return;
+  // } else if (isQuickRemoveDriver(res, message, from)) {
+  //   return;
+  // }
 
   sys.log('incoming: got past all the test shortcut checks')
 
