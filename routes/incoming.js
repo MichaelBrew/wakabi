@@ -1,23 +1,20 @@
-var express      = require('express');
-var pg           = require('pg');
-var sys          = require('sys');
-var twilio       = require('twilio');
-var db           = require('../public/javascripts/db');
-var stages       = require('../public/javascripts/stages');
+var express = require('express');
+var pg      = require('pg');
+var sys     = require('sys');
+var db      = require('../public/javascripts/db');
+var stages  = require('../public/javascripts/stages');
 
 var Messenger = require('../public/javascripts/TextMessenger');
 var RiderMessenger  = require('../public/javascripts/RiderMessenger');
 var DriverMessenger = require('../public/javascripts/DriverMessenger');
 
-var router       = express.Router();
+var router = express.Router();
 
 /******************/
 /* TEST FUNCTIONS */
 /******************/
 function isRideStageReset(res, msg) {
-  sys.log("isRideStageReset: msg before removing blanks = " + msg)
   msg = msg.replace(/\s+/g, '');
-  sys.log("isRideStageReset: msg after removing blanks = " + msg)
   if (msg.toLowerCase() == "reset") {
     sys.log("isRideStageReset: message was a reset");
 
@@ -35,16 +32,10 @@ function isRideStageReset(res, msg) {
 }
 
 function isQuickDriverSignUp(res, message, from) {
-  sys.log("isQuickDriverSignUp: msg before removing blanks = " + message)
   message = message.replace(/\s+/g, '');
-  sys.log("isQuickDriverSignUp: msg after removing blanks = " + message)
   if (message.toLowerCase() == "signupdriver") {
     pg.connect(process.env.DATABASE_URL, function(err, client) {
       if (!err) {
-        sys.log("isQuickDriverSignUp: connected to DB");
-        // Create query to add driver
-        // TODO: Should probably get current date and use that, but not high priority
-        //       since this is just for internal testing anyway
         var queryString = "INSERT INTO drivers (num, working, current_zone, has_trailer, rating, last_payment) VALUES ('"
           + from + "', true, 1, true, 100, '2015-02-26')";
 
@@ -77,9 +68,7 @@ function isQuickDriverSignUp(res, message, from) {
 }
 
 function isQuickRemoveDriver(res, message, from) {
-  sys.log("isQuickRemoveDriver: msg before removing blanks = " + message)
   message = message.replace(/\s+/g, '');
-  sys.log("isQuickRemoveDriver: msg after removing blanks = " + message)
   if (message.toLowerCase() == "removedriver") {
     pg.connect(process.env.DATABASE_URL, function(err, client) {
       if (!err) {
@@ -136,7 +125,6 @@ function getStage(request, isDriver) {
     }
   }
 
-  sys.log("getStage: cookies are null, or cookies.stage was null, returning '" + defaultReturnVal + "'");
   return defaultReturnVal;
 }
 
@@ -162,17 +150,11 @@ var receiveIncomingMessage = function(req, res, next) {
   // Testing shortcuts
   if (isRideStageReset(res, message)) {
     return;
-  } else {
-    sys.log("Wasn't a ride stage reset!");
-  }
-
-  if (isQuickDriverSignUp(res, message, from)) {
+  } else if (isQuickDriverSignUp(res, message, from)) {
     return;
   } else if (isQuickRemoveDriver(res, message, from)) {
     return;
   }
-
-  sys.log('incoming: got past all the test shortcut checks')
 
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
