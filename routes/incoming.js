@@ -143,6 +143,9 @@ var receiveIncomingMessage = function(req, res, next) {
   var fromZip = req.body.FromZip;
   var fromCountry = req.body.FromCountry;
 
+  // These all come from the phone number itself
+  // But not from the sender's actual location (unless they're in the same
+  // place that their phone number is registered)
   if (fromCity) sys.log("incoming: fromCity = " + fromCity);
   if (fromState) sys.log("incoming: fromState = " + fromState);
   if (fromZip) sys.log("incoming: fromZip = " + fromZip);
@@ -158,6 +161,8 @@ var receiveIncomingMessage = function(req, res, next) {
   } else if (isQuickRemoveDriver(res, message, from)) {
     return;
   }
+
+  sys.log('incoming: got past all the test shortcut checks')
 
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
