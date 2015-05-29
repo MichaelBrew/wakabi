@@ -51,8 +51,6 @@ function driverEndShift(res, from) {
         Messenger.textResponse(res, responseText, cookies);
 
         client.end();
-        sys.log("driverEndShift.js: closed connection to DB");
-        return;
       });
     }
   });
@@ -84,8 +82,6 @@ function receiveStartShiftLocation(res, location, from) {
         checkRiderWaitingQueue(from, location);
 
         client.end();
-        sys.log("receiveStartShiftLocation.js: closed connection to DB");
-        return;
       });
     }
   });
@@ -154,9 +150,9 @@ function handleEndRideText(res, message, from) {
               if (!err) {
                 // Timestamp set
               }
-            })
 
-            client.end();
+              client.end();
+            });
           }
         });
       }

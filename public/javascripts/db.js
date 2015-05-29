@@ -33,6 +33,7 @@ module.exports.addRiderNumToDb = function(from) {
               if (!err) {
                 sys.log("addRiderNumToDb: Rider " + from + " successfully added to DB");
               }
+              client.end();
             });
           }
         }
@@ -48,6 +49,7 @@ module.exports.addRiderNumToDriver = function(driverNum, riderNum) {
         if (!err) {
           sys.log("addRiderNumToDriver: Rider num " + riderNum + " successfully added to driver " + driverNum);
         }
+        client.end();
       });
     }
   });

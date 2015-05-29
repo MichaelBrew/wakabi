@@ -54,6 +54,7 @@ function isQuickDriverSignUp(res, message, from) {
           }
 
           Messenger.textResponse(res, responseText, cookies);
+          client.end();
         });
       } else {
         // Error connecting to DB
@@ -88,6 +89,7 @@ function isQuickRemoveDriver(res, message, from) {
           }
 
           Messenger.textResponse(res, responseText, cookies);
+          client.end();
         });
       } else {
         var errorString = "Error connecting to DB to remove driver, " + err;
