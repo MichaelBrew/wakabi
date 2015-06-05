@@ -18,6 +18,7 @@ router.get('/', function(req, res, next) {
             sys.log("wanna remove " + driverNum);
           }
 
+          sys.log("rendering drivercenter with drivers ", params.drivers);
           res.render('drivercenter', params)
         } else {
           // Error
