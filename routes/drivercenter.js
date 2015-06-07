@@ -17,7 +17,7 @@ router.get('/', function(req, res, next) {
 
           for (var key in params.drivers) {
             if (params.drivers.hasOwnProperty(key)) {
-              params.drivers[key] = params.drivers[key].replace(/[^\d\+]/g, ''); // STRIP out < >
+              params.drivers[key] = params.drivers[key].toString().replace(/[^\d\+]/g, ''); // STRIP out < >
             }
           }
 
