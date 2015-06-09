@@ -45,7 +45,7 @@ block content
               p Net Feedback
     div.alerts-wrapper
       h1 Alerts
-      ul
+      div.alerts-list
         for alert in alerts
-          li(href='#{alert.path}')= alert.message
+          a(href='#{alert.path}')= alert.message
 

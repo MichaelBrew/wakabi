@@ -26,30 +26,24 @@ router.get('/', function(req, res, next) {
       var query = client.query("SELECT * FROM drivers WHERE working = true", function(err, result) {
         if (!err) {
           var driversArray = result.rows;
+
           var numDrivers = result.rows.length;
           var numIdleDrivers = 0;
           var numBusyDrivers = 0;
-
           var alerts = [];
 
-          sys.log("after query, driversArray is ", driversArray)
-
           for (var index in driversArray) {
-            var driver  = driversArray[index]
-            sys.log("looping through all drivers, current driver is ", driver)
+            var driver = driversArray[index]
+
             if (driver.giving_ride_to == null) {
               numIdleDrivers++;
             } else {
               numBusyDrivers++;
             }
 
-            sys.log("current driver rating is " + driver.rating)
             if (driver.rating < 80) {
-              sys.log("driver rating is below 80, creating an alert")
-              var message = "Driver " + driver.num + " rating below " + driver.rating + "%"
-              sys.log("message to show is " + message)
+              var message = "Driver " + driver.num + " rating fell to " + driver.rating + "%"
               var path = "/drivercenter#" + driver.num
-              sys.log("path to go to is " + path)
               alerts.push({
                 message: message,
                 path: path
@@ -62,7 +56,7 @@ router.get('/', function(req, res, next) {
           params.numBusyDrivers = numBusyDrivers;
           params.alerts = alerts;
 
-          var currentDay = moment().startOf('day').toDate()
+          var currentDay = moment().startOf('day').format('YYYY-MM-DD HH:mm:ss Z')
           sys.log("Current day at midnight is " + currentDay)
 
           var query = client.query("SELECT * FROM rides WHERE request_time >= " + currentDay, function(err, result) {
