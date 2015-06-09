@@ -35,7 +35,8 @@ router.get('/', function(req, res, next) {
           sys.log("after query, driversArray is ", driversArray)
 
           for (var index in driversArray) {
-            sys.log("looping through all drivers, driversArray[0] is ", driversArray[0])
+            var driver  = driversArray[index]
+            sys.log("looping through all drivers, current driver is ", driver)
             if (driver.giving_ride_to == null) {
               numIdleDrivers++;
             } else {
