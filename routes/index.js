@@ -8,7 +8,7 @@ var moment = require('moment');
 router.get('/', function(req, res, next) {
   var params = {
     tab: 'Home',
-    date: moment().format('MMMM DD, YYYY'),
+    date: moment().format('MMMM D, YYYY'),
     numDrivers: 0,
     numIdleDrivers: 0,
     numBusyDrivers: 0,
@@ -38,11 +38,16 @@ router.get('/', function(req, res, next) {
               numBusyDrivers++;
             }
 
+            sys.log("currenty driver rating is " + driver.rating)
             if (driver.rating < 80) {
+              sys.log("driver rating is below 80, creating an alert")
               var message = "Driver " + driver.num + " rating below " + driver.rating + "%"
+              sys.log("message to show is " + message)
+              var path = "/drivercenter#" + driver.num
+              sys.log("path to go to is " + path)
               alerts.push({
                 message: message,
-                path: "/drivercenter#" + driver.num
+                path: path
               })
             }
           }
