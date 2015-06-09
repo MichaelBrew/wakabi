@@ -15,21 +15,21 @@ router.get('/', function(req, res, next) {
         if (!err) {
           params.drivers = result.rows
 
-          sys.log("before any string replacements, drivers are ", params.drivers)
-          for (var driver in params.drivers) {
-            sys.log("on a new driver")
-            for (var key in driver) {
-              if (driver.hasOwnProperty(key)) {
-                sys.log("In loop, at key " + key + ", value is " + driver[key])
-                driver[key] = driver[key].replace(/[^\d\+]/g, ''); // STRIP out < >
-                sys.log("Now the value is " + driver[key])
-              }
-            }
-          }
+          // sys.log("before any string replacements, drivers are ", params.drivers)
+          // for (var driver in params.drivers) {
+          //   sys.log("on a new driver")
+          //   for (var key in driver) {
+          //     if (driver.hasOwnProperty(key)) {
+          //       sys.log("In loop, at key " + key + ", value is " + driver[key])
+          //       driver[key] = driver[key].replace(/[^\d\+]/g, ''); // STRIP out < >
+          //       sys.log("Now the value is " + driver[key])
+          //     }
+          //   }
+          // }
 
-          params.removeDriver = function(driverNum) {
-            sys.log("wanna remove " + driverNum);
-          }
+          // params.removeDriver = function(driverNum) {
+          //   sys.log("wanna remove " + driverNum);
+          // }
 
           sys.log("rendering drivercenter with drivers ", params.drivers);
           res.render('drivercenter', params)
