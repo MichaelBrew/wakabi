@@ -7,14 +7,14 @@ block content
       if drivers && drivers.length > 0
         table.drivers-table
           tbody
+            tr
+                th 
+                  | Number
+                th
+                  | Rating
+                th
+                  | Total Rides
             each driver in drivers
-              tr
-                th
-                  Number
-                th
-                  Rating
-                th
-                  Total Rides
               tr
                 td= driver.num
                 td= driver.rating
