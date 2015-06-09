@@ -20,7 +20,7 @@ block content
                 td= driver.rating
                 td= driver.total_rides_completed
                 td
-                  a.remove-link(type="button", onClick="removeDriver.bind(this, driver.num)")
+                  a.remove-link(type="button", onClick="removeDriver.bind(this, '#{driver.num}')")
                     | Remove
       else
         h4 No drivers in system
