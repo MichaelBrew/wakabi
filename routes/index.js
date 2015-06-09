@@ -32,13 +32,14 @@ router.get('/', function(req, res, next) {
           var alerts = [];
 
           for (var driver in result.rows) {
+            sys.log("looping through all drivers, current driver looks like ", driver)
             if (driver.giving_ride_to == null) {
               numIdleDrivers++;
             } else {
               numBusyDrivers++;
             }
 
-            sys.log("currenty driver rating is " + driver.rating)
+            sys.log("current driver rating is " + driver.rating)
             if (driver.rating < 80) {
               sys.log("driver rating is below 80, creating an alert")
               var message = "Driver " + driver.num + " rating below " + driver.rating + "%"
