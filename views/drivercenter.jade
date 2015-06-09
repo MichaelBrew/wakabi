@@ -16,12 +16,9 @@ block content
                 th
                   Total Rides
               tr
-                td
-                  #{driver.num}
-                td
-                  #{driver.rating}%
-                td
-                  #{driver.total_rides_completed}
+                td= driver.num
+                td= driver.rating
+                td= driver.total_rides_completed
                 td
                   button(type="button", onClick="javascript:removeDriver.bind(this, driver.num)")
       else
