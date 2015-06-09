@@ -25,14 +25,17 @@ router.get('/', function(req, res, next) {
     if (!err) {
       var query = client.query("SELECT * FROM drivers WHERE working = true", function(err, result) {
         if (!err) {
+          var driversArray = result.rows;
           var numDrivers = result.rows.length;
           var numIdleDrivers = 0;
           var numBusyDrivers = 0;
 
           var alerts = [];
 
-          for (var driver in result.rows) {
-            sys.log("looping through all drivers, current driver looks like ", driver)
+          sys.log("after query, driversArray is ", driversArray)
+
+          for (var index in driversArray) {
+            sys.log("looping through all drivers, driversArray[0] is ", driversArray[0])
             if (driver.giving_ride_to == null) {
               numIdleDrivers++;
             } else {
