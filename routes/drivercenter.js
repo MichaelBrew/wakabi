@@ -7,13 +7,15 @@ var sys = require('sys');
 router.get('/', function(req, res, next) {
   var params = {
     tab: 'Driver Center',
-    drivers: null
+    drivers: null,
+    currentDriver: null
   }
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
       var query = client.query("SELECT * FROM drivers", function(err, result) {
         if (!err) {
           params.drivers = result.rows
+          params.currentDriver = (req.query.driver != null) ? req.query.driver : null
 
           res.render('drivercenter', params)
         } else {
