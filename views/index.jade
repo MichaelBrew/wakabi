@@ -46,6 +46,6 @@ block content
     div.alerts-wrapper
       h1 Alerts
       ul
-        li Alert1
-        li Alert2
-        li Alert3
+        for alert in alerts
+          li(href='#{alert.path}')= alert.message
+

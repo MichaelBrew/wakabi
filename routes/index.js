@@ -17,7 +17,8 @@ router.get('/', function(req, res, next) {
     ridesFailed: 0,
     positiveFeedback: 0,
     negativeFeedback: 0,
-    netFeedback: 0
+    netFeedback: 0,
+    alerts: []
   }
 
   pg.connect(process.env.DATABASE_URL, function(err, client) {
@@ -28,17 +29,28 @@ router.get('/', function(req, res, next) {
           var numIdleDrivers = 0;
           var numBusyDrivers = 0;
 
+          var alerts = [];
+
           for (var driver in result.rows) {
             if (driver.giving_ride_to == null) {
               numIdleDrivers++;
             } else {
               numBusyDrivers++;
             }
+
+            if (driver.rating < 80) {
+              var message = "Driver " + driver.num + " rating below " + driver.rating + "%"
+              alerts.push({
+                message: message,
+                path: "/drivercenter#" + driver.num
+              })
+            }
           }
 
           params.numDrivers = numDrivers;
           params.numIdleDrivers = numIdleDrivers;
           params.numBusyDrivers = numBusyDrivers;
+          params.alerts = alerts;
 
           var currentDay = moment().startOf('day').toDate()
           sys.log("Current day at midnight is " + currentDay)

@@ -23,19 +23,18 @@ block content
                 td
                   a.remove-link(type="button", data-toggle="modal", data-target="#remove-driver-confirm")
                     | Remove
-          #remove-driver-vonfirm.modal.fade(role='dialog')
-            .modal-dialog
-                .modal-content
-                  .modal-header
-                    button.close(type='button', data-dismiss='modal') &times;
-                    |         
-                    h4.modal-title Modal Header
-                  |       
-                  .modal-body
-                    p Some text in the modal.
-                  |       
-                  .modal-footer
-                    button.btn.btn-default(type='button', data-dismiss='modal') Close
-
+        #remove-driver-confirm.modal.fade(role='dialog')
+          .modal-dialog
+            .modal-content
+              .modal-header
+                button.close(type='button', data-dismiss='modal') &times;
+                |         
+                h4.modal-title Modal Header
+              |       
+              .modal-body
+                p Some text in the modal.
+              |       
+              .modal-footer
+                button.btn.btn-default(type='button', data-dismiss='modal') Close
       else
         h4 No drivers in system
