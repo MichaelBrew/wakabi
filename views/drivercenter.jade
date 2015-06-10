@@ -16,7 +16,7 @@ block content
                   | Total Rides
             each driver in drivers
               - var className = (currentDriver != null && driver.num == currentDriver) ? "highlight" : ""
-              tr(class="#{className}")
+              tr(class=className)
                 td= driver.num
                 td= driver.rating
                   | %
