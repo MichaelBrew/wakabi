@@ -43,7 +43,7 @@ router.get('/', function(req, res, next) {
 
             if (driver.rating < 80) {
               var message = "Driver " + driver.num + " rating fell to " + driver.rating + "%"
-              var path = "/drivercenter?driver=" + driver.num
+              var path = "/drivercenter?driver=" + driver.num.replace(/\+/g, '');
               alerts.push({
                 message: message,
                 path: path
