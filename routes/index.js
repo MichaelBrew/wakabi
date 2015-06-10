@@ -41,13 +41,17 @@ router.get('/', function(req, res, next) {
               numBusyDrivers++;
             }
 
+            sys.log("Current driver rating is ", driver.rating)
             if (driver.rating < 80) {
+              sys.log("Driver rating is below 80, creating an alert")
               var message = "Driver " + driver.num + " rating fell to " + driver.rating + "%"
               var path = "/drivercenter?driver=" + driver.num.replace(/\+/g, '');
+              sys.log("Alerts array before pushing is ", alerts.length)
               alerts.push({
                 message: message,
                 path: path
               })
+              sys.log("Alerts array after pushing is ", alerts.length)
             }
           }
 
