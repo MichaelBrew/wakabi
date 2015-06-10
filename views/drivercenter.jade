@@ -15,7 +15,7 @@ block content
                 th
                   | Total Rides
             each driver in drivers
-              - var className = (currentDriver != null && driver.num.replace(/\+/g, ''); == currentDriver) ? "highlight" : ""
+              - var className = ((currentDriver != null) && (driver.num.replace(/\+/g, '') == currentDriver)) ? "highlight" : ""
               tr(class=className)
                 td= driver.num
                 td= driver.rating
