@@ -45,17 +45,13 @@ router.get('/', function(req, res, next) {
               }
             }
 
-            sys.log("Current driver rating is ", driver.rating)
             if (driver.rating < 80) {
-              sys.log("Driver rating is below 80, creating an alert")
               var message = "Driver " + driver.num + " rating fell to " + driver.rating + "%"
               var path = "/drivercenter?driver=" + driver.num.replace(/\+/g, '');
-              sys.log("Alerts array before pushing is ", alerts.length)
               alerts.push({
                 message: message,
                 path: path
               })
-              sys.log("Alerts array after pushing is ", alerts.length)
             }
           }
 
@@ -64,8 +60,7 @@ router.get('/', function(req, res, next) {
           params.numBusyDrivers = numBusyDrivers;
           params.alerts = alerts;
 
-          sys.log("alerts are ", params.alerts)
-
+          // Comparison currently broken, Postgre doesnt like our current day variable
           var currentDay = moment().startOf('day').format('YYYY-MM-DD HH:mm:ss Z')
           sys.log("Current day at midnight is " + currentDay)
 
