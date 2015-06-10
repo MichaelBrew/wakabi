@@ -56,6 +56,8 @@ router.get('/', function(req, res, next) {
           params.numBusyDrivers = numBusyDrivers;
           params.alerts = alerts;
 
+          sys.log("alerts are ", params.alerts)
+
           var currentDay = moment().startOf('day').format('YYYY-MM-DD HH:mm:ss Z')
           sys.log("Current day at midnight is " + currentDay)
 

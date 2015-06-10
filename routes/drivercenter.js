@@ -6,7 +6,7 @@ var sys = require('sys');
 /* GET driver center page. */
 router.get('/', function(req, res, next) {
   var params = {
-    tab: 'Driver Center',
+    tab: 'Drivers',
     drivers: null,
     currentDriver: null
   }
