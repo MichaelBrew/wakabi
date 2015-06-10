@@ -23,11 +23,11 @@ router.get('/', function(req, res, next) {
 
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
-      var query = client.query("SELECT * FROM drivers WHERE working = true", function(err, result) {
+      var query = client.query("SELECT * FROM drivers", function(err, result) {
         if (!err) {
           var driversArray = result.rows;
 
-          var numDrivers = result.rows.length;
+          var numDrivers = 0;
           var numIdleDrivers = 0;
           var numBusyDrivers = 0;
           var alerts = [];
@@ -35,10 +35,14 @@ router.get('/', function(req, res, next) {
           for (var index in driversArray) {
             var driver = driversArray[index]
 
-            if (driver.giving_ride_to == null) {
-              numIdleDrivers++;
-            } else {
-              numBusyDrivers++;
+            if (driver.working) {
+              numDrivers++
+
+              if (driver.giving_ride_to == null) {
+                numIdleDrivers++;
+              } else {
+                numBusyDrivers++;
+              }
             }
 
             sys.log("Current driver rating is ", driver.rating)
