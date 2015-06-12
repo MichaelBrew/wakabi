@@ -1,41 +1,40 @@
 extends layout
 
 block content
-  div.container
-    div.content
-      h1 Drivers
-      if drivers && drivers.length > 0
-        table.drivers-table
-          tbody
-            tr
-                th
-                  | Number
-                th
-                  | Rating
-                th
-                  | Total Rides
-            each driver in drivers
-              - var className = ((currentDriver != null) && (driver.num.replace(/\+/g, '') == currentDriver)) ? "highlight" : ""
-              tr(class=className)
-                td= driver.num
-                td= driver.rating
-                  | %
-                td= driver.total_rides_completed
-                td
-                  a.remove-link(type="button", data-toggle="modal", data-target="#remove-driver-confirm")
-                    | Remove
-        #remove-driver-confirm.modal.fade(role='dialog')
-          .modal-dialog.modal-sm
-            .modal-content
-              .modal-header
-                button.close(type='button', data-dismiss='modal') &times;
-                |         
-                h4.modal-title Modal Header
-              |       
-              .modal-body
-                p Some text in the modal.
-              |       
-              .modal-footer
-                button.btn.btn-default(type='button', data-dismiss='modal') Close
-      else
-        h4 No drivers in system
+  div.content
+    h1 Drivers
+    if drivers && drivers.length > 0
+      table.drivers-table
+        tbody
+          tr
+              th
+                | Number
+              th
+                | Rating
+              th
+                | Total Rides
+          each driver in drivers
+            - var className = ((currentDriver != null) && (driver.num.replace(/\+/g, '') == currentDriver)) ? "highlight" : ""
+            tr(class=className)
+              td= driver.num
+              td= driver.rating
+                | %
+              td= driver.total_rides_completed
+              td
+                a.remove-link(type="button", data-toggle="modal", data-target="#remove-driver-confirm")
+                  | Remove
+      #remove-driver-confirm.modal.fade(role='dialog')
+        .modal-dialog.modal-sm
+          .modal-content
+            .modal-header
+              button.close(type='button', data-dismiss='modal') &times;
+              |         
+              h4.modal-title Modal Header
+            |       
+            .modal-body
+              p Some text in the modal.
+            |       
+            .modal-footer
+              button.btn.btn-default(type='button', data-dismiss='modal') Close
+    else
+      h4 No drivers in system
