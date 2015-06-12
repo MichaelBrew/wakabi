@@ -7,12 +7,12 @@ block content
       table.drivers-table
         tbody
           tr
-              th
-                | Number
-              th
-                | Rating
-              th
-                | Total Rides
+            th
+              | Number
+            th
+              | Rating
+            th
+              | Total Rides
           each driver in drivers
             - var className = ((currentDriver != null) && (driver.num.replace(/\+/g, '') == currentDriver)) ? "highlight" : ""
             tr(class=className)
@@ -37,6 +37,6 @@ block content
             |       
             .modal-footer
               button.btn.btn-default(type='button', data-dismiss='modal') No
-              button.btn.btn-default(type='button', onclick="removeDriver()")
+              button.btn.btn-default(type='button', onclick="removeDriver()") Yes
     else
       h4 No drivers in system

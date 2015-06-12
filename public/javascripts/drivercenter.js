@@ -1,6 +1,7 @@
 var currentRemoveDriverNum = ""
 
 function removeDriverClicked(driverNum) {
+  console.log("removeDriverClicked: driverNum = " + driverNum)
   currentRemoveDriverNum = driverNum
 }
 
