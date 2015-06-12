@@ -1,12 +1,12 @@
-var currentRemoveDriverNum = ""
+var removeDriverNum = ""
 
 function removeDriverClicked(driverNum) {
   console.log("removeDriverClicked: driverNum = " + driverNum)
-  currentRemoveDriverNum = driverNum
+  removeDriverNum = driverNum
 }
 
-function removeDriver(driverNum) {
-  console.log("Attempting to remove driver " + driverNum)
+function removeDriver() {
+  console.log("Attempting to remove driver " + removeDriverNum)
 
   //onClick="removeDriver('#{driver.num}')
 }
