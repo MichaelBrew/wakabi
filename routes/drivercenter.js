@@ -15,10 +15,7 @@ router.get('/', function(req, res, next) {
       var query = client.query("SELECT * FROM drivers", function(err, result) {
         if (!err) {
           params.drivers = result.rows
-
-          sys.log("req.query.driver = ", req.query.driver)
           params.currentDriver = (req.query.driver != null) ? req.query.driver : null
-          sys.log("params.currentDriver = ", params.currentDriver)
 
           res.render('drivercenter', params)
         } else {
