@@ -32,11 +32,10 @@ block content
               h4.modal-title Remove Driver
             |       
             .modal-body
-              p Are you sure you want to remove driver
-              p +#{removeDriverNum}
+              p Are you sure you want to this remove driver?
             |       
             .modal-footer
               button.btn.btn-default(type='button', data-dismiss='modal') No
-              button.btn.btn-default(type='button', onclick="removeDriver()") Yes
+              button.btn.btn-success(type='button', onclick="removeDriver()") Yes
     else
       h4 No drivers in system
