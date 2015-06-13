@@ -1,3 +1,5 @@
+rq = require("request-promise")
+
 var removeDriverNum = ""
 
 function removeDriverClicked(driverNum) {
@@ -8,8 +10,15 @@ function removeDriverClicked(driverNum) {
 }
 
 function removeDriver() {
-  console.log("Attempting to remove driver " + removeDriverNum)
   $(".modal-body").html("<div class='spinner-loader'>Loading…</div>")
 
-  //onClick="removeDriver('#{driver.num}')
+  var url = 'http://wakabi.herokuapp.com/drivercenter/remove?driver+' +removeDriverNum
+
+  rq(url).then(
+    console.log("driver removed!!")
+    $(".modal-body").html("<p>Driver successfully removed!</p>")
+  ).catch(
+    console.log("driver not removed!!")
+    $(".modal-body").html("<p>Error</p>")
+  )
 }

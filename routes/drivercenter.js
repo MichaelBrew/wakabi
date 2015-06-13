@@ -32,4 +32,24 @@ router.get('/', function(req, res, next) {
   });
 });
 
+router.get('/remove/:id', function(req, res, next) {
+  var driverNum = req.query.driver
+
+  pg.connect(process.env.DATABASE_URL, function(err, client) {
+    if (!err) {
+      var queryString = "DELETE FROM drivers WHERE num = '" + driverNum + "'";
+      var query = client.query(queryString, function(err, result) {
+        if (!err) {
+          res.success()
+        } else {
+          res.error()
+        }
+        client.end();
+      });
+    } else {
+      res.error()
+    }
+  });
+});
+
 module.exports = router;
