@@ -4,7 +4,7 @@ function removeDriverClicked(driverNum) {
   console.log("removeDriverClicked: driverNum = " + driverNum)
 
   removeDriverNum = driverNum
-  $("#modal-text").val("Are you sure you want to remove driver " + removeDriverNum + "?")
+  $(".modal-text").text("Are you sure you want to remove driver " + removeDriverNum + "?")
 }
 
 function removeDriver() {
