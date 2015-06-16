@@ -33,7 +33,17 @@
     vertical-align: top;
 
     .alerts-list {
-      list-style-image: url('/images/alert.png');
+      list-style: none;
+      margin: 0;
+      padding: 0;
+
+      li {
+        margin: 0;
+        padding: 0;
+        background: url('/images/alert.png') no-repeat 0 0;
+        padding-left: 32px;
+        min-height: 32px;
+      }
 
       a {
         display: block;
