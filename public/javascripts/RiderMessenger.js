@@ -95,41 +95,55 @@ function verifyRiderLocation(msg) {
 }
 
 function searchForDriver(res, from, location, needTrailer) {
-  pg.connect(process.env.DATABASE_URL, function(err, client) {
-    if (!err) {
-      var queryString = "SELECT num FROM drivers WHERE working = 'true' AND giving_ride_to IS NULL AND current_zone = " + location;
-      if (needTrailer) {
-        queryString += " AND has_trailer = 'true'";
-      }
+  db.getAvailableDriver(location, needTrailer, null, function(driver) {
+    if (driver != null) {
+      sys.log("RiderMessenger.searchForDriver: Found driver " + driver.num)
+      DriverMessenger.textDriverForConfirmation(driver.num, from)
 
-      var query = client.query(queryString, function(err, result) {
-        if (!err) {
-          sys.log("searchForDriver: successfully queried db, found " + result.rows.length + " eligible drivers");
-          var driver = result.rows[0];
-          // TODO: instead of grabbing first one, look to time_last_ride and pick the one that's waited longest
-
-          if (driver != null && driver.num != null) {
-            sys.log("searchForDriver: About to text driver " + driver.num);
-            DriverMessenger.textDriverForConfirmation(driver.num, from);
-
-            cookies = {
-              "rideStage": stages.rideStages.CONTACTING_DRIVER
-            }
-            Messenger.textResponse(res, strings.waitText, cookies)
-          } else {
-            noDriversFound(from, location, false);
-          }
-        } else {
-          noDriversFound(from, location, false);
-        }
-
-        client.end();
-      });
+      cookies = {"rideStage": stages.rideStages.CONTACTING_DRIVER}
+      Messenger.textResponse(res, strings.waitText, cookies)
     } else {
-      noDriversFound(from, location, false);
+      noDriversFound(from, location, false)
     }
-  });
+  })
 }
+
+// function searchForDriver(res, from, location, needTrailer) {
+//   pg.connect(process.env.DATABASE_URL, function(err, client) {
+//     if (!err) {
+//       var queryString = "SELECT num FROM drivers WHERE working = 'true' AND giving_ride_to IS NULL AND current_zone = " + location;
+//       if (needTrailer) {
+//         queryString += " AND has_trailer = 'true'";
+//       }
+
+//       var query = client.query(queryString, function(err, result) {
+//         if (!err) {
+//           sys.log("searchForDriver: successfully queried db, found " + result.rows.length + " eligible drivers");
+//           var driver = result.rows[0];
+//           // TODO: instead of grabbing first one, look to time_last_ride and pick the one that's waited longest
+
+//           if (driver != null && driver.num != null) {
+//             sys.log("searchForDriver: About to text driver " + driver.num);
+//             DriverMessenger.textDriverForConfirmation(driver.num, from);
+
+//             cookies = {
+//               "rideStage": stages.rideStages.CONTACTING_DRIVER
+//             }
+//             Messenger.textResponse(res, strings.waitText, cookies)
+//           } else {
+//             noDriversFound(from, location, false);
+//           }
+//         } else {
+//           noDriversFound(from, location, false);
+//         }
+
+//         client.end();
+//       });
+//     } else {
+//       noDriversFound(from, location, false);
+//     }
+//   });
+// }
 
 function noDriversFound(from, location, resend) {
   sendNoDriversText(from, false);

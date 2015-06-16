@@ -18,7 +18,8 @@
     "request-promise": "*",
     "pg": "4.x",
     "serve-favicon": "~2.2.0",
-    "twilio": "~1.10.0"
+    "twilio": "~1.10.0",
+    "underscore": "*"
   },
   "subdomain": "owakabi",
   "engines": {

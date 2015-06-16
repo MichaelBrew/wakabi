@@ -16,6 +16,7 @@
 
 var pg = require('pg');
 var sys = require('sys');
+var _ = require('underscore')
 var RiderMessenger = require('./RiderMessenger.js');
 var parser = require('./messageParser.js');
 var Messenger = require('./TextMessenger.js');
@@ -36,6 +37,35 @@ module.exports.addRiderNumToDb = function(from) {
               client.end();
             });
           }
+        }
+      });
+    }
+  });
+};
+
+module.exports.getAvailableDriver = function(location, needTrailer, lastRideTime, cb) {
+  pg.connect(process.evn.DATABASE_URL, function(err, client) {
+    if (!err) {
+      var queryString = "SELECT num FROM drivers WHERE working = 'true' AND giving_ride_to IS NULL AND current_zone = " + location;
+
+      if (needTrailer) {
+        queryString += " AND has_trailer = 'true'";
+      }
+      if (lastRideTime) {
+        queryString += " AND time_last_ride > " + lastRideTime
+      }
+
+      var query = client.query(queryString, function(err, result) {
+        if (!err) {
+          if (result.rows.length == 0) {
+            return
+          }
+
+          var sortedRows = _.sortBy(result.rows, function(row) {
+            return row.time_last_ride
+          })
+
+          cb(sortedRows[0])
         }
       });
     }
