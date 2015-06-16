@@ -44,7 +44,7 @@ module.exports.addRiderNumToDb = function(from) {
 };
 
 module.exports.getAvailableDriver = function(location, needTrailer, lastRideTime, cb) {
-  pg.connect(process.evn.DATABASE_URL, function(err, client) {
+  pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
       var queryString = "SELECT num FROM drivers WHERE working = 'true' AND giving_ride_to IS NULL AND current_zone = " + location;
 
