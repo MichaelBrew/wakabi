@@ -42,5 +42,14 @@ module.exports = {
       return true;
     }
     return false;
+  },
+  verifyRiderLocation: function(msg) {
+    msg = msg.replace(/\s+/g, '');
+    for (var i = 1; i <= strings.availableLocations.length; i++) {
+      if (parseInt(msg) == i) {
+        return true;
+      }
+    }
+    return false;
   }
 };

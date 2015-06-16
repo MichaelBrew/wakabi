@@ -21,7 +21,7 @@ function handleRideRequest(res, message, from) {
 }
 
 function handleLocationResponse(res, message) {
-  if (verifyRiderLocation(message)) {
+  if (parser.verifyRiderLocation(message)) {
     sys.log('handleLocationResponse: Location received');
 
     res.cookie('originLocation', message);
@@ -46,52 +46,22 @@ function handleTrailerResponse(req, res, message, from) {
 }
 
 function requestLocation(res, resend) {
-  cookies = {
-    "rideStage": stages.rideStages.AWAITING_LOCATION
-  }
+  cookies = {"rideStage": stages.rideStages.AWAITING_LOCATION}
   Messenger.requestLocation(res, resend, cookies);
 }
 
 function requestTrailerInfo(res, resend) {
-  cookies = {
-    "rideStage": stages.rideStages.AWAITING_TRAILER
-  }
+  cookies = {"rideStage": stages.rideStages.AWAITING_TRAILER}
   Messenger.textResponse(res, strings.askTrailer, cookies);
 }
 
 function sendWaitText(res) {
-  cookies = {
-    "rideStage": stages.rideStages.CONTACTING_DRIVER
-  }
+  cookies = {"rideStage": stages.rideStages.CONTACTING_DRIVER}
   Messenger.textResponse(res, strings.waitText, cookies);
 }
 
 function defaultHelpResponse(res) {
   Messenger.textResponse(res, strings.resendText + strings.helpText);
-}
-
-function sendNoDriversText(rider, isTimeout) {
-  msg = isTimeout ? strings.noDriversAvailable : (strings.noDriversAvailable + strings.willNotifyIn30);
-
-  if (isTimeout) {
-    sys.log("sendNoDrivers: Called from a timeout!");
-
-    if (RiderWaitingQueue.isRiderWaiting(rider)) {
-      RiderWaitingQueue.removeRiderFromQueue(rider);
-    }
-  }
-
-  Messenger.text(rider, msg);
-}
-
-function verifyRiderLocation(msg) {
-  msg = msg.replace(/\s+/g, '');
-  for (var i = 1; i <= strings.availableLocations.length; i++) {
-    if (parseInt(msg) == i) {
-      return true;
-    }
-  }
-  return false;
 }
 
 function searchForDriver(res, from, location, needTrailer) {
@@ -108,52 +78,24 @@ function searchForDriver(res, from, location, needTrailer) {
   })
 }
 
-// function searchForDriver(res, from, location, needTrailer) {
-//   pg.connect(process.env.DATABASE_URL, function(err, client) {
-//     if (!err) {
-//       var queryString = "SELECT num FROM drivers WHERE working = 'true' AND giving_ride_to IS NULL AND current_zone = " + location;
-//       if (needTrailer) {
-//         queryString += " AND has_trailer = 'true'";
-//       }
-
-//       var query = client.query(queryString, function(err, result) {
-//         if (!err) {
-//           sys.log("searchForDriver: successfully queried db, found " + result.rows.length + " eligible drivers");
-//           var driver = result.rows[0];
-//           // TODO: instead of grabbing first one, look to time_last_ride and pick the one that's waited longest
-
-//           if (driver != null && driver.num != null) {
-//             sys.log("searchForDriver: About to text driver " + driver.num);
-//             DriverMessenger.textDriverForConfirmation(driver.num, from);
-
-//             cookies = {
-//               "rideStage": stages.rideStages.CONTACTING_DRIVER
-//             }
-//             Messenger.textResponse(res, strings.waitText, cookies)
-//           } else {
-//             noDriversFound(from, location, false);
-//           }
-//         } else {
-//           noDriversFound(from, location, false);
-//         }
-
-//         client.end();
-//       });
-//     } else {
-//       noDriversFound(from, location, false);
-//     }
-//   });
-// }
-
 function noDriversFound(from, location, resend) {
   sendNoDriversText(from, false);
   RiderWaitingQueue.addRiderWithZoneToQueue(from, location);
   startTimeoutForRider(from);
 }
 
+function sendNoDriversText(rider, isTimeout) {
+  msg = isTimeout ? strings.noDriversAvailable : (strings.noDriversAvailable + strings.willNotifyIn30);
+
+  if (isTimeout && RiderWaitingQueue.isRiderWaiting(rider)) {
+    RiderWaitingQueue.removeRiderFromQueue(rider);
+  }
+
+  Messenger.text(rider, msg);
+}
+
 function startTimeoutForRider(riderNum) {
   var delay = 1000 * 60 * 1; // 1000ms = 1sec * 60 = 1min * 30 = 30min
-  sys.log("About to set timeout for rider waiting, delay is " + delay + "ms");
   setTimeout(sendNoDriversText, delay, riderNum, true);
 }
 

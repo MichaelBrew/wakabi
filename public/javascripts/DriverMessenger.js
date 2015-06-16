@@ -99,11 +99,22 @@ function handleRequestResponse(res, message, from) {
   if (parser.isYesMessage(message)) {
     sendNumberToDriver(res, from);
   } else if (parser.isNoMessage(message)) {
+    // db.getDriverWithNumber(from, function(driver) {
+    //   if (driver) {
+    //     findNextDriver(res, message, from, driver.time_last_ride)
+    //   } else {
+
+    //   }
+    // })
     // pass the request on to the next driver
     // Here we have to clear the 'giving_ride_to' field of this driver
   } else {
     // wasn't a response to the request, send back default message?
   }
+}
+
+function findNextDriver(res, message, from) {
+
 }
 
 function sendNumberToDriver(res, driverNum) {
