@@ -65,17 +65,16 @@ function defaultHelpResponse(res) {
 }
 
 function searchForDriver(res, from, location, needTrailer) {
-  db.getAvailableDriver(location, needTrailer, null, function(driver) {
-    if (driver != null) {
-      sys.log("RiderMessenger.searchForDriver: Found driver " + driver.num)
-      DriverMessenger.textDriverForConfirmation(driver.num, from)
+  var params = {
+    riderNum: from,
+    location: location,
+    needTrailer: needTrailer,
+    driverTimeLastRide: null,
+    riderRes: res,
+    riderWaitingForResponse: true
+  }
 
-      cookies = {"rideStage": stages.rideStages.CONTACTING_DRIVER}
-      Messenger.textResponse(res, strings.waitText, cookies)
-    } else {
-      noDriversFound(from, location, false)
-    }
-  })
+  db.sendRequestToAvailableDriver(params)
 }
 
 function noDriversFound(from, location, resend) {
@@ -107,24 +106,24 @@ module.exports = {
   handleText: function(req, res, message, from, rideStage) {
     switch (rideStage) {
       case stages.rideStages.NOTHING:
-      handleRideRequest(res, message, from);
+        handleRideRequest(res, message, from);
       break;
 
       case stages.rideStages.AWAITING_LOCATION:
-      handleLocationResponse(res, message);
+        handleLocationResponse(res, message);
       break;
 
       case stages.rideStages.AWAITING_TRAILER:
-      handleTrailerResponse(req, res, message, from);
+        handleTrailerResponse(req, res, message, from);
       break;
 
       case stages.rideStages.CONTACTING_DRIVER:
-      if (parser.isYesMessage(message) || parser.isNoMessage(message)) {
-        handleFeedbackResponse(res, message, from);
-      } else {
-        sys.log('handleRiderText: received text from waiting rider');
-        sendWaitText(res);
-      }
+        if (parser.isYesMessage(message) || parser.isNoMessage(message)) {
+          handleFeedbackResponse(res, message, from);
+        } else {
+          sys.log('handleRiderText: received text from waiting rider');
+          sendWaitText(res);
+        }
       break;
     }
   }

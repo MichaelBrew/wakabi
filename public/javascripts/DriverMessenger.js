@@ -99,22 +99,19 @@ function handleRequestResponse(res, message, from) {
   if (parser.isYesMessage(message)) {
     sendNumberToDriver(res, from);
   } else if (parser.isNoMessage(message)) {
-    // db.getDriverWithNumber(from, function(driver) {
-    //   if (driver) {
-    //     findNextDriver(res, message, from, driver.time_last_ride)
-    //   } else {
+    db.getDriverFromNum(from, function(driver) {
+      if (driver) {
+        // Just need params here lol
+        // If saved to db, can hopefully grab it
+        params.driverTimeLastRide = driver.time_last_ride
+        db.sendRequestToAvailableDriver(params)
+      }
+    })
 
-    //   }
-    // })
-    // pass the request on to the next driver
-    // Here we have to clear the 'giving_ride_to' field of this driver
+    db.clearGivingRideTo(from)
   } else {
     // wasn't a response to the request, send back default message?
   }
-}
-
-function findNextDriver(res, message, from) {
-
 }
 
 function sendNumberToDriver(res, driverNum) {
@@ -127,9 +124,7 @@ function sendNumberToDriver(res, driverNum) {
           var riderNum = result.rows[0].giving_ride_to;
           var responseText = strings.hereIsRiderNum + riderNum;
 
-          cookies = {
-            "driveStage": stages.driveStages.AWAITING_END_RIDE
-          }
+          cookies = {"driveStage": stages.driveStages.AWAITING_END_RIDE}
           Messenger.textResponse(res, responseText, cookies);
 
           RiderWaitingQueue.removeRiderFromQueue(riderNum);
@@ -145,11 +140,9 @@ function handleEndRideText(res, message, from) {
   if (parser.isEndRideMessage(message)) {
     pg.connect(process.env.DATABASE_URL, function(err, client) {
       if (!err) {
-        // Get rider's number
         var queryString = "SELECT giving_ride_to FROM drivers WHERE num = '" + from + "'";
         var query = client.query(queryString, function(err, result) {
           if (!err) {
-            // Text rider for feedback
             var riderNum = result.rows[0].giving_ride_to;
             Messenger.text(riderNum, strings.feedbackQuestion);
 
@@ -171,10 +164,10 @@ function handleEndRideText(res, message, from) {
   }
 }
 
-function textForConfirmation(driverNumber, riderNumber) {
+function textForConfirmation(driverNumber, rideParams) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
-      var queryString = "UPDATE drivers SET giving_ride_to = '" + riderNumber + "' WHERE num = '" + driverNumber + "'";
+      var queryString = "UPDATE drivers SET giving_ride_to = '" + rideParams.riderNum + "' WHERE num = '" + driverNumber + "'";
       var query = client.query(queryString, function(err, result) {
         if (!err) {
           Messenger.text(driverNumber, strings.acceptRideQuestion);
@@ -207,26 +200,33 @@ function handleUpdatedLocation(res, message, driverNum) {
   });
 }
 
+function isShiftChange(res, message, from, driveStage) {
+  if (driveStage !== stages.driveStages.AWAITING_END_RIDE) {
+    if (parser.isStartShift(message)) {
+      driverStartShift(res, from);
+      return true
+    } else if (parser.isEndShift(message)) {
+      driverEndShift(res, from);
+      return true
+    }
+  }
+
+  return false
+}
+
 module.exports = {
   handleText: function(res, message, from, driveStage) {
-    if (driveStage !== stages.driveStages.AWAITING_END_RIDE) {
-      if (parser.isStartShift(message)) {
-        driverStartShift(res, from);
-        return;
-      } else if (parser.isEndShift(message)) {
-        driverEndShift(res, from);
-        return;
-      }
+    if (isShiftChange(res, message, from, driveStage)) {
+      return
     }
-
+    
     switch (driveStage) {
-      // TODO: what if driver randomly texts server? Can't assume it's in response
-      //       to a ride request. Leave for "edge case" work spring quarter
       case stages.driveStages.NOTHING:
         sys.log("DriverMessenger.handleText: Driver stage is NOTHING");
         handleRequestResponse(res, message, from);
         break;
 
+      // CURRENTLY NOT IMPLEMENTED
       case stages.driveStages.AWAITING_START_LOCATION:
         receiveStartShiftLocation(res, message, from);
         break;
@@ -242,7 +242,7 @@ module.exports = {
         break;
     }
   },
-  textDriverForConfirmation: function(driverNumber, riderNumber) {
-    textForConfirmation(driverNumber, riderNumber);
+  textDriverForConfirmation: function(driverNumber, rideParams) {
+    textForConfirmation(driverNumber, rideParams);
   }
 };

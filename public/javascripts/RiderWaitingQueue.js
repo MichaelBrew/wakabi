@@ -12,11 +12,13 @@ module.exports = {
     return false;
   },
   addRiderWithZoneToQueue: function(riderNum, zone) {
-    rider = {
-      number: riderNum,
-      location: zone
+    if (!isRiderWaiting(riderNum)) {
+      rider = {
+        number: riderNum,
+        location: zone
+      }
+      global.riderWaitingQueue.push(rider);
     }
-    global.riderWaitingQueue.push(rider);
   },
   removeRiderFromQueue: function(riderNum) {
     queue = global.riderWaitingQueue;

@@ -17,7 +17,9 @@
 var pg = require('pg');
 var sys = require('sys');
 var _ = require('underscore')
+
 var RiderMessenger = require('./RiderMessenger.js');
+var DriverMessenger = require('./DriverMessenger.js')
 var parser = require('./messageParser.js');
 var Messenger = require('./TextMessenger.js');
 var strings = require('./strings.js');
@@ -43,34 +45,46 @@ module.exports.addRiderNumToDb = function(from) {
   });
 };
 
-module.exports.getAvailableDriver = function(location, needTrailer, lastRideTime, cb) {
+module.exports.sendRequestToAvailableDriver = function(params) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
-      var queryString = "SELECT num FROM drivers WHERE working = 'true' AND giving_ride_to IS NULL AND current_zone = " + location;
+      var queryString = "SELECT * FROM drivers WHERE working = 'true' AND 
+        giving_ride_to IS NULL AND current_zone = " + params.location
 
-      if (needTrailer) {
-        queryString += " AND has_trailer = 'true'";
+      if (params.needTrailer) {
+        queryString += " AND has_trailer = 'true'"
       }
-      if (lastRideTime) {
-        queryString += " AND time_last_ride > " + lastRideTime
+      if (params.driverTimeLastRide) {
+        queryString += " AND time_last_ride > " + params.driverTimeLastRide
       }
 
       var query = client.query(queryString, function(err, result) {
         if (!err) {
-          if (result.rows.length == 0) {
+          var drivers = result.rows
+
+          if (drivers.length == 0) {
+            if (params.riderWaitingForResponse) {
+              RiderMessenger.noDriversFound(params.riderNum, params.location, false) // From RiderMessenger
+              // Think I need to set params.riderWaitingForResponse to false here, then save to DB
+            }
             return
           }
 
-          var sortedRows = _.sortBy(result.rows, function(row) {
-            return row.time_last_ride
+          var drivers = _.sortBy(drivers, function(driver) {
+            return driver.time_last_ride
           })
 
-          cb(sortedRows[0])
+          DriverMessenger.textDriverForConfirmation(drivers[0].num, params)
+
+          if (params.riderRes) {
+            cookies = {"rideStage": stages.rideStages.CONTACTING_DRIVER}
+            Messenger.textResponse(params.riderRes, strings.waitText, cookies)
+          }
         }
-      });
+      })
     }
-  });
-};
+  })
+}
 
 module.exports.addRiderNumToDriver = function(driverNum, riderNum) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
@@ -115,6 +129,20 @@ module.exports.updateDriverRatingWithRiderNum = function(res, riderNum, message)
       });
     }
   });
+}
+
+module.exports.getDriverFromNum = function(number, cb) {
+  pg.connect(process.env.DATABASE_URL, function(err, client) {
+    if (!err) {
+      var query = client.query("SELECT * FROM drivers WHERE num = '" + number + "'", function(err, result) {
+        if (!err) {
+          if (result.rows.length == 1) {
+            cb(result.rows[0])
+          }
+        }
+      })
+    }
+  })
 }
 
 module.exports.clearGivingRideTo = function(driverNum) {
