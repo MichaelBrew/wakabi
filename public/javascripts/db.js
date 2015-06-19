@@ -38,8 +38,8 @@ module.exports.sendRequestToAvailableDriver = function(params) {
           // Rather than getting all drivers, can we do a query that returns a single driver
           // that matches this criteria and is the one with the earliest time last ride?
           var ride = result.rows[0]
-          var queryString = "SELECT * FROM drivers WHERE working = 'true' AND 
-            giving_ride_to IS NULL AND current_zone = " + ride.origin
+          var queryString = "SELECT * FROM drivers WHERE working = 'true' AND " +
+            "giving_ride_to IS NULL AND current_zone = " + ride.origin
 
           if (ride.trailer_needed) {
             queryString += " AND has_trailer = 'true'"
