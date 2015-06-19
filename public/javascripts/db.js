@@ -164,16 +164,20 @@ module.exports.clearGivingRideTo = function(driverNum) {
 }
 
 module.exports.createNewRide = function(riderNum, requestTime, cb) {
+  sys.log("db.createNewRide")
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
+      sys.log("db.createNewRide: connected to db")
       var queryString = "INSERT INTO rides (rider_num, request_time) VALUES ('" + riderNum + 
         "', " + requestTime + ") RETURNING *";
+      sys.log("db.createNewRide: db query is ", queryString)
       var query = client.query(queryString, function(err, result) {
         if (!err) {
           sys.log("db.createNewRide: Inserted ride into table, result.rows = ", result.rows)
           sys.log("db.createNewRide: Ride we want should be ", result.rows[0])
           cb(result.rows[0])
         } else {
+          sys.log("db.createNewRide: error with query, it is", err)
           // Report somehow?
         }
         client.end()
