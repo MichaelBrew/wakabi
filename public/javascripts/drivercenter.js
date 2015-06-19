@@ -1,4 +1,4 @@
-rq = require("request-promise")
+// rq = require("request-promise")
 
 var removeDriverNum = ""
 
