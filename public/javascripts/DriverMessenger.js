@@ -1,5 +1,7 @@
 var sys     = require('sys');
 var pg      = require('pg');
+var _ = require('underscore')
+
 var stages  = require('./stages');
 var strings = require('./strings');
 var parser  = require('./messageParser');
@@ -101,10 +103,31 @@ function handleRequestResponse(res, message, from) {
   } else if (parser.isNoMessage(message)) {
     db.getDriverFromNum(from, function(driver) {
       if (driver) {
-        // Just need params here lol
-        // If saved to db, can hopefully grab it
-        params.driverTimeLastRide = driver.time_last_ride
-        db.sendRequestToAvailableDriver(params)
+
+        pg.connect(process.env.DATABASE_URL, function(err, client) {
+          if (!err) {
+            var queryString = "SELECT * FROM rides WHERE rider_num = '" + driver.giving_ride_to + "'"
+            var query = client.query(queryString, function(err, result) {
+              if (!err) {
+                var rides = result.rows
+
+                if (rides.length > 1) {
+                  rides = _.sortBy(rides, function(ride) {
+                    return ride.request_time
+                  })
+                }
+
+                var params = {
+                  rideId: rides[0].ride_id,
+                  driverTimeLastRide: driver.time_last_ride
+                }
+
+                db.sendRequestToAvailableDriver(params)
+              }
+              client.end()
+            })
+          }
+        })
       }
     })
 
@@ -164,10 +187,10 @@ function handleEndRideText(res, message, from) {
   }
 }
 
-function textForConfirmation(driverNumber, rideParams) {
+function textForConfirmation(driverNumber, riderNumber) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
-      var queryString = "UPDATE drivers SET giving_ride_to = '" + rideParams.riderNum + "' WHERE num = '" + driverNumber + "'";
+      var queryString = "UPDATE drivers SET giving_ride_to = '" + riderNumber + "' WHERE num = '" + driverNumber + "'";
       var query = client.query(queryString, function(err, result) {
         if (!err) {
           Messenger.text(driverNumber, strings.acceptRideQuestion);
@@ -242,7 +265,7 @@ module.exports = {
         break;
     }
   },
-  textDriverForConfirmation: function(driverNumber, rideParams) {
-    textForConfirmation(driverNumber, rideParams);
+  textDriverForConfirmation: function(driverNumber, riderNumber) {
+    textForConfirmation(driverNumber, riderNumber);
   }
 };

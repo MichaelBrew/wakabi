@@ -131,9 +131,9 @@ function getStage(request, isDriver) {
 }
 
 var receiveIncomingMessage = function(req, res, next) {
-
   var message = req.body.Body;
   var from    = req.body.From;
+  
   var fromCity = req.body.FromCity;
   var fromState = req.body.FromState;
   var fromZip = req.body.FromZip;

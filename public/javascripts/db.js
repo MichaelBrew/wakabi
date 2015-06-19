@@ -1,19 +1,3 @@
-/*
- * db.js
- *
- * This file is intended to hold asynchronous database queries.
- * If a query is part of a sequential execution where future steps
- * rely on the result of such query, it should not be included here.
- *
- * Examples:
- * - GOOD: When receiving a text from a rider, query db to see if the number needs
- *         to be added to the rider's table. Response to rider is handled separately
- *         and does not rely on this result.
- * - BAD:  When receiving a new text, query the db to see if that number is part of
- *         the driver's table to decide whether to handle the text as a driver or rider.
- *         The response handling DOES rely on this result.
- */
-
 var pg = require('pg');
 var sys = require('sys');
 var _ = require('underscore')
@@ -48,38 +32,57 @@ module.exports.addRiderNumToDb = function(from) {
 module.exports.sendRequestToAvailableDriver = function(params) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
-      var queryString = "SELECT * FROM drivers WHERE working = 'true' AND 
-        giving_ride_to IS NULL AND current_zone = " + params.location
-
-      if (params.needTrailer) {
-        queryString += " AND has_trailer = 'true'"
-      }
-      if (params.driverTimeLastRide) {
-        queryString += " AND time_last_ride > " + params.driverTimeLastRide
-      }
-
+      var queryString = "SELECT * FROM rides WHERE ride_id = " + params.rideId
       var query = client.query(queryString, function(err, result) {
         if (!err) {
-          var drivers = result.rows
+          // Rather than getting all drivers, can we do a query that returns a single driver
+          // that matches this criteria and is the one with the earliest time last ride?
+          var ride = result.rows[0]
+          var queryString = "SELECT * FROM drivers WHERE working = 'true' AND 
+            giving_ride_to IS NULL AND current_zone = " + ride.origin
 
-          if (drivers.length == 0) {
-            if (params.riderWaitingForResponse) {
-              RiderMessenger.noDriversFound(params.riderNum, params.location, false) // From RiderMessenger
-              // Think I need to set params.riderWaitingForResponse to false here, then save to DB
+          if (ride.trailer_needed) {
+            queryString += " AND has_trailer = 'true'"
+          }
+
+          // if (params.driverTimeLastRide) {
+          //   queryString += " AND time_last_ride > " + params.driverTimeLastRide
+          // } 
+
+          if (ride.driver_time_last_ride) {
+            queryString += " AND time_last_ride > " + ride.driver_time_last_ride
+          }
+
+          var query = client.query(queryString, function(err, result) {
+            if (!err) {
+              var drivers = result.rows
+
+              if (drivers.length == 0) {
+                if (params.riderWaitingForResponse) {
+                  RiderMessenger.noDriversFound(ride.rider_num, ride.origin, false)
+
+                  // var queryString = "UPDATE TABLE rides SET rider_waiting_for_response = 'false' 
+                  //   WHERE ride_id = '" + ride.ride_id + "'"
+                  // var query = client.query(queryString, function(err, result) {
+                  //   client.end()
+                  // })
+                }
+                return
+              }
+
+              var drivers = _.sortBy(drivers, function(driver) {
+                return driver.time_last_ride
+              })
+
+              DriverMessenger.textDriverForConfirmation(drivers[0].num, ride.rider_num)
+
+              if (params.riderRes) {
+                cookies = {"rideStage": stages.rideStages.CONTACTING_DRIVER}
+                Messenger.textResponse(params.riderRes, strings.waitText, cookies)
+              }
             }
-            return
-          }
-
-          var drivers = _.sortBy(drivers, function(driver) {
-            return driver.time_last_ride
+            client.end()
           })
-
-          DriverMessenger.textDriverForConfirmation(drivers[0].num, params)
-
-          if (params.riderRes) {
-            cookies = {"rideStage": stages.rideStages.CONTACTING_DRIVER}
-            Messenger.textResponse(params.riderRes, strings.waitText, cookies)
-          }
         }
       })
     }
@@ -140,6 +143,7 @@ module.exports.getDriverFromNum = function(number, cb) {
             cb(result.rows[0])
           }
         }
+        client.end()
       })
     }
   })
@@ -157,4 +161,63 @@ module.exports.clearGivingRideTo = function(driverNum) {
       });
     }
   });
+}
+
+module.exports.createNewRide = function(riderNum, requestTime) {
+  pg.connect(process.env.DATABASE_URL, function(err, client) {
+    if (!err) {
+      var queryString = "INSERT INTO rides (rider_num, request_time) VALUES ('" + riderNum + "', " + requestTime + ")";
+      var query = client.query(queryString, function(err, result) {
+        if (err) {
+          // Report somehow?
+        }
+        client.end()
+      })
+    }
+  })
+}
+
+module.exports.addOriginToRide = function(origin, rideId) {
+  pg.connect(process.env.DATABASE_URL, function(err, client) {
+    if (!err) {
+      var queryString = "UPDATE rides SET origin = " + origin + " WHERE ride_id = '" + rideId + "'";
+      var query = client.query(queryString, function(err, result) {
+        if (err) {
+          // Report somehow?
+        }
+        client.end()
+      })
+    }
+  })
+}
+
+module.exports.addTrailerToRide = function(needTrailer, rideId, cb) {
+  pg.connect(process.env.DATABASE_URL, function(err, client) {
+    if (!err) {
+      var queryString = "UPDATE rides SET trailer_needed = '" + needTrailer + "'' WHERE ride_id = '" + rideId + "'";
+      var query = client.query(queryString, function(err, result) {
+        if (err) {
+          // Report somehow?
+        } else {
+          // cb(updated ride)
+          cb()
+        }
+        client.end()
+      })
+    }
+  })
+}
+
+module.exports.getRideWithId = function(id) {
+  pg.connect(process.env.DATABASE_URL, function(err, client) {
+    if (!err) {
+      var queryString = "SELECT * FROM drivers WHERE ride_id = '" + id + "'"
+      var query = client.query(queryString, function(err, result) {
+        if (!err) {
+          return result.rows[0]
+        }
+        client.end()
+      })
+    }
+  })
 }

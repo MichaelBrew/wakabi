@@ -1,5 +1,7 @@
 var sys       = require('sys');
 var pg        = require('pg');
+var moment    = require('moment')
+
 var stages    = require('./stages');
 var strings   = require('./strings');
 var db        = require('./db');
@@ -11,42 +13,51 @@ var RiderWaitingQueue = require('./RiderWaitingQueue');
 
 function handleRideRequest(res, message, from) {
   if (parser.isRideRequest(message)) {
-    sys.log('handleRideRequest: Ride request received');
-    requestLocation(res, false);
+    sys.log('RiderMessenger.handleRideRequest: Ride request received');
+
+    db.createNewRide(from, moment().format('YYYY-MM-DD HH:mm:ss Z'), function(ride) {
+      if (ride) {
+        requestLocation(res, false, ride.ride_id)
+      }
+    })
+
     db.addRiderNumToDb(from);
   } else {
-    sys.log('handleRideRequest: invalid messages received');
+    sys.log('RiderMessenger.handleRideRequest: Invalid message received');
     defaultHelpResponse(res);
   }
 }
 
-function handleLocationResponse(res, message) {
+function handleLocationResponse(req, res, message, from) {
   if (parser.verifyRiderLocation(message)) {
-    sys.log('handleLocationResponse: Location received');
-
-    res.cookie('originLocation', message);
+    sys.log('RiderMessenger.handleLocationResponse: Location received');
+    db.addOriginToRide(message, req.cookies.rideId)
     requestTrailerInfo(res, false);
   } else {
-    sys.log('handleLocationResponse: Invalid response for location');
+    sys.log('RiderMessenger.handleLocationResponse: Invalid response for location');
     requestLocation(res, true);
   }
 }
 
 function handleTrailerResponse(req, res, message, from) {
   if (parser.isYesMessage(message) || parser.isNoMessage(message)) {
-    sys.log('handleTrailerResponse: Trailer decision received');
-    var location = req.cookies.originLocation;
-
+    sys.log('RiderMessenger.handleTrailerResponse: Trailer decision received');
     var needsTrailer = (parser.isYesMessage(message) ? true : false);
-    searchForDriver(res, from, location, needsTrailer);
+
+    db.addTrailerToRide(needsTrailer, req.cookies.rideId, function() {
+      searchForDriver(req, res)
+    })
   } else {
     sys.log('handleTrailerResponse: Invalid response for trailer decision');
     requestTrailerInfo(res, true);
   }
 }
 
-function requestLocation(res, resend) {
-  cookies = {"rideStage": stages.rideStages.AWAITING_LOCATION}
+function requestLocation(res, resend, rideId) {
+  cookies = {
+    "rideStage": stages.rideStages.AWAITING_LOCATION,
+    "rideId": rideId
+  }
   Messenger.requestLocation(res, resend, cookies);
 }
 
@@ -64,12 +75,9 @@ function defaultHelpResponse(res) {
   Messenger.textResponse(res, strings.resendText + strings.helpText);
 }
 
-function searchForDriver(res, from, location, needTrailer) {
+function searchForDriver(req, res) {
   var params = {
-    riderNum: from,
-    location: location,
-    needTrailer: needTrailer,
-    driverTimeLastRide: null,
+    rideId: req.cookies.rideId,
     riderRes: res,
     riderWaitingForResponse: true
   }
@@ -110,7 +118,7 @@ module.exports = {
       break;
 
       case stages.rideStages.AWAITING_LOCATION:
-        handleLocationResponse(res, message);
+        handleLocationResponse(req, res, message, from);
       break;
 
       case stages.rideStages.AWAITING_TRAILER:
