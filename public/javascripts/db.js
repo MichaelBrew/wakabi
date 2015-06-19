@@ -170,6 +170,8 @@ module.exports.createNewRide = function(riderNum, requestTime, cb) {
         "', " + requestTime + ") RETURNING *";
       var query = client.query(queryString, function(err, result) {
         if (!err) {
+          sys.log("db.createNewRide: Inserted ride into table, result.rows = ", result.rows)
+          sys.log("db.createNewRide: Ride we want should be ", result.rows[0])
           cb(result.rows[0])
         } else {
           // Report somehow?

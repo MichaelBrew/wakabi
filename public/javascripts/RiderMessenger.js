@@ -16,7 +16,9 @@ function handleRideRequest(res, message, from) {
     sys.log('RiderMessenger.handleRideRequest: Ride request received');
 
     db.createNewRide(from, moment().format('YYYY-MM-DD HH:mm:ss Z'), function(ride) {
+      sys.log("RiderMessenger.handleRideRequest: Returned ride from query is ", ride)
       if (ride) {
+        sys.log("RiderMessenger.handleRideRequest: Successfully got ride, so asking for location next")
         requestLocation(res, false, ride.ride_id)
       }
     })
