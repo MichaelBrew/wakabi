@@ -163,12 +163,15 @@ module.exports.clearGivingRideTo = function(driverNum) {
   });
 }
 
-module.exports.createNewRide = function(riderNum, requestTime) {
+module.exports.createNewRide = function(riderNum, requestTime, cb) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
-      var queryString = "INSERT INTO rides (rider_num, request_time) VALUES ('" + riderNum + "', " + requestTime + ")";
+      var queryString = "INSERT INTO rides (rider_num, request_time) VALUES ('" + riderNum + 
+        "', " + requestTime + ") RETURNING *";
       var query = client.query(queryString, function(err, result) {
-        if (err) {
+        if (!err) {
+          cb(result.rows[0])
+        } else {
           // Report somehow?
         }
         client.end()

@@ -15,17 +15,11 @@ function handleRideRequest(res, message, from) {
   if (parser.isRideRequest(message)) {
     sys.log('RiderMessenger.handleRideRequest: Ride request received');
 
-    db.createNewRide(from, moment().format('YYYY-MM-DD HH:mm:ss Z')).then(function(ride) {
+    db.createNewRide(from, moment().format('YYYY-MM-DD HH:mm:ss Z'), function(ride) {
       if (ride) {
         requestLocation(res, false, ride.ride_id)
       }
     })
-
-    // db.createNewRide(from, moment().format('YYYY-MM-DD HH:mm:ss Z'), function(ride) {
-    //   if (ride) {
-    //     requestLocation(res, false, ride.ride_id)
-    //   }
-    // })
 
     db.addRiderNumToDb(from);
   } else {
