@@ -169,7 +169,7 @@ module.exports.createNewRide = function(riderNum, requestTime, cb) {
     if (!err) {
       sys.log("db.createNewRide: connected to db")
       var queryString = "INSERT INTO rides (rider_num, request_time) VALUES ('" + riderNum + 
-        "', " + requestTime + ") RETURNING *";
+        "', '" + requestTime + "') RETURNING *";
       sys.log("db.createNewRide: db query is ", queryString)
       var query = client.query(queryString, function(err, result) {
         if (!err) {
