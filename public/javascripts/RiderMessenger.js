@@ -15,11 +15,9 @@ function handleRideRequest(res, message, from) {
   if (parser.isRideRequest(message)) {
     sys.log('RiderMessenger.handleRideRequest: Ride request received');
 
-    db.createNewRide(from, moment().format('YYYY-MM-DD HH:mm:ssZ'), function(ride) {
-      sys.log("RiderMessenger.handleRideRequest: Returned ride from query is ", ride)
-      if (ride) {
-        sys.log("RiderMessenger.handleRideRequest: Successfully got ride, so asking for location next")
-        requestLocation(res, false, ride.ride_id)
+    db.createNewRide(from, moment().format('YYYY-MM-DD HH:mm:ssZ'), function(rideId) {
+      if (rideId) {
+        requestLocation(res, false, rideId)
       }
     })
 
@@ -33,8 +31,11 @@ function handleRideRequest(res, message, from) {
 function handleLocationResponse(req, res, message, from) {
   if (parser.verifyRiderLocation(message)) {
     sys.log('RiderMessenger.handleLocationResponse: Location received');
-    db.addOriginToRide(message, req.cookies.rideId)
-    requestTrailerInfo(res, false);
+    db.addOriginToRide(message, req.cookies.rideId, function(rideId) {
+      if (rideId) {
+        requestTrailerInfo(res, false);
+      }
+    })
   } else {
     sys.log('RiderMessenger.handleLocationResponse: Invalid response for location');
     requestLocation(res, true);
@@ -46,8 +47,10 @@ function handleTrailerResponse(req, res, message, from) {
     sys.log('RiderMessenger.handleTrailerResponse: Trailer decision received');
     var needsTrailer = (parser.isYesMessage(message) ? true : false);
 
-    db.addTrailerToRide(needsTrailer, req.cookies.rideId, function() {
-      searchForDriver(req, res)
+    db.addTrailerToRide(needsTrailer, req.cookies.rideId, function(rideId) {
+      if (rideId) {
+        searchForDriver(res, rideId)
+      }
     })
   } else {
     sys.log('handleTrailerResponse: Invalid response for trailer decision');
@@ -77,9 +80,9 @@ function defaultHelpResponse(res) {
   Messenger.textResponse(res, strings.resendText + strings.helpText);
 }
 
-function searchForDriver(req, res) {
+function searchForDriver(res, rideId) {
   var params = {
-    rideId: req.cookies.rideId,
+    rideId: rideId,
     riderRes: res,
     riderWaitingForResponse: true
   }

@@ -45,19 +45,15 @@ module.exports.sendRequestToAvailableDriver = function(params) {
             queryString += " AND has_trailer = 'true'"
           }
 
-          // if (params.driverTimeLastRide) {
-          //   queryString += " AND time_last_ride > " + params.driverTimeLastRide
-          // } 
-
           if (ride.driver_time_last_ride) {
             queryString += " AND time_last_ride > " + ride.driver_time_last_ride
           }
 
+          queryString += " ORDER BY time_last_ride DESC LIMIT 1"
+
           var query = client.query(queryString, function(err, result) {
             if (!err) {
-              var drivers = result.rows
-
-              if (drivers.length == 0) {
+              if (result.rows.length == 0) {
                 if (params.riderWaitingForResponse) {
                   RiderMessenger.noDriversFound(ride.rider_num, ride.origin, false)
 
@@ -70,11 +66,14 @@ module.exports.sendRequestToAvailableDriver = function(params) {
                 return
               }
 
-              var drivers = _.sortBy(drivers, function(driver) {
-                return driver.time_last_ride
-              })
+              var driver = result.rows[0]
 
-              DriverMessenger.textDriverForConfirmation(drivers[0].num, ride.rider_num)
+              // var drivers = _.sortBy(drivers, function(driver) {
+              //   return driver.time_last_ride
+              // })
+
+              // DriverMessenger.textDriverForConfirmation(drivers[0].num, ride.rider_num)
+              DriverMessenger.textDriverForConfirmation(driver.num, ride.rider_num)
 
               if (params.riderRes) {
                 cookies = {"rideStage": stages.rideStages.CONTACTING_DRIVER}
@@ -164,21 +163,15 @@ module.exports.clearGivingRideTo = function(driverNum) {
 }
 
 module.exports.createNewRide = function(riderNum, requestTime, cb) {
-  sys.log("db.createNewRide")
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
-      sys.log("db.createNewRide: connected to db")
       var queryString = "INSERT INTO rides (rider_num, request_time) VALUES ('" + riderNum + 
-        "', '" + requestTime + "') RETURNING *";
-      sys.log("db.createNewRide: db query is ", queryString)
+        "', '" + requestTime + "') RETURNING ride_id";
       var query = client.query(queryString, function(err, result) {
         if (!err) {
-          sys.log("db.createNewRide: Inserted ride into table, result.rows = ", result.rows)
-          sys.log("db.createNewRide: Ride we want should be ", result.rows[0])
-          cb(result.rows[0])
+          cb(result.rows[0].ride_id)
         } else {
-          sys.log("db.createNewRide: error with query, it is", err)
-          // Report somehow?
+          sys.log("db.createNewRide: error with query, ", err)
         }
         client.end()
       })
@@ -186,13 +179,16 @@ module.exports.createNewRide = function(riderNum, requestTime, cb) {
   })
 }
 
-module.exports.addOriginToRide = function(origin, rideId) {
+module.exports.addOriginToRide = function(origin, rideId, cb) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
-      var queryString = "UPDATE rides SET origin = " + origin + " WHERE ride_id = '" + rideId + "'";
+      var queryString = "UPDATE rides SET origin = " + origin + " WHERE ride_id = '" 
+        + rideId + "' RETURNING ride_id";
       var query = client.query(queryString, function(err, result) {
-        if (err) {
-          // Report somehow?
+        if (!err) {
+          cb(result.rows[0].ride_id)
+        } else {
+          sys.log("db.addOriginToRide: error with query, ", err)
         }
         client.end()
       })
@@ -203,13 +199,13 @@ module.exports.addOriginToRide = function(origin, rideId) {
 module.exports.addTrailerToRide = function(needTrailer, rideId, cb) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
-      var queryString = "UPDATE rides SET trailer_needed = '" + needTrailer + "'' WHERE ride_id = '" + rideId + "'";
+      var queryString = "UPDATE rides SET trailer_needed = '" + needTrailer + "'' WHERE ride_id = '" 
+        + rideId + "' RETURNING ride_id";
       var query = client.query(queryString, function(err, result) {
-        if (err) {
-          // Report somehow?
+        if (!err) {
+          cb(result.rows[0].ride_id)
         } else {
-          // cb(updated ride)
-          cb()
+          // Error
         }
         client.end()
       })
