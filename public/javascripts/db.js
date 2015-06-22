@@ -50,7 +50,7 @@ module.exports.sendRequestToAvailableDriver = function(params) {
             queryString += " AND time_last_ride > " + ride.driver_time_last_ride
           }
 
-          queryString += " ORDER BY time_last_ride DESC LIMIT 1"
+          queryString += " ORDER BY time_last_ride ASC LIMIT 1"
 
           sys.log("db.sendRequestToAvailableDriver: query is ", queryString)
 
