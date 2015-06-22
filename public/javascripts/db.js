@@ -51,8 +51,11 @@ module.exports.sendRequestToAvailableDriver = function(params) {
 
           queryString += " ORDER BY time_last_ride DESC LIMIT 1"
 
+          sys.log("db.sendRequestToAvailableDriver: query is ", queryString)
+
           var query = client.query(queryString, function(err, result) {
             if (!err) {
+              sys.log("db.sendRequestToAvailableDriver: successful query, results is ", results)
               if (result.rows.length == 0) {
                 if (params.riderWaitingForResponse) {
                   RiderMessenger.noDriversFound(ride.rider_num, ride.origin, false)
@@ -79,6 +82,8 @@ module.exports.sendRequestToAvailableDriver = function(params) {
                 cookies = {"rideStage": stages.rideStages.CONTACTING_DRIVER}
                 Messenger.textResponse(params.riderRes, strings.waitText, cookies)
               }
+            } else {
+              sys.log("db.sendRequestToAvailableDriver: error with db, ", err)
             }
             client.end()
           })
