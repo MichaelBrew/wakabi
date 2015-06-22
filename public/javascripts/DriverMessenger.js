@@ -112,6 +112,8 @@ function handleRequestResponse(res, message, from) {
               "' AND end_time = NULL RETURNING ride_id"
             var query = client.query(queryString, function(err, result) {
               if (!err) {
+                sys.log("DriverMessenger.handleRequestResponse: result is ", result)
+                sys.log("DriverMessenger.handleRequestResponse: result.rows is ", result.rows)
                 // var rides = result.rows
 
                 // if (rides.length > 1) {
