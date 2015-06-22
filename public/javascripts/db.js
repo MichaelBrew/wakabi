@@ -33,6 +33,7 @@ module.exports.sendRequestToAvailableDriver = function(params) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
       var queryString = "SELECT * FROM rides WHERE ride_id = " + params.rideId
+      sys.log("db.sendRequestToAvailableDriver: query to get ride with rideid = ", queryString)
       var query = client.query(queryString, function(err, result) {
         if (!err) {
           var ride = result.rows[0]
