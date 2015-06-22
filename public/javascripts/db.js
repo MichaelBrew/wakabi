@@ -207,7 +207,7 @@ module.exports.addOriginToRide = function(origin, rideId, cb) {
 module.exports.addTrailerToRide = function(needTrailer, rideId, cb) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
-      var queryString = "UPDATE rides SET trailer_needed = '" + needTrailer + "'' WHERE ride_id = '" 
+      var queryString = "UPDATE rides SET trailer_needed = '" + needTrailer + "' WHERE ride_id = '"
         + rideId + "' RETURNING ride_id";
       sys.log("db.addTrailerToRide: about to update ride entry with ", queryString)
       var query = client.query(queryString, function(err, result) {
