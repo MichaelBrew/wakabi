@@ -118,7 +118,7 @@ module.exports.updateDriverRatingWithRiderNum = function(res, riderNum, message)
           var multiplier = parser.isYesMessage(message) ? 100 : 0
           var newRating = (1/(totalRides+1))*multiplier + (totalRides/(totalRides+1))*currentRating
           var queryString = "UPDATE drivers SET rating = " + newRating + ", total_rides_completed = "
-            + (totalRides+1) + " WHERE num = '" + driverNum "'"
+            + (totalRides+1) + " WHERE num = '" + driverNum + "'"
 
           var query = client.query(queryString, function(err, result) {
             if (!err) {
