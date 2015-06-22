@@ -80,7 +80,7 @@ module.exports.sendRequestToAvailableDriver = function(params) {
                 Messenger.textResponse(params.riderRes, strings.waitText, cookies)
               }
 
-              var addDriverQueryString = "UPDATE rides SET driver_num = '" + driver.num + "' WHERE ride_id = " + ride.id
+              var addDriverQueryString = "UPDATE rides SET driver_num = '" + driver.num + "' WHERE ride_id = " + ride.ride_id
               var addDriverQuery = client.query(addDriverQueryString, function(err, result) {
                 if (!err) {
                   // good
