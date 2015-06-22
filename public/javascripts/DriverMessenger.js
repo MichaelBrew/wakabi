@@ -1,15 +1,15 @@
-var sys     = require('sys');
-var pg      = require('pg');
+var sys     = require('sys')
+var pg      = require('pg')
 var _ = require('underscore')
+var moment = require('moment')
 
-var stages  = require('./stages');
-var strings = require('./strings');
-var parser  = require('./messageParser');
-var db      = require('./db');
-var Messenger = require('./TextMessenger');
-var RiderWaitingQueue = require('./RiderWaitingQueue');
-
-var RiderMessenger = require('./RiderMessenger');
+var stages  = require('./stages')
+var strings = require('./strings')
+var parser  = require('./messageParser')
+var db      = require('./db')
+var Messenger = require('./TextMessenger')
+var RiderWaitingQueue = require('./RiderWaitingQueue')
+var RiderMessenger = require('./RiderMessenger')
 
 function driverStartShift(res, from) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
@@ -171,7 +171,7 @@ function handleEndRideText(res, message, from) {
 
             requestLocation(res, false, stages.driveStages.AWAITING_UPDATED_LOCATION);
 
-            var timeLastRide = null // Need to create timestamp here
+            var timeLastRide = moment().format('YYYY-MM-DD HH:mm:ssZ')
             var queryString = "UPDATE drivers SET time_last_ride = " + timeLastRide + " WHERE num = '" + from + "'"
             var query = client.query(queryString, function(err, result) {
               if (!err) {
