@@ -172,12 +172,11 @@ function handleEndRideText(res, message, from) {
             requestLocation(res, false, stages.driveStages.AWAITING_UPDATED_LOCATION);
 
             var timeLastRide = moment().format('YYYY-MM-DD HH:mm:ssZ')
-            var queryString = "UPDATE drivers SET time_last_ride = " + timeLastRide + " WHERE num = '" + from + "'"
+            var queryString = "UPDATE drivers SET time_last_ride = '" + timeLastRide + "' WHERE num = '" + from + "'"
             var query = client.query(queryString, function(err, result) {
               if (!err) {
                 // Timestamp set
               }
-
               client.end();
             });
           }
