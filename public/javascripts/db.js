@@ -30,13 +30,14 @@ module.exports.addRiderNumToDb = function(from) {
 };
 
 module.exports.sendRequestToAvailableDriver = function(params) {
+  sys.log("db.sendRequestToAvailableDriver")
   pg.connect(process.env.DATABASE_URL, function(err, client) {
+    sys.log("db.sendRequestToAvailableDriver: connected to DB")
     if (!err) {
       var queryString = "SELECT * FROM rides WHERE ride_id = " + params.rideId
+      sys.log("db.sendRequestToAvailableDriver: querying for rides with ", queryString)
       var query = client.query(queryString, function(err, result) {
         if (!err) {
-          // Rather than getting all drivers, can we do a query that returns a single driver
-          // that matches this criteria and is the one with the earliest time last ride?
           var ride = result.rows[0]
           var queryString = "SELECT * FROM drivers WHERE working = 'true' AND " +
             "giving_ride_to IS NULL AND current_zone = " + ride.origin
@@ -87,6 +88,8 @@ module.exports.sendRequestToAvailableDriver = function(params) {
             }
             client.end()
           })
+        } else {
+          sys.log("db.sendRequestToAvailableDriver: error getting rides, ", err)
         }
       })
     }
@@ -206,11 +209,13 @@ module.exports.addTrailerToRide = function(needTrailer, rideId, cb) {
     if (!err) {
       var queryString = "UPDATE rides SET trailer_needed = '" + needTrailer + "'' WHERE ride_id = '" 
         + rideId + "' RETURNING ride_id";
+      sys.log("db.addTrailerToRide: about to update ride entry with ", queryString)
       var query = client.query(queryString, function(err, result) {
         if (!err) {
+          sys.log("db.addTrailerToRide: success, ride id is ", result.rows[0].ride_id)
           cb(result.rows[0].ride_id)
         } else {
-          // Error
+          sys.log("db.addTrailerToRide: error, ", err)
         }
         client.end()
       })

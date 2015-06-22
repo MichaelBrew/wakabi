@@ -142,10 +142,10 @@ var receiveIncomingMessage = function(req, res, next) {
   // These all come from the phone number itself
   // But not from the sender's actual location (unless they're in the same
   // place that their phone number is registered)
-  if (fromCity) sys.log("incoming: fromCity = " + fromCity);
-  if (fromState) sys.log("incoming: fromState = " + fromState);
-  if (fromZip) sys.log("incoming: fromZip = " + fromZip);
-  if (fromCountry) sys.log("incoming: fromCountry = " + fromCountry);
+  // if (fromCity) sys.log("incoming: fromCity = " + fromCity);
+  // if (fromState) sys.log("incoming: fromState = " + fromState);
+  // if (fromZip) sys.log("incoming: fromZip = " + fromZip);
+  // if (fromCountry) sys.log("incoming: fromCountry = " + fromCountry);
 
   sys.log('incoming: From: ' + from + ', Message: ' + message);
 
