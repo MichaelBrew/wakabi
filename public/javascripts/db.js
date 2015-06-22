@@ -30,63 +30,67 @@ module.exports.addRiderNumToDb = function(from) {
 };
 
 module.exports.sendRequestToAvailableDriver = function(params) {
-  sys.log("db.sendRequestToAvailableDriver")
   pg.connect(process.env.DATABASE_URL, function(err, client) {
-    sys.log("db.sendRequestToAvailableDriver: connected to DB")
     if (!err) {
       var queryString = "SELECT * FROM rides WHERE ride_id = " + params.rideId
-      sys.log("db.sendRequestToAvailableDriver: querying for rides with ", queryString)
       var query = client.query(queryString, function(err, result) {
         if (!err) {
           var ride = result.rows[0]
-          var queryString = "SELECT * FROM drivers WHERE working = 'true' AND " +
-            "giving_ride_to IS NULL AND current_zone = " + ride.origin
+          // Really, query should be like:
+          // select all fields from drivers where working = true, current_zone = origin,
+          // and, out of all rides with no end time yet (hence ongoing), make sure driver num isn't this num
+
+          var queryString = "SELECT * FROM drivers WHERE working = 'true' AND current_zone = " + ride.origin +
+            " AND NOT EXISTS (SELECT 1 FROM rides WHERE end_time = NULL AND driver_num = drivers.num)"
+
+          // var queryString = "SELECT * FROM drivers WHERE working = 'true' AND " +
+          //   "giving_ride_to IS NULL AND current_zone = " + ride.origin
 
           if (ride.trailer_needed) {
             queryString += " AND has_trailer = 'true'"
           }
 
-          if (ride.driver_time_last_ride) {
-            queryString += " AND time_last_ride > " + ride.driver_time_last_ride
+          if (params.driverTimeLastRide) {
+            queryString += " AND time_last_ride > " + params.driverTimeLastRide
           }
+          // if (ride.driver_time_last_ride) {
+          //   queryString += " AND time_last_ride > " + ride.driver_time_last_ride
+          // }
 
           queryString += " ORDER BY time_last_ride ASC LIMIT 1"
-
-          sys.log("db.sendRequestToAvailableDriver: query is ", queryString)
 
           var query = client.query(queryString, function(err, result) {
             if (!err) {
               sys.log("db.sendRequestToAvailableDriver: successful query, result is ", result)
+
               if (result.rows.length == 0) {
                 if (params.riderWaitingForResponse) {
                   RiderMessenger.noDriversFound(ride.rider_num, ride.origin, false)
-
-                  // var queryString = "UPDATE TABLE rides SET rider_waiting_for_response = 'false' 
-                  //   WHERE ride_id = '" + ride.ride_id + "'"
-                  // var query = client.query(queryString, function(err, result) {
-                  //   client.end()
-                  // })
                 }
                 return
               }
 
               var driver = result.rows[0]
 
-              // var drivers = _.sortBy(drivers, function(driver) {
-              //   return driver.time_last_ride
-              // })
-
-              // DriverMessenger.textDriverForConfirmation(drivers[0].num, ride.rider_num)
               DriverMessenger.textDriverForConfirmation(driver.num, ride.rider_num)
 
               if (params.riderRes) {
                 cookies = {"rideStage": stages.rideStages.CONTACTING_DRIVER}
                 Messenger.textResponse(params.riderRes, strings.waitText, cookies)
               }
+
+              var addDriverQueryString = "UPDATE rides SET driver_num = '" + driver.num + "' WHERE ride_id = " + ride.id
+              var addDriverQuery = client.query(addDriverQueryString, function(err, result) {
+                if (!err) {
+                  // good
+                } else {
+                  sys.log("db.sendRequestToAvailableDriver: error adding driver num to ride entry, ", err)
+                }
+                client.end()
+              })
             } else {
               sys.log("db.sendRequestToAvailableDriver: error with db, ", err)
             }
-            client.end()
           })
         } else {
           sys.log("db.sendRequestToAvailableDriver: error getting rides, ", err)
@@ -96,34 +100,25 @@ module.exports.sendRequestToAvailableDriver = function(params) {
   })
 }
 
-module.exports.addRiderNumToDriver = function(driverNum, riderNum) {
-  pg.connect(process.env.DATABASE_URL, function(err, client) {
-    if (!err) {
-      var query = client.query("UPDATE drivers SET giving_ride_to = '" + riderNum + "' WHERE num = '" + driverNum + "'", function(err, result) {
-        if (!err) {
-          sys.log("addRiderNumToDriver: Rider num " + riderNum + " successfully added to driver " + driverNum);
-        }
-        client.end();
-      });
-    }
-  });
-}
-
 module.exports.updateDriverRatingWithRiderNum = function(res, riderNum, message) {
   var responseText = parser.isYesMessage(message) ? strings.goodFeedback : strings.badFeedback;
 
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
-      var query = client.query("SELECT * FROM drivers WHERE giving_ride_to = '" + riderNum + "'", function(err, result) {
+      var queryString = "SELECT * FROM drivers WHERE num = (SELECT driver_num FROM rides WHERE rider_num = '" 
+        + riderNum + "' AND feedback = NULL)"
+      var query = client.query(queryString, function(err, result) {
         if (!err) {
-          var driverNum = result.rows[0].num;
-          var currentRating = (result.rows[0].rating == null) ? 100 : result.rows[0].rating;
-          var totalRides = (result.rows[0].total_rides_completed == null) ? 0 : result.rows[0].total_rides_completed;
+          var driver = result.rows[0]
+          var driverNum = driver.num
+          var currentRating = (driver.rating == null) ? 100 : driver.rating
+          var totalRides = (driver.total_rides_completed == null) ? 0 : driver.total_rides_completed
 
-          //New rating = (# of positive feedback / # of total feedback)
-          var multiplier = parser.isYesMessage(message) ? 100 : 0;
-          var newRating = (1/(totalRides+1))*multiplier + (totalRides/(totalRides+1))*currentRating;
-          var queryString = "UPDATE drivers SET rating = " + newRating + ", total_rides_completed = " + (totalRides+1) + ", giving_ride_to = NULL WHERE num = '" + driverNum + "'";
+          // New rating = (# of positive feedback / # of total feedback)
+          var multiplier = parser.isYesMessage(message) ? 100 : 0
+          var newRating = (1/(totalRides+1))*multiplier + (totalRides/(totalRides+1))*currentRating
+          var queryString = "UPDATE drivers SET rating = " + newRating + ", total_rides_completed = "
+            + (totalRides+1) + " WHERE num = '" + driverNum "'"
 
           var query = client.query(queryString, function(err, result) {
             if (!err) {
@@ -133,10 +128,10 @@ module.exports.updateDriverRatingWithRiderNum = function(res, riderNum, message)
               }
               Messenger.textResponse(res, responseText, cookies);
             }
-            client.end();
-          });
+            client.end()
+          })
         }
-      });
+      })
     }
   });
 }
@@ -154,20 +149,6 @@ module.exports.getDriverFromNum = function(number, cb) {
       })
     }
   })
-}
-
-module.exports.clearGivingRideTo = function(driverNum) {
-  pg.connect(process.env.DATABASE_URL, function(err, client) {
-    if (!err) {
-      var queryString = "UPDATE drivers SET giving_ride_to = NULL WHERE num = '" + driverNum + "'";
-      var query = client.query(queryString, function(err, result) {
-        if (!err) {
-          // cool
-        }
-        client.end();
-      });
-    }
-  });
 }
 
 module.exports.createNewRide = function(riderNum, requestTime, cb) {

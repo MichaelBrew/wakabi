@@ -38,11 +38,13 @@ router.get('/', function(req, res, next) {
             if (driver.working) {
               numDrivers++
 
-              if (driver.giving_ride_to == null) {
-                numIdleDrivers++;
-              } else {
-                numBusyDrivers++;
-              }
+              // I killed giving_ride_to so instead we need to search through
+              // current rides and see if the driver_num of any is this driver's num
+              // if (driver.giving_ride_to == null) {
+              //   numIdleDrivers++;
+              // } else {
+              //   numBusyDrivers++;
+              // }
             }
 
             if (driver.rating < 80) {

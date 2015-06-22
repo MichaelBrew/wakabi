@@ -103,22 +103,26 @@ function handleRequestResponse(res, message, from) {
   } else if (parser.isNoMessage(message)) {
     db.getDriverFromNum(from, function(driver) {
       if (driver) {
-
         pg.connect(process.env.DATABASE_URL, function(err, client) {
           if (!err) {
-            var queryString = "SELECT * FROM rides WHERE rider_num = '" + driver.giving_ride_to + "'"
+            //var queryString = "SELECT * FROM rides WHERE rider_num = '" + driver.giving_ride_to + "'"
+            //var queryString = "SELECT * FROM rides WHERE driver_num = '" + from + "'"
+            //var queryString = "UPDATE rides SET driver_num = NULL WHERE driver_num = "
+            var queryString = "UPDATE rides SET driver_num = NULL WHERE driver_num = '" + from +
+              "' AND end_time = NULL RETURNING ride_id"
             var query = client.query(queryString, function(err, result) {
               if (!err) {
-                var rides = result.rows
+                // var rides = result.rows
 
-                if (rides.length > 1) {
-                  rides = _.sortBy(rides, function(ride) {
-                    return ride.request_time
-                  })
-                }
+                // if (rides.length > 1) {
+                //   rides = _.sortBy(rides, function(ride) {
+                //     return ride.request_time
+                //   })
+                // }
+                // var ride = result.rows[0]
 
                 var params = {
-                  rideId: rides[0].ride_id,
+                  rideId: result.rows[0],
                   driverTimeLastRide: driver.time_last_ride
                 }
 
@@ -130,8 +134,6 @@ function handleRequestResponse(res, message, from) {
         })
       }
     })
-
-    db.clearGivingRideTo(from)
   } else {
     // wasn't a response to the request, send back default message?
   }
@@ -141,10 +143,14 @@ function sendNumberToDriver(res, driverNum) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
       // Get rider's number
-      var queryString = "SELECT giving_ride_to FROM drivers WHERE num = '" + driverNum + "'";
+
+      // Get the rider_num from ride object that has not ended and driver_num = driverNum
+      //var queryString = "SELECT giving_ride_to FROM drivers WHERE num = '" + driverNum + "'";
+      var queryString = "SELECT rider_num FROM rides WHERE driver_num = '" + driverNum + "' AND end_time = NULL"
       var query = client.query(queryString, function(err, result) {
         if (!err) {
-          var riderNum = result.rows[0].giving_ride_to;
+          // var riderNum = result.rows[0].giving_ride_to;
+          var riderNum = result.rows[0]
           var responseText = strings.hereIsRiderNum + riderNum;
 
           cookies = {"driveStage": stages.driveStages.AWAITING_END_RIDE}
@@ -163,22 +169,31 @@ function handleEndRideText(res, message, from) {
   if (parser.isEndRideMessage(message)) {
     pg.connect(process.env.DATABASE_URL, function(err, client) {
       if (!err) {
-        var queryString = "SELECT giving_ride_to FROM drivers WHERE num = '" + from + "'";
+        // var queryString = "SELECT giving_ride_to FROM drivers WHERE num = '" + from + "'";
+        var queryString = "SELECT * FROM rides WHERE driver_num = '" + from + "' AND end_time = NULL"
         var query = client.query(queryString, function(err, result) {
           if (!err) {
-            var riderNum = result.rows[0].giving_ride_to;
-            Messenger.text(riderNum, strings.feedbackQuestion);
+            var ride = result.rows[0]
+            var riderNum = ride.rider_num;
+            var endTime = moment().format('YYYY-MM-DD HH:mm:ssZ')
 
+            Messenger.text(riderNum, strings.feedbackQuestion);
             requestLocation(res, false, stages.driveStages.AWAITING_UPDATED_LOCATION);
 
-            var timeLastRide = moment().format('YYYY-MM-DD HH:mm:ssZ')
-            var queryString = "UPDATE drivers SET time_last_ride = '" + timeLastRide + "' WHERE num = '" + from + "'"
+            var queryString = "UPDATE rides SET end_time = '" + endTime + "' WHERE ride_id = "
+              + ride.ride_id
             var query = client.query(queryString, function(err, result) {
               if (!err) {
-                // Timestamp set
+                // End time set
+                var queryString = "UPDATE drivers SET time_last_ride = '" + endTime + "' WHERE num = '" + from + "'"
+                var query = client.query(queryString, function(err, result) {
+                  if (!err) {
+                    // Timestamp set
+                  }
+                  client.end()
+                });
               }
-              client.end();
-            });
+            })
           }
         });
       }
@@ -187,19 +202,20 @@ function handleEndRideText(res, message, from) {
 }
 
 function textForConfirmation(driverNumber, riderNumber) {
-  pg.connect(process.env.DATABASE_URL, function(err, client) {
-    if (!err) {
-      var queryString = "UPDATE drivers SET giving_ride_to = '" + riderNumber + "' WHERE num = '" + driverNumber + "'";
-      var query = client.query(queryString, function(err, result) {
-        if (!err) {
-          Messenger.text(driverNumber, strings.acceptRideQuestion);
-        } else {
-          sys.log("textForConfirmation: Error querying db, err: " + err);
-        }
-        client.end();
-      });
-    }
-  });
+  Messenger.text(driverNumber, strings.acceptRideQuestion)
+  // pg.connect(process.env.DATABASE_URL, function(err, client) {
+  //   if (!err) {
+  //     var queryString = "UPDATE drivers SET giving_ride_to = '" + riderNumber + "' WHERE num = '" + driverNumber + "'";
+  //     var query = client.query(queryString, function(err, result) {
+  //       if (!err) {
+  //         Messenger.text(driverNumber, strings.acceptRideQuestion);
+  //       } else {
+  //         sys.log("textForConfirmation: Error querying db, err: " + err);
+  //       }
+  //       client.end();
+  //     });
+  //   }
+  // });
 }
 
 function handleUpdatedLocation(res, message, driverNum) {
