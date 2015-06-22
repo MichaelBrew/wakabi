@@ -122,7 +122,7 @@ function handleRequestResponse(res, message, from) {
                 // var ride = result.rows[0]
 
                 var params = {
-                  rideId: result.rows[0],
+                  rideId: result.rows[0].ride_id,
                   driverTimeLastRide: driver.time_last_ride
                 }
 
