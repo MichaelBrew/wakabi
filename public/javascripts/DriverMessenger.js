@@ -110,10 +110,12 @@ function handleRequestResponse(res, message, from) {
             //var queryString = "UPDATE rides SET driver_num = NULL WHERE driver_num = "
             var queryString = "UPDATE rides SET driver_num = NULL WHERE driver_num = '" + from +
               "' AND end_time = NULL RETURNING ride_id"
+            sys.log("DriverMessenger.handleRequestResponse: query to update ride is ", queryString)
             var query = client.query(queryString, function(err, result) {
               if (!err) {
                 sys.log("DriverMessenger.handleRequestResponse: result is ", result)
                 sys.log("DriverMessenger.handleRequestResponse: result.rows is ", result.rows)
+                sys.log("DriverMessenger.handleRequestResponse: result.fields is ", result.fields)
                 // var rides = result.rows
 
                 // if (rides.length > 1) {
@@ -129,6 +131,8 @@ function handleRequestResponse(res, message, from) {
                 }
 
                 db.sendRequestToAvailableDriver(params)
+              } else {
+                sys.log("DriverMessenger.handleRequestResponse: Failed to update ride, ", err)
               }
               client.end()
             })
