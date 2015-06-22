@@ -56,7 +56,7 @@ module.exports.sendRequestToAvailableDriver = function(params) {
 
           var query = client.query(queryString, function(err, result) {
             if (!err) {
-              sys.log("db.sendRequestToAvailableDriver: successful query, results is ", results)
+              sys.log("db.sendRequestToAvailableDriver: successful query, result is ", result)
               if (result.rows.length == 0) {
                 if (params.riderWaitingForResponse) {
                   RiderMessenger.noDriversFound(ride.rider_num, ride.origin, false)
