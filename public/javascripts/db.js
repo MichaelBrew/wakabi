@@ -112,7 +112,7 @@ module.exports.updateDriverRatingWithRiderNum = function(res, riderNum, message)
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
       var queryString = "SELECT * FROM drivers WHERE num = (SELECT driver_num FROM rides WHERE rider_num = '" 
-        + riderNum + "' AND feedback = NULL)"
+        + riderNum + "' AND feedback IS NULL)"
       var query = client.query(queryString, function(err, result) {
         if (!err) {
           var driver = result.rows[0]
