@@ -139,5 +139,8 @@ module.exports = {
         }
       break;
     }
+  },
+  noDriversFoundForRide: function(from, location, resend) {
+    noDriversFound(from, location, resend)
   }
 };
