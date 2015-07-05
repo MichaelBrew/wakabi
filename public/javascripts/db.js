@@ -121,7 +121,7 @@ module.exports.updateDriverRatingWithRiderNum = function(res, riderNum, message)
           var driverNum = result.rows[0].driver_num
 
           var queryString = "SELECT * FROM drivers WHERE num = '" + driverNum + "'"
-          var query = client.query(queryString, function(err, result)) {
+          var query = client.query(queryString, function(err, result) {
             if (!err) {
               var driver = result.rows[0]
               sys.log("db.updateDriverRatingWithRiderNum: driver is ", driver)
@@ -146,7 +146,7 @@ module.exports.updateDriverRatingWithRiderNum = function(res, riderNum, message)
                 client.end()
               })
             }
-          }
+          })
         }
       })
     }
