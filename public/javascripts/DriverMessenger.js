@@ -105,36 +105,54 @@ function handleRequestResponse(res, message, from) {
       if (driver) {
         pg.connect(process.env.DATABASE_URL, function(err, client) {
           if (!err) {
+            var queryString = "SELECT * FROM rides WHERE driver_num = '" + from + "' AND end_time = NULL"
+            var query = client.query(queryString, function(err, result) {
+              if (!err) {
+                var ride = result.rows[0]
+                var driverNum = ride.driver_num
+
+                var queryString = "UPDATE rides SET driver_num = NULL WHERE ride_id = " + ride.ride_id
+                var query = client.query(queryString, function(err, result) {
+                  if (!err) {
+                    var params = {
+                      rideId: result.rows[0].ride_id,
+                      driverTimeLastRide: driver.time_last_ride
+                    }
+
+                    db.sendRequestToAvailableDriver(params)
+                  }
+                })
+              }
             //var queryString = "SELECT * FROM rides WHERE rider_num = '" + driver.giving_ride_to + "'"
             //var queryString = "SELECT * FROM rides WHERE driver_num = '" + from + "'"
             //var queryString = "UPDATE rides SET driver_num = NULL WHERE driver_num = "
-            var queryString = "UPDATE rides SET driver_num = NULL WHERE driver_num = '" + from +
-              "' AND end_time = NULL RETURNING ride_id"
-            sys.log("DriverMessenger.handleRequestResponse: query to update ride is ", queryString)
-            var query = client.query(queryString, function(err, result) {
-              if (!err) {
-                sys.log("DriverMessenger.handleRequestResponse: result is ", result)
-                sys.log("DriverMessenger.handleRequestResponse: result.rows is ", result.rows)
-                sys.log("DriverMessenger.handleRequestResponse: result.fields is ", result.fields)
-                // var rides = result.rows
+            // var queryString = "UPDATE rides SET driver_num = NULL WHERE driver_num = '" + from +
+            //   "' AND end_time = NULL RETURNING ride_id"
+            // sys.log("DriverMessenger.handleRequestResponse: query to update ride is ", queryString)
+            // var query = client.query(queryString, function(err, result) {
+            //   if (!err) {
+            //     sys.log("DriverMessenger.handleRequestResponse: result is ", result)
+            //     sys.log("DriverMessenger.handleRequestResponse: result.rows is ", result.rows)
+            //     sys.log("DriverMessenger.handleRequestResponse: result.fields is ", result.fields)
+            //     // var rides = result.rows
 
-                // if (rides.length > 1) {
-                //   rides = _.sortBy(rides, function(ride) {
-                //     return ride.request_time
-                //   })
-                // }
-                // var ride = result.rows[0]
+            //     // if (rides.length > 1) {
+            //     //   rides = _.sortBy(rides, function(ride) {
+            //     //     return ride.request_time
+            //     //   })
+            //     // }
+            //     // var ride = result.rows[0]
 
-                var params = {
-                  rideId: result.rows[0].ride_id,
-                  driverTimeLastRide: driver.time_last_ride
-                }
+            //     var params = {
+            //       rideId: result.rows[0].ride_id,
+            //       driverTimeLastRide: driver.time_last_ride
+            //     }
 
-                db.sendRequestToAvailableDriver(params)
-              } else {
-                sys.log("DriverMessenger.handleRequestResponse: Failed to update ride, ", err)
-              }
-              client.end()
+            //     db.sendRequestToAvailableDriver(params)
+            //   } else {
+            //     sys.log("DriverMessenger.handleRequestResponse: Failed to update ride, ", err)
+            //   }
+            //   client.end()
             })
           }
         })
