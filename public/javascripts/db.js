@@ -37,6 +37,7 @@ module.exports.sendRequestToAvailableDriver = function(params) {
       var query = client.query(queryString, function(err, result) {
         if (!err) {
           var ride = result.rows[0]
+          sys.log("db.sendRequestToAvailableDriver: found ride = ", ride)
           // Really, query should be like:
           // select all fields from drivers where working = true, current_zone = origin,
           // and, out of all rides with no end time yet (hence ongoing), make sure driver num isn't this num
@@ -59,6 +60,8 @@ module.exports.sendRequestToAvailableDriver = function(params) {
           // }
 
           queryString += " ORDER BY time_last_ride ASC LIMIT 1"
+
+          sys.log("db.sendRequestToAvailableDriver: about query with ", queryString)
 
           var query = client.query(queryString, function(err, result) {
             if (!err) {
