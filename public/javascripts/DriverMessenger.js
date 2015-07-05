@@ -113,7 +113,8 @@ function handleRequestResponse(res, message, from) {
                   if (!err) {
                     var params = {
                       rideId: ride.ride_id,
-                      driverTimeLastRide: driver.time_last_ride
+                      driverTimeLastRide: driver.time_last_ride,
+                      riderWaitingForResponse: true
                     }
 
                     db.sendRequestToAvailableDriver(params)
