@@ -1,18 +1,22 @@
 // This way of exporting/mimicking a static variable is not working
 // For now, just using global.riderWaitingQueue and modfiying it in RiderMessenger.js
 
+var isWaiting = function(number) {
+  queue = global.riderWaitingQueue;
+  for (var i = 0; i < queue.length; i++) {
+    if (queue[i].number == number) {
+      return true;
+    }
+  }
+  return false;
+}
+
 module.exports = {
   isRiderWaiting: function(number) {
-    queue = global.riderWaitingQueue;
-    for (var i = 0; i < queue.length; i++) {
-      if (queue[i].number == number) {
-        return true;
-      }
-    }
-    return false;
+    isWaiting(number)
   },
   addRiderWithZoneToQueue: function(riderNum, zone) {
-    if (!isRiderWaiting(riderNum)) {
+    if (!isWaiting(riderNum)) {
       rider = {
         number: riderNum,
         location: zone
