@@ -105,7 +105,7 @@ function handleRequestResponse(res, message, from) {
       if (driver) {
         pg.connect(process.env.DATABASE_URL, function(err, client) {
           if (!err) {
-            var queryString = "SELECT * FROM rides WHERE driver_num = '" + from + "' AND end_time = NULL"
+            var queryString = "SELECT * FROM rides WHERE driver_num = '" + from + "' AND end_time IS NULL"
             var query = client.query(queryString, function(err, result) {
               if (!err) {
                 var ride = result.rows[0]
