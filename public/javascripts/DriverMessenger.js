@@ -254,10 +254,14 @@ function handleUpdatedLocation(res, message, driverNum) {
           }
           Messenger.textResponse(res, strings.updatedDriverLocation, cookies);
           checkRiderWaitingQueue(driverNum, parseInt(message));
+
+          var queryString = "UPDATE rides SET destination = " + parseInt(message) + " WHERE driver_num = '" + driverNum + "' AND destination IS NULL"
+          var query = client.query(queryString, function(err, result) {
+            client.end();
+          })
         } else {
           sys.log("handleUpdatedLocation: Error querying db, err: " + err);
         }
-        client.end();
       });
     }
   });

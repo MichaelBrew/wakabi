@@ -111,20 +111,15 @@ module.exports.updateDriverRatingWithRiderNum = function(res, riderNum, message)
 
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
-      // var queryString = "SELECT * FROM drivers WHERE num = (SELECT driver_num FROM rides WHERE rider_num = '" 
-      //   + riderNum + "' AND feedback IS NULL)"
-
-      var queryString = "SELECT driver_num FROM rides WHERE rider_num = '" + riderNum + "' AND feedback IS NULL"
-      sys.log("db.updateDriverRatingWithRiderNum: query to get driverNum is ", queryString)
+      var queryString = "SELECT * FROM rides WHERE rider_num = '" + riderNum + "' AND feedback IS NULL"
       var query = client.query(queryString, function(err, result) {
         if (!err) {
-          var driverNum = result.rows[0].driver_num
-
+          var ride = result.rows[0]
+          var driverNum = ride.driver_num
           var queryString = "SELECT * FROM drivers WHERE num = '" + driverNum + "'"
           var query = client.query(queryString, function(err, result) {
             if (!err) {
               var driver = result.rows[0]
-              sys.log("db.updateDriverRatingWithRiderNum: driver is ", driver)
               var driverNum = driver.num
               var currentRating = (driver.rating == null) ? 100 : driver.rating
               var totalRides = (driver.total_rides_completed == null) ? 0 : driver.total_rides_completed
@@ -132,9 +127,9 @@ module.exports.updateDriverRatingWithRiderNum = function(res, riderNum, message)
               // New rating = (# of positive feedback / # of total feedback)
               var multiplier = parser.isYesMessage(message) ? 100 : 0
               var newRating = (1/(totalRides+1))*multiplier + (totalRides/(totalRides+1))*currentRating
+
               var queryString = "UPDATE drivers SET rating = " + newRating + ", total_rides_completed = "
                 + (totalRides+1) + " WHERE num = '" + driverNum + "'"
-
               var query = client.query(queryString, function(err, result) {
                 if (!err) {
                   sys.log("handleFeedbackResponse: updated rating, totalrides, and giving_ride_to successfully");
@@ -142,8 +137,20 @@ module.exports.updateDriverRatingWithRiderNum = function(res, riderNum, message)
                     "rideStage": stages.rideStages.NOTHING
                   }
                   Messenger.textResponse(res, responseText, cookies);
+
+                  var feedback = ""
+
+                  if (multiplier == 100) {
+                    feedback = message
+                  } else {
+                    feedback = "NEGATIVE"
+                  }
+
+                  var queryString = "UPDATE rides SET feedback = '" + feedback + "' WHERE ride_id = " + ride.ride_id
+                  var query = client.query(queryString, function(err, result) {
+                    client.end()
+                  })
                 }
-                client.end()
               })
             }
           })
