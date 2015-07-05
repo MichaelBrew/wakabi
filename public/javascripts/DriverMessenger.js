@@ -170,11 +170,12 @@ function sendNumberToDriver(res, driverNum) {
 
       // Get the rider_num from ride object that has not ended and driver_num = driverNum
       //var queryString = "SELECT giving_ride_to FROM drivers WHERE num = '" + driverNum + "'";
-      var queryString = "SELECT rider_num FROM rides WHERE driver_num = '" + driverNum + "' AND end_time = NULL"
+      var queryString = "SELECT rider_num FROM rides WHERE driver_num = '" + driverNum + "' AND end_time IS NULL"
       var query = client.query(queryString, function(err, result) {
         if (!err) {
           // var riderNum = result.rows[0].giving_ride_to;
-          var riderNum = result.rows[0]
+          sys.log("DriverMessenger.sendNumberToDriver: query result.rows = ", result.rows)
+          var riderNum = result.rows[0].rider_num
           var responseText = strings.hereIsRiderNum + riderNum;
 
           cookies = {"driveStage": stages.driveStages.AWAITING_END_RIDE}
