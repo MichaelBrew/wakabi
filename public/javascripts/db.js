@@ -113,9 +113,11 @@ module.exports.updateDriverRatingWithRiderNum = function(res, riderNum, message)
     if (!err) {
       var queryString = "SELECT * FROM drivers WHERE num = (SELECT driver_num FROM rides WHERE rider_num = '" 
         + riderNum + "' AND feedback IS NULL)"
+      sys.log("db.updateDriverRatingWithRiderNum: query to get driver is ", queryString)
       var query = client.query(queryString, function(err, result) {
         if (!err) {
           var driver = result.rows[0]
+          sys.log("db.updateDriverRatingWithRiderNum: driver is ", driver)
           var driverNum = driver.num
           var currentRating = (driver.rating == null) ? 100 : driver.rating
           var totalRides = (driver.total_rides_completed == null) ? 0 : driver.total_rides_completed
