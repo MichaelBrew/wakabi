@@ -54,7 +54,7 @@ module.exports.sendRequestToAvailableDriver = function(params) {
             if (!err) {
               if (result.rows.length == 0) {
                 if (params.riderWaitingForResponse) {
-                  RiderMessenger.noDriversFound(ride.rider_num, ride.origin, false)
+                  RiderMessenger.noDriversFoundForRide(ride.rider_num, ride.origin, false)
                 }
                 return
               }
