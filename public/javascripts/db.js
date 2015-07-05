@@ -31,24 +31,14 @@ module.exports.addRiderNumToDb = function(from) {
 };
 
 module.exports.sendRequestToAvailableDriver = function(params) {
-  sys.log("db.sendRequestToAvailableDriver: params = ", params)
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
       var queryString = "SELECT * FROM rides WHERE ride_id = " + params.rideId
-      sys.log("db.sendRequestToAvailableDriver: query to get ride with rideid: ", queryString)
       var query = client.query(queryString, function(err, result) {
         if (!err) {
           var ride = result.rows[0]
-          sys.log("db.sendRequestToAvailableDriver: found ride = ", ride)
-          // Really, query should be like:
-          // select all fields from drivers where working = true, current_zone = origin,
-          // and, out of all rides with no end time yet (hence ongoing), make sure driver num isn't this num
-
           var queryString = "SELECT * FROM drivers WHERE working = 'true' AND current_zone = " + ride.origin +
             " AND NOT EXISTS (SELECT 1 FROM rides WHERE end_time = NULL AND driver_num = drivers.num)"
-
-          // var queryString = "SELECT * FROM drivers WHERE working = 'true' AND " +
-          //   "giving_ride_to IS NULL AND current_zone = " + ride.origin
 
           if (ride.trailer_needed) {
             queryString += " AND has_trailer = 'true'"
@@ -57,18 +47,11 @@ module.exports.sendRequestToAvailableDriver = function(params) {
           if (params.driverTimeLastRide) {
             queryString += " AND time_last_ride > '" + moment(params.driverTimeLastRide).format('YYYY-MM-DD HH:mm:ssZ') + "'"
           }
-          // if (ride.driver_time_last_ride) {
-          //   queryString += " AND time_last_ride > " + ride.driver_time_last_ride
-          // }
 
           queryString += " ORDER BY time_last_ride ASC LIMIT 1"
 
-          sys.log("db.sendRequestToAvailableDriver: about query with ", queryString)
-
           var query = client.query(queryString, function(err, result) {
             if (!err) {
-              sys.log("db.sendRequestToAvailableDriver: successful query, result is ", result)
-
               if (result.rows.length == 0) {
                 if (params.riderWaitingForResponse) {
                   RiderMessenger.noDriversFound(ride.rider_num, ride.origin, false)
@@ -141,7 +124,7 @@ module.exports.updateDriverRatingWithRiderNum = function(res, riderNum, message)
                   var feedback = ""
 
                   if (multiplier == 100) {
-                    feedback = message
+                    feedback = "POSITIVE"
                   } else {
                     feedback = "NEGATIVE"
                   }
