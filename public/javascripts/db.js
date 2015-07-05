@@ -55,7 +55,7 @@ module.exports.sendRequestToAvailableDriver = function(params) {
           }
 
           if (params.driverTimeLastRide) {
-            queryString += " AND time_last_ride > " + moment(params.driverTimeLastRide).format('YYYY-MM-DD HH:mm:ssZ')
+            queryString += " AND time_last_ride > '" + moment(params.driverTimeLastRide).format('YYYY-MM-DD HH:mm:ssZ') + "'"
           }
           // if (ride.driver_time_last_ride) {
           //   queryString += " AND time_last_ride > " + ride.driver_time_last_ride
