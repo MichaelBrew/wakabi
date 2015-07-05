@@ -30,6 +30,7 @@ module.exports.addRiderNumToDb = function(from) {
 };
 
 module.exports.sendRequestToAvailableDriver = function(params) {
+  sys.log("db.sendRequestToAvailableDriver: params = ", params)
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
       var queryString = "SELECT * FROM rides WHERE ride_id = " + params.rideId
