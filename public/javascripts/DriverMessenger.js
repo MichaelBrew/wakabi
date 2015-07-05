@@ -115,7 +115,7 @@ function handleRequestResponse(res, message, from) {
                 var query = client.query(queryString, function(err, result) {
                   if (!err) {
                     var params = {
-                      rideId: result.rows[0].ride_id,
+                      rideId: ride.ride_id,
                       driverTimeLastRide: driver.time_last_ride
                     }
 
