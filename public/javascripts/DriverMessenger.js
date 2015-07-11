@@ -264,10 +264,12 @@ function handleUpdatedLocation(res, message, driverNum) {
 function isShiftChange(res, message, from, driveStage) {
   if (driveStage !== stages.driveStages.AWAITING_END_RIDE) {
     if (parser.isStartShift(message)) {
-      driverStartShift(res, from);
+      toggleDriverShift(res, from, true)
+      // driverStartShift(res, from);
       return true
     } else if (parser.isEndShift(message)) {
-      driverEndShift(res, from);
+      toggleDriverShift(res, from, false)
+      // driverEndShift(res, from);
       return true
     }
   }
