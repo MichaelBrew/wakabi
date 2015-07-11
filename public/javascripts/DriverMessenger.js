@@ -11,50 +11,98 @@ var Messenger = require('./TextMessenger')
 var RiderWaitingQueue = require('./RiderWaitingQueue')
 var RiderMessenger = require('./RiderMessenger')
 
-function driverStartShift(res, from) {
+function toggleDriverShift(res, from, starting) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
-      var query = client.query("SELECT num FROM drivers WHERE num = '" + from + "' AND working = true", function(err, result) {
-        var responseText = ""
+      var queryString = "UPDATE drivers SET working = " + starting + " WHERE num = '" + from + "'"
+      var query = client.query(queryString, function(err, result) {
         if (!err) {
-          if (result.rows.length == 1) {
-            responseText += strings.cantRestartShift
-            Messenger.textResponse(res, responseText)
-          } else {
+          if (starting) {
             requestLocation(res, false, stages.driveStages.AWAITING_START_LOCATION)
+          } else {
+            cookies = {"driveStage": stages.driveStages.NOTHING}
+            Messenger.textResponse(res, strings.successfulEndShift, cookies)
           }
         } else {
-          sys.log("driverStartShift: Error querying the DB: ", err)
-          responseText += strings.dbError
-          Messenger.textResponse(res, responseText)
+          Messenger.textResponse(res, strings.dbError)
         }
-        client.end()
       })
+    } else {
+      Messenger.textResponse(res, strings.dbError)
     }
   })
 }
 
-function driverEndShift(res, from) {
-  pg.connect(process.env.DATABASE_URL, function(err, client) {
-    if (!err) {
-      var query = client.query("UPDATE drivers SET working = false WHERE num = '" + from + "'", function(err, result) {
-        var responseText = ""
-        if (!err) {
-          responseText += strings.successfulEndShift
-        } else {
-          responseText += strings.dbError
-        }
 
-        cookies = {
-          "driveStage": stages.driveStages.NOTHING
-        }
-        Messenger.textResponse(res, responseText, cookies)
 
-        client.end();
-      })
-    }
-  })
-}
+
+
+//       var query = client.query("SELECT num FROM drivers WHERE num = '" + from + "' AND working = true", function(err, result) {
+//         var responseText = ""
+//         if (!err) {
+//           if (starting) {
+//             if (result.rows.length == 1) {
+//               responseText += strings.cantRestartShift
+//               Messenger.textResponse(res, responseText)
+//             } else {
+//               requestLocation(res, false, stages.driveStages.AWAITING_START_LOCATION)
+//             }
+//           } else {
+//             var query = client.query("UPDATE drivers SET working = false WHERE num = '" + from + "'", function(err, result) {
+//               var responseText = ""
+//               if (!err) {
+//                 responseText += strings.successfulEndShift
+//               } else {
+//                 responseText += strings.dbError
+//               }
+
+//               cookies = {"driveStage": stages.driveStages.NOTHING}
+//               Messenger.textResponse(res, responseText, cookies)
+
+//               client.end();
+//             })
+//           }
+//         } else {
+//           sys.log("driverStartShift: Error querying the DB: ", err)
+//           responseText += strings.dbError
+//           Messenger.textResponse(res, responseText)
+//         }
+//         client.end()
+//       })
+//     }
+//   })
+// }
+
+// function driverStartShift(res, from) {
+//   pg.connect(process.env.DATABASE_URL, function(err, client) {
+//     if (!err) {
+//       var query = client.query("SELECT num FROM drivers WHERE num = '" + from + "' AND working = true", function(err, result) {
+//         var responseText = ""
+//         if (!err) {
+//           if (result.rows.length == 1) {
+//             responseText += strings.cantRestartShift
+//             Messenger.textResponse(res, responseText)
+//           } else {
+//             requestLocation(res, false, stages.driveStages.AWAITING_START_LOCATION)
+//           }
+//         } else {
+//           sys.log("driverStartShift: Error querying the DB: ", err)
+//           responseText += strings.dbError
+//           Messenger.textResponse(res, responseText)
+//         }
+//         client.end()
+//       })
+//     }
+//   })
+// }
+
+// function driverEndShift(res, from) {
+//   pg.connect(process.env.DATABASE_URL, function(err, client) {
+//     if (!err) {
+      
+//     }
+//   })
+// }
 
 function requestLocation(res, resend, stage) {
   cookies = {
@@ -235,7 +283,6 @@ module.exports = {
     
     switch (driveStage) {
       case stages.driveStages.NOTHING:
-        sys.log("DriverMessenger.handleText: Driver stage is NOTHING");
         handleRequestResponse(res, message, from);
         break;
 
@@ -245,12 +292,10 @@ module.exports = {
         break;
 
       case stages.driveStages.AWAITING_END_RIDE:
-        sys.log("DriverMessenger.handleText: Driver stage is AWAITING_END_RIDE");
         handleEndRideText(res, message, from);
         break;
 
       case stages.driveStages.AWAITING_UPDATED_LOCATION:
-        sys.log("DriverMessenger.handleText: Driver stage is AWAITING_UPDATED_LOCATION");
         handleUpdatedLocation(res, message, from);
         break;
     }

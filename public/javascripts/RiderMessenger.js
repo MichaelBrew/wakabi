@@ -71,6 +71,10 @@ function requestTrailerInfo(res, resend) {
   Messenger.textResponse(res, strings.askTrailer, cookies);
 }
 
+function handleFeedbackResponse(res, message, from) {
+  db.updateDriverRatingWithRiderNum(res, from, message)
+}
+
 function sendWaitText(res) {
   cookies = {"rideStage": stages.rideStages.CONTACTING_DRIVER}
   Messenger.textResponse(res, strings.waitText, cookies);
@@ -109,10 +113,6 @@ function sendNoDriversText(rider, isTimeout) {
 function startTimeoutForRider(riderNum) {
   var delay = 1000 * 60 * 1; // 1000ms = 1sec * 60 = 1min * 30 = 30min
   setTimeout(sendNoDriversText, delay, riderNum, true);
-}
-
-function handleFeedbackResponse(res, message, from) {
-  db.updateDriverRatingWithRiderNum(res, from, message)
 }
 
 module.exports = {
