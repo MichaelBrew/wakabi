@@ -7,32 +7,45 @@ var stages  = require('../stages')
 var strings = require('../strings')
 var parser  = require('../messageParser')
 var db      = require('../db')
+var DriverUtil = require('./DriverUtil')
 var Messenger = require('../TextMessenger')
 var RiderWaitingQueue = require('../Rider/RiderWaitingQueue')
 var RiderMessenger = require('../Rider/RiderMessenger')
 
 function toggleDriverShift(res, from, starting) {
-  pg.connect(process.env.DATABASE_URL, function(err, client) {
+  DriverUtil.toggleDriverShift(from, starting, function(err) {
     if (!err) {
-      var queryString = "UPDATE drivers SET working = " + starting + " WHERE num = '" + from + "'"
-      var query = client.query(queryString, function(err, result) {
-        if (!err) {
-          if (starting) {
-            requestLocation(res, false, stages.driveStages.AWAITING_START_LOCATION)
-          } else {
-            cookies = {"driveStage": stages.driveStages.NOTHING}
-            Messenger.textResponse(res, strings.successfulEndShift, cookies)
-          }
-        } else {
-          Messenger.textResponse(res, strings.dbError)
-        }
-
-        client.end()
-      })
+      if (starting) {
+        requestLocation(res, false, stages.driveStages.AWAITING_START_LOCATION)
+      } else {
+        cookies = {"driveStage": stages.driveStages.NOTHING}
+        Messenger.textResponse(res, strings.successfulEndShift, cookies)
+      }
     } else {
       Messenger.textResponse(res, strings.dbError)
     }
   })
+  // pg.connect(process.env.DATABASE_URL, function(err, client) {
+  //   if (!err) {
+  //     var queryString = "UPDATE drivers SET working = " + starting + " WHERE num = '" + from + "'"
+  //     var query = client.query(queryString, function(err, result) {
+  //       if (!err) {
+  //         if (starting) {
+  //           requestLocation(res, false, stages.driveStages.AWAITING_START_LOCATION)
+  //         } else {
+  //           cookies = {"driveStage": stages.driveStages.NOTHING}
+  //           Messenger.textResponse(res, strings.successfulEndShift, cookies)
+  //         }
+  //       } else {
+  //         Messenger.textResponse(res, strings.dbError)
+  //       }
+
+  //       client.end()
+  //     })
+  //   } else {
+  //     Messenger.textResponse(res, strings.dbError)
+  //   }
+  // })
 }
 
 function requestLocation(res, resend, stage) {
