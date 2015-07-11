@@ -2,11 +2,11 @@ var sys       = require('sys');
 var pg        = require('pg');
 var moment    = require('moment')
 
-var stages    = require('./stages');
-var strings   = require('./strings');
-var db        = require('./db');
-var parser    = require('./messageParser');
-var Messenger = require('./TextMessenger');
+var stages    = require('../stages');
+var strings   = require('../strings');
+var db        = require('../db');
+var parser    = require('../messageParser');
+var Messenger = require('../TextMessenger');
 
 var DriverMessenger   = require('../Driver/DriverMessenger');
 var RiderWaitingQueue = require('./RiderWaitingQueue');
