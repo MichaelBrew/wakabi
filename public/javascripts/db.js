@@ -90,6 +90,7 @@ module.exports.sendRequestToAvailableDriver = function(params) {
 }
 
 module.exports.updateDriverRatingWithRiderNum = function(res, riderNum, message) {
+  sys.log("updateDriverRatingWithRiderNum")
   var responseText = parser.isYesMessage(message) ? strings.goodFeedback : strings.badFeedback;
 
   pg.connect(process.env.DATABASE_URL, function(err, client) {
@@ -98,11 +99,15 @@ module.exports.updateDriverRatingWithRiderNum = function(res, riderNum, message)
       var query = client.query(queryString, function(err, result) {
         if (!err) {
           var ride = result.rows[0]
+          sys.log("updateDriverRatingWithRiderNum: found ride ", ride)
           var driverNum = ride.driver_num
+          sys.log("updateDriverRatingWithRiderNum: driver num = ", driverNum)
           var queryString = "SELECT * FROM drivers WHERE num = '" + driverNum + "'"
+          sys.log("updateDriverRatingWithRiderNum: looking for driver object with query ", queryString)
           var query = client.query(queryString, function(err, result) {
             if (!err) {
               var driver = result.rows[0]
+              sys.log("updateDriverRatingWithRiderNum: found driver object = ", driver)
               var driverNum = driver.num
               var currentRating = (driver.rating == null) ? 100 : driver.rating
               var totalRides = (driver.total_rides_completed == null) ? 0 : driver.total_rides_completed
