@@ -95,7 +95,7 @@ module.exports.updateDriverRatingWithRiderNum = function(res, riderNum, message)
 
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
-      var queryString = "SELECT * FROM rides WHERE rider_num = '" + riderNum + "' AND feedback IS NULL"
+      var queryString = "SELECT * FROM rides WHERE rider_num = '" + riderNum + "' ORDER BY request_time"
       var query = client.query(queryString, function(err, result) {
         if (!err) {
           var ride = result.rows[0]
