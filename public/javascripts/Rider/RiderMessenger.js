@@ -8,7 +8,7 @@ var db        = require('./db');
 var parser    = require('./messageParser');
 var Messenger = require('./TextMessenger');
 
-var DriverMessenger   = require('./DriverMessenger');
+var DriverMessenger   = require('../Driver/DriverMessenger');
 var RiderWaitingQueue = require('./RiderWaitingQueue');
 
 function handleRideRequest(res, message, from) {

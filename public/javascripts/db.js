@@ -3,8 +3,8 @@ var sys = require('sys');
 var _ = require('underscore')
 var moment = require('moment')
 
-var RiderMessenger = require('./RiderMessenger.js');
-var DriverMessenger = require('./DriverMessenger.js')
+var RiderMessenger = require('./Rider/RiderMessenger.js');
+var DriverMessenger = require('./Driver/DriverMessenger.js')
 var parser = require('./messageParser.js');
 var Messenger = require('./TextMessenger.js');
 var strings = require('./strings.js');

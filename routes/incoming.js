@@ -1,12 +1,12 @@
 var express = require('express');
 var pg      = require('pg');
 var sys     = require('sys');
-var db      = require('../public/javascripts/db');
-var stages  = require('../public/javascripts/stages');
+var db      = require('/javascripts/db');
+var stages  = require('/javascripts/stages');
 
-var Messenger = require('../public/javascripts/TextMessenger');
-var RiderMessenger  = require('../public/javascripts/RiderMessenger');
-var DriverMessenger = require('../public/javascripts/DriverMessenger');
+var Messenger = require('/javascripts/TextMessenger');
+var RiderMessenger  = require('/javascripts/Rider/RiderMessenger');
+var DriverMessenger = require('/javascripts/Driver/DriverMessenger');
 
 var router = express.Router();
 
