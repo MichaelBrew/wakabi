@@ -36,8 +36,8 @@ function isQuickDriverSignUp(res, message, from) {
   if (message.toLowerCase() == "signupdriver") {
     pg.connect(process.env.DATABASE_URL, function(err, client) {
       if (!err) {
-        var queryString = "INSERT INTO drivers (num, working, current_zone, has_trailer, rating, last_payment) VALUES ('"
-          + from + "', true, 1, true, 100, '2015-02-26')";
+        var queryString = "INSERT INTO drivers (num, working, current_zone, has_trailer, rating, last_payment, total_rides_completed, time_last_ride) VALUES ('"
+          + from + "', true, 1, true, 100, '" + moment().format('YYYY-MM-DD HH:mm:ssZ') + "', 0, '" + moment('1976-01-01').format('YYYY-MM-DD HH:mm:ssZ') + "')";
 
         var query = client.query(queryString, function(err, result) {
           var responseText = "";

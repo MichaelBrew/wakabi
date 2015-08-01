@@ -54,7 +54,7 @@ module.exports.sendRequestToAvailableDriver = function(params) {
 
           var query = client.query(queryString, function(err, result) {
             if (!err) {
-              sys.log("sendRequestToAvailableDriver: result = ", result)
+              sys.log("sendRequestToAvailableDriver: result.rows = ", result.rows)
 
               if (result.rows.length == 0) {
                 if (params.riderWaitingForResponse) {
