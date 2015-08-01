@@ -94,7 +94,7 @@ function handleRequestResponse(res, message, from) {
 function sendNumberToDriver(res, driverNum) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (!err) {
-      var queryString = "SELECT rider_num FROM rides WHERE driver_num = '" + driverNum + "' AND end_time IS NULL"
+      var queryString = "UPDATE rides SET status = 'ACTIVE' WHERE driver_num = '" + driverNum + "' AND end_time IS NULL RETURNING rider_num"
       var query = client.query(queryString, function(err, result) {
         if (!err) {
           var riderNum = result.rows[0].rider_num
@@ -125,7 +125,7 @@ function handleEndRideText(res, message, from) {
             Messenger.text(riderNum, strings.feedbackQuestion)
             requestLocation(res, false, stages.driveStages.AWAITING_UPDATED_LOCATION)
 
-            var queryString = "UPDATE rides SET end_time = '" + endTime + "' WHERE ride_id = " + ride.ride_id
+            var queryString = "UPDATE rides SET end_time = '" + endTime + "', status = 'FINISHED' WHERE ride_id = " + ride.ride_id
             var query = client.query(queryString, function(err, result) {
               if (!err) {
                 var queryString = "UPDATE drivers SET time_last_ride = '" + endTime + "' WHERE num = '" + from + "'"
