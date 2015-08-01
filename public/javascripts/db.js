@@ -18,9 +18,6 @@ module.exports.addRiderNumToDb = function(from) {
           if (result.rows.length == 0) {
             // Rider is not in DB yet, add them
             var addRiderQuery = client.query("INSERT INTO riders (num, onride) VALUES ('" + from + "', false)", function(err, result) {
-              if (!err) {
-                sys.log("addRiderNumToDb: Rider " + from + " successfully added to DB");
-              }
               client.end();
             });
           }
@@ -50,12 +47,8 @@ module.exports.sendRequestToAvailableDriver = function(params) {
 
           queryString += " ORDER BY time_last_ride ASC LIMIT 1"
 
-          sys.log("sendRequestToAvailableDriver: query to get drivers is ", queryString)
-
           var query = client.query(queryString, function(err, result) {
             if (!err) {
-              sys.log("sendRequestToAvailableDriver: result.rows = ", result.rows)
-
               if (result.rows.length == 0) {
                 if (params.riderWaitingForResponse) {
                   RiderMessenger.noDriversFoundForRide(ride.rider_num, ride.origin, false)
@@ -119,7 +112,6 @@ module.exports.updateDriverRatingWithRiderNum = function(res, riderNum, message)
                 + (totalRides+1) + " WHERE num = '" + driverNum + "'"
               var query = client.query(queryString, function(err, result) {
                 if (!err) {
-                  sys.log("handleFeedbackResponse: updated rating, totalrides, and giving_ride_to successfully");
                   cookies = {
                     "rideStage": stages.rideStages.NOTHING
                   }
@@ -201,10 +193,8 @@ module.exports.addTrailerToRide = function(needTrailer, rideId, cb) {
     if (!err) {
       var queryString = "UPDATE rides SET trailer_needed = '" + needTrailer + "' WHERE ride_id = '"
         + rideId + "' RETURNING ride_id";
-      sys.log("db.addTrailerToRide: about to update ride entry with ", queryString)
       var query = client.query(queryString, function(err, result) {
         if (!err) {
-          sys.log("db.addTrailerToRide: success, ride id is ", result.rows[0].ride_id)
           cb(result.rows[0].ride_id)
         } else {
           sys.log("db.addTrailerToRide: error, ", err)
