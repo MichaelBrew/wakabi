@@ -12,65 +12,30 @@ var Messenger = require('../TextMessenger')
 var RiderWaitingQueue = require('../Rider/RiderWaitingQueue')
 var RiderMessenger = require('../Rider/RiderMessenger')
 
-function toggleDriverShift(res, from, starting) {
-  DriverUtil.toggleDriverShift(from, starting, function(err) {
-    if (!err) {
-      if (starting) {
-        requestLocation(res, false, stages.driveStages.AWAITING_START_LOCATION)
-      } else {
-        cookies = {"driveStage": stages.driveStages.NOTHING}
-        Messenger.textResponse(res, strings.successfulEndShift, cookies)
-      }
-    } else {
-      Messenger.textResponse(res, strings.dbError)
-    }
-  })
-  // pg.connect(process.env.DATABASE_URL, function(err, client) {
-  //   if (!err) {
-  //     var queryString = "UPDATE drivers SET working = " + starting + " WHERE num = '" + from + "'"
-  //     var query = client.query(queryString, function(err, result) {
-  //       if (!err) {
-  //         if (starting) {
-  //           requestLocation(res, false, stages.driveStages.AWAITING_START_LOCATION)
-  //         } else {
-  //           cookies = {"driveStage": stages.driveStages.NOTHING}
-  //           Messenger.textResponse(res, strings.successfulEndShift, cookies)
-  //         }
-  //       } else {
-  //         Messenger.textResponse(res, strings.dbError)
-  //       }
-
-  //       client.end()
-  //     })
-  //   } else {
-  //     Messenger.textResponse(res, strings.dbError)
-  //   }
-  // })
-}
-
 function requestLocation(res, resend, stage) {
   cookies = {"driveStage": stage}
   Messenger.requestLocation(res, resend, cookies)
 }
 
 function receiveStartShiftLocation(res, location, from) {
-  pg.connect(process.env.DATABASE_URL, function(err, client) {
+  DriverUtil.toggleDriverShift(res, from, true, function(err) {
     if (!err) {
-      var queryString = "UPDATE drivers SET working = true, current_zone = " + (+location) + " WHERE num = '" + from + "'"
-      var query = client.query(queryString, function(err, result) {
+      DriverUtil.updateLocation(from, +location, function(err) {
         var responseText = ""
+
         if (!err) {
-          responseText += strings.successfulStartShift
+          responseText = strings.successfulStartShift
+          checkRiderWaitingQueue(from, location)
         } else {
-          responseText += strings.dbError;
+          responseText = strings.dbError
         }
 
         cookies = {"driveStage": stages.driveStages.NOTHING}
         Messenger.textResponse(res, responseText, cookies)
-        checkRiderWaitingQueue(from, location)
-
-        client.end()
       })
+    } else {
+      cookies = {"driveStage": stages.driveStages.NOTHING}
+      Messenger.textResponse(res, strings.dbError, cookies)
     }
   })
 }
@@ -87,6 +52,12 @@ function handleRequestResponse(res, message, from) {
   if (parser.isYesMessage(message)) {
     sendNumberToDriver(res, from)
   } else if (parser.isNoMessage(message)) {
+    // DriverUtil.getDriverWithNum(from, function(err, driver) {
+    //   if (!err) {
+        
+    //   }
+    // })
+
     db.getDriverFromNum(from, function(driver) {
       if (driver) {
         pg.connect(process.env.DATABASE_URL, function(err, client) {
@@ -198,10 +169,17 @@ function handleUpdatedLocation(res, message, driverNum) {
 function isShiftChange(res, message, from, driveStage) {
   if (driveStage !== stages.driveStages.AWAITING_END_RIDE) {
     if (parser.isStartShift(message)) {
-      toggleDriverShift(res, from, true)
+      requestLocation(res, false, stages.driveStages.AWAITING_START_LOCATION)
       return true
     } else if (parser.isEndShift(message)) {
-      toggleDriverShift(res, from, false)
+      DriverUtil.toggleDriverShift(from, false, function(err) {
+        if (!err) {
+          cookies = {"driveStage": stages.driveStages.NOTHING}
+          Messenger.textResponse(res, strings.successfulEndShift, cookies)
+        } else {
+          Messenger.textResponse(res, strings.dbError)
+        }
+      })
       return true
     }
   }
@@ -216,13 +194,12 @@ module.exports = {
     }
     
     switch (driveStage) {
-      case stages.driveStages.NOTHING:
-        handleRequestResponse(res, message, from);
-        break;
-
-      // CURRENTLY NOT IMPLEMENTED
       case stages.driveStages.AWAITING_START_LOCATION:
         receiveStartShiftLocation(res, message, from);
+        break;
+
+      case stages.driveStages.NOTHING:
+        handleRequestResponse(res, message, from);
         break;
 
       case stages.driveStages.AWAITING_END_RIDE:

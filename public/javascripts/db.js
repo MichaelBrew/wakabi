@@ -50,8 +50,12 @@ module.exports.sendRequestToAvailableDriver = function(params) {
 
           queryString += " ORDER BY time_last_ride ASC LIMIT 1"
 
+          sys.log("sendRequestToAvailableDriver: query to get drivers is ", queryString)
+
           var query = client.query(queryString, function(err, result) {
             if (!err) {
+              sys.log("sendRequestToAvailableDriver: result = ", result)
+
               if (result.rows.length == 0) {
                 if (params.riderWaitingForResponse) {
                   RiderMessenger.noDriversFoundForRide(ride.rider_num, ride.origin, false)
