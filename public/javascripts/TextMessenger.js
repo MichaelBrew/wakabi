@@ -1,81 +1,42 @@
-var sys     = require('sys');
-var strings = require('./strings');
+const strings = require('./strings')
+const twilio = require('twilio')
+const twilioClient = require('twilio')('ACf55ee981f914dc797efa85947d9f60b8', 'cc3c8f0a7949ce40356c029579934c0f') // eslint-disable-line max-len
 
-/* Twilio Credentials */
-var accountSid    = 'ACf55ee981f914dc797efa85947d9f60b8';
-var authToken     = 'cc3c8f0a7949ce40356c029579934c0f';
-var twilio        = require('twilio');
-var twilioClient  = require('twilio')(accountSid, authToken);
-var TWILIO_NUMBER = '+18443359847';
+const TWILIO_NUMBER = '+18443359847'
 
-function sendInitialText(to, msg) {
-  twilioClient.sendSms({
-    to: to,
-    from: TWILIO_NUMBER,
-    body: msg
-  }, function(error, message) {
-    if (!error) {
-      sys.log("TextMessenger: successfully sent message: " + msg + "; to " + to);
-    } else {
-      sys.log("TextMessenger: error sending to " + to + " the message: " + msg);
-    }
-  });
-}
+function sendResponseText(res, message, cookies = {}) {
+  Object.assign(res.cookie, cookies)
 
-function sendResponsetext(res, message, cookies) {
-  var response = new twilio.TwimlResponse();
-  response.sms(message);
+  const response = (new twilio.TwimlResponse())
+    .sms(message)
+    .toString()
 
-  if (cookies != null) {
-    for (var key in cookies) {
-      if (cookies.hasOwnProperty(key)) {
-        res.cookie(key, cookies[key]);
-        sys.log("TextMessenger: cookie " + key + " set to " + cookies[key]);
-      }
-    }
-  }
-
-  res.send(response.toString(), {
-    'Content-Type':'text/xml'
-  }, 200);
-
-  sys.log("TextMessenger: response sent: " + message);
+  return res.send(response, {'Content-Type': 'text/xml'}, 200)
 }
 
 module.exports = {
-  text: function(to, msg) {
-    sendInitialText(to, msg);
+  textResponse: sendResponseText,
+
+  text: (to, msg) => {
+    return new Promise(resolve => {
+      twilioClient.sendSms({
+        to,
+        from: TWILIO_NUMBER,
+        body: msg
+      }, () => {
+        resolve()
+      })
+    })
   },
-  textResponse: function(res, message, cookies) {
-    sendResponsetext(res, message, cookies);
-  },
-  requestLocation: function(res, resend, cookies) {
-    var locationList = "";
-    for (var i = 1; i <= strings.availableLocations.length; i++) {
-      locationList += (i + ": " + strings.availableLocations[i-1]);
 
-      if (i != strings.availableLocations.length) {
-        locationList += "\n";
-      }
-    }
+  requestLocation: (res, resend, cookies = {}) => {
+    const locationList = strings.availableLocations
+      .reduce((list, loc, i) => `${list}${i + 1}: ${loc}\n`)
 
-    var responseText = "";
-    if (resend) {
-      responseText += strings.resendText;
-    }
+    const responseText = resend
+      ? strings.resendText + strings.askLocation + locationList
+      : strings.askLocation + locationList
 
-    responseText += strings.askLocation + locationList;
-
-    // Following is basically copy of sendResponseText()
-    var response = new twilio.TwimlResponse();
-    response.sms(responseText);
-    for (var key in cookies) {
-      if (cookies.hasOwnProperty(key)) {
-        res.cookie(key, cookies[key]);
-      }
-    }
-    res.send(response.toString(), {
-      'Content-Type':'text/xml'
-    }, 200);
+    return sendResponseText(res, responseText, cookies)
   }
-};
+}

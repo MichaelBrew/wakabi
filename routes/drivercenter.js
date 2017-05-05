@@ -1,5 +1,5 @@
-const router = require('express').Router()
-const pg = require('pg')
+const router = require('express').Router() // eslint-disable-line new-cap
+const PgUtil = require('../util/pg')
 
 /* GET driver center page. */
 router.get('/', (req, res, next) => {
@@ -9,41 +9,19 @@ router.get('/', (req, res, next) => {
     currentDriver: null
   }
 
-  pg.connect(process.env.DATABASE_URL, (err, client) => {
-    if (err) {
-      return res.render('drivercenter', params)
-    }
-
-    client.query('SELECT * FROM drivers', (err1, {rows: drivers}) => {
-      if (err1) {
-        return res.render('drivercenter', params)
-      }
-
-      params.drivers = drivers
-      params.currentDriver = (req.query.driver != null) ? req.query.driver : null
-
-      return res.render('drivercenter', params)
-    })
-  })
+  return PgUtil.query('SELECT * FROM drivers')
+    .then(({rows: drivers}) =>
+      res.render('drivercenter', Object.assign({}, params, {
+        drivers,
+        currentDriver: req.query.driver
+      })))
+    .catch(() => res.render('drivercenter', params))
 })
 
 router.get('/remove/:id', (req, res, next) => {
-  const driverNum = req.query.driver
-
-  pg.connect(process.env.DATABASE_URL, (err, client) => {
-    if (err) {
-      return res.error()
-    }
-
-    client.query(`DELETE FROM drivers WHERE num = '${driverNum}'`, (err1) => {
-      if (err1) {
-        return res.error()
-      }
-
-      res.success()
-      client.end()
-    })
-  })
+  return PgUtil.query(`DELETE FROM drivers WHERE num = '${req.query.driver}'`)
+    .then(() => res.success())
+    .catch(() => res.error())
 })
 
 module.exports = router

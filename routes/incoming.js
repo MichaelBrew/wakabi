@@ -1,9 +1,9 @@
-const router = require('express').Router()
+const router = require('express').Router() // eslint-disable-line new-cap
 const moment = require('moment')
-const pg = require('pg')
 const _ = require('lodash')
 
-const stages = require('../public/javascripts/stages')
+const PgUtil = require('../util/pg')
+const STAGES = require('../public/javascripts/stages')
 
 const Messenger = require('../public/javascripts/TextMessenger')
 const RiderMessenger = require('../public/javascripts/Rider/RiderMessenger')
@@ -19,8 +19,8 @@ function isRideStageReset(res, msg = '') {
   }
 
   Messenger.textResponse(res, 'Ok, rideStage/driveStage has been reset to NOTHING', {
-    rideStage: stages.rideStages.NOTHING,
-    driveStage: stages.driveStages.NOTHING
+    rideStage: STAGES.rideStages.NOTHING,
+    driveStage: STAGES.driveStages.NOTHING
   })
 
   return true
@@ -31,46 +31,38 @@ function isQuickDriverSignUp(res, msg = '', from) {
     return false
   }
 
-  pg.connect(process.env.DATABASE_URL, (err, client) => {
-    if (err) {
-      return Messenger.textResponse(res, `Error connecting to DB to add driver, ${err}`)
-    }
+  const queryString = `
+    INSERT INTO drivers (
+      num,
+      working,
+      current_zone,
+      has_trailer,
+      rating,
+      last_payment,
+      total_rides_completed,
+      time_last_ride
+    ) VALUES (
+      '${from}',
+      true,
+      1,
+      true,
+      100,
+      '${moment().format('YYYY-MM-DD HH:mm:ssZ')}',
+      0,
+      '${moment('1976-01-01').format('YYYY-MM-DD HH:mm:ssZ')}'
+    )`
 
-    const queryString = `
-      INSERT INTO drivers (
-        num,
-        working,
-        current_zone,
-        has_trailer,
-        rating,
-        last_payment,
-        total_rides_completed,
-        time_last_ride
-      ) VALUES (
-        '${from}',
-        true,
-        1,
-        true,
-        100,
-        '${moment().format('YYYY-MM-DD HH:mm:ssZ')}',
-        0,
-        '${moment('1976-01-01').format('YYYY-MM-DD HH:mm:ssZ')}'
-      )`
-
-    client.query(queryString, (err1) => {
-      const responseText = (err1 != null)
-        ? `Error adding driver, ${err1}`
-        : 'Ok, you are now registered as a driver!'
-
-      Messenger.textResponse(res, responseText, {
-        driveStage: stages.driveStages.NOTHING
+  return PgUtil.query(queryString)
+    .then(() => {
+      Messenger.textResponse(res, 'Ok, you are now registered as a driver!', {
+        driveStage: STAGES.driveStages.NOTHING
       })
 
-      client.end()
+      return true
     })
-  })
-
-  return true
+    .catch(err => {
+      Messenger.textResponse(res, `Error with quick driver sign-up, ${err}`)
+    })
 }
 
 function isQuickRemoveDriver(res, msg = '', from) {
@@ -78,25 +70,15 @@ function isQuickRemoveDriver(res, msg = '', from) {
     return false
   }
 
-  pg.connect(process.env.DATABASE_URL, (err, client) => {
-    if (err) {
-      return Messenger.textResponse(res, `Error connecting to DB to remove driver, ${err}`)
-    }
-
-    client.query(`DELETE FROM drivers WHERE num = '${from}'`, (err1) => {
-      const responseText = (err1 != null)
-        ? `Error removing driver, ${err}`
-        : 'Ok, you are no longer a driver!'
-
-      Messenger.textResponse(res, responseText, {
-        rideStage: (err1 != null) ? stages.rideStages.NOTHING : undefined
+  return PgUtil.query(`DELETE FROM drivers WHERE num = '${from}'`)
+    .then(() => {
+      Messenger.textResponse(res, 'Ok, you are no longer a driver!', {
+        rideStage: STAGES.rideStages.NOTHING
       })
-
-      client.end()
     })
-  })
-
-  return true
+    .catch(err => {
+      Messenger.textResponse(res, `Error connecting to DB to remove driver, ${err}`)
+    })
 }
 
 /* ***************** */
@@ -115,8 +97,8 @@ function getStage(request, isDriver) {
   }
 
   return isDriver
-    ? stages.driveStages.NOTHING
-    : stages.rideStages.NOTHING
+    ? STAGES.driveStages.NOTHING
+    : STAGES.rideStages.NOTHING
 }
 
 function receiveIncomingMessage(req, res, next) {
@@ -144,31 +126,20 @@ function receiveIncomingMessage(req, res, next) {
   if (isRideStageReset(res, message) ||
       isQuickDriverSignUp(res, message, from) ||
       isQuickRemoveDriver(res, message, from)) {
-    return
+    return null
   }
 
-  pg.connect(process.env.DATABASE_URL, (err, client) => {
-    if (err) {
-      // Default to rider
-      return RiderMessenger.handleText(req, res, message, from, getStage(req, false))
-    }
-
-    // Check if sender is a driver
-    client.query(`SELECT num FROM drivers WHERE num = '${from}'`, (err1, {rows: drivers}) => {
-      if (err1) {
-        // Default to rider
-        return RiderMessenger.handleText(req, res, message, from, getStage(req, false))
-      }
-
+  return PgUtil.query(`SELECT num FROM drivers WHERE num = '${from}'`)
+    .then(({rows: drivers}) => {
       if (drivers.length === 0) {
         RiderMessenger.handleText(req, res, message, from, getStage(req, false))
       } else {
         DriverMessenger.handleText(res, message, from, getStage(req, true))
       }
-
-      client.end()
     })
-  })
+    .catch(() => {
+      RiderMessenger.handleText(req, res, message, from, getStage(req, false))
+    })
 }
 
 /* Incoming SMS */

@@ -1,9 +1,10 @@
-const router = require('express').Router()
+const router = require('express').Router() // eslint-disable-line new-cap
 const moment = require('moment')
-const pg = require('pg')
+
+const PgUtil = require('../util/pg')
 
 /* GET home page. */
-router.get('/', (req, res, next) => {
+router.get('/', (req, res, next) => { // eslint-disable-line no-unused-vars
   const params = {
     tab: 'Home',
     date: moment().format('MMMM D, YYYY'),
@@ -19,16 +20,8 @@ router.get('/', (req, res, next) => {
     alerts: []
   }
 
-  pg.connect(process.env.DATABASE_URL, (err, client) => {
-    if (err) {
-      return res.render('index', params)
-    }
-
-    client.query('SELECT * FROM drivers', (err1, {rows: drivers}) => {
-      if (err1) {
-        return res.render('index', params)
-      }
-
+  return PgUtil.query('SELECT * FROM drivers')
+    .then(({rows: drivers}) => {
       params.numDrivers = drivers
         .filter(({working}) => working)
         .length
@@ -42,29 +35,28 @@ router.get('/', (req, res, next) => {
       // TODO: Fix date comparison w/ Postgres
       const today = moment().startOf('day').format('YYYY-MM-DD HH:mm:ss Z')
 
-      client.query(`SELECT * FROM rides WHERE request_time >= ${today}`, (err2, {rows: rides}) => {
-        if (err2) {
-          return res.render('index', params)
-        }
-
-        params.ridesCompleted = rides
-          .filter(({end_time: end}) => end != null)
-          .length
-        params.positiveFeedback = rides
-          .filter(({feedback}) => feedback === 'good')
-          .length
-        params.negativeFeedback = rides
-          .filter(({feedback}) => feedback && feedback !== 'good')
-          .length
-
-        params.ridesRequested = rides.length
-        params.ridesFailed = params.ridesRequested - params.ridesCompleted
-        params.netFeedback = params.positiveFeedback - params.negativeFeedback
-
-        return res.render('index', params)
-      })
+      return PgUtil.query(`SELECT * FROM rides WHERE request_time >= ${today}`)
     })
-  })
+    .then(({rows: rides}) => {
+      params.ridesCompleted = rides
+        .filter(({end_time: end}) => end != null)
+        .length
+      params.positiveFeedback = rides
+        .filter(({feedback}) => feedback === 'good')
+        .length
+      params.negativeFeedback = rides
+        .filter(({feedback}) => feedback && feedback !== 'good')
+        .length
+
+      params.ridesRequested = rides.length
+      params.ridesFailed = params.ridesRequested - params.ridesCompleted
+      params.netFeedback = params.positiveFeedback - params.negativeFeedback
+
+      return res.render('index', params)
+    })
+    .catch(() => {
+      return res.render('index', params)
+    })
 })
 
 module.exports = router

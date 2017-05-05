@@ -1,55 +1,32 @@
-var sys     = require('sys');
-var strings = require('./strings');
+const _ = require('lodash')
+const STRINGS = require('./strings')
 
 module.exports = {
-  isYesMessage: function(msg) {
-    msg = msg.replace(/\s+/g, '');
-    for (var i = 0; i < strings.validYesWords.length; i++) {
-      if (msg == strings.validYesWords[i]) {
-        return true;
-      }
-    }
+  isYesMessage: (msg = '') => {
+    return _.find(STRINGS.validYesWords, msg.replace(/\s+/g, '')) != null
   },
-  isNoMessage: function(msg) {
-    msg = msg.replace(/\s+/g, '');
-    for (var i = 0; i < strings.validNoWords.length; i++) {
-      if (msg == strings.validNoWords[i]) {
-        return true;
-      }
-    }
+
+  isNoMessage: (msg = '') => {
+    return _.find(STRINGS.validNoWords, msg.replace(/\s+/g, '')) != null
   },
-  isEndRideMessage: function(msg) {
-    if (msg.toUpperCase() == "END RIDE") {
-      return true;
-    }
-    return false;
+
+  isEndRideMessage: (msg = '') => {
+    return msg.toUpperCase() === 'END RIDE'
   },
-  isStartShift: function(msg) {
-    if (msg.toLowerCase() == 'start shift') {
-      return true;
-    }
-    return false;
+
+  isStartShift: (msg = '') => {
+    return msg.toUpperCase() === 'START SHIFT'
   },
-  isEndShift: function(msg) {
-    if (msg.toLowerCase() == 'end shift') {
-      return true;
-    }
-    return false;
+
+  isEndShift: (msg = '') => {
+    return msg.toUpperCase() === 'END SHIFT'
   },
-  isRideRequest: function(msg) {
-    msg = msg.replace(/\s+/g, '');
-    if (msg.toLowerCase() == strings.keywordRide) {
-      return true;
-    }
-    return false;
+
+  isRideRequest: (msg = '') => {
+    return msg.replace(/\s+/g, '').toLowerCase() === STRINGS.keywordRide
   },
-  verifyRiderLocation: function(msg) {
-    msg = msg.replace(/\s+/g, '');
-    for (var i = 1; i <= strings.availableLocations.length; i++) {
-      if (parseInt(msg) == i) {
-        return true;
-      }
-    }
-    return false;
+
+  verifyRiderLocation: (msg = '') => {
+    return +msg > 0 && +msg <= STRINGS.availableLocations.length
   }
-};
+}
