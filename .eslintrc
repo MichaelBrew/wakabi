@@ -1,0 +1,33 @@
+{
+  "extends": "airbnb",
+  "parser": "babel-eslint",
+  "env": {
+    "browser": true,
+    "node": true,
+    "mocha": true
+  },
+  "rules": {
+    "semi": [2, "never"],
+    "comma-dangle": [2, "never"],
+    "object-curly-spacing": [2, "never"],
+    "no-param-reassign": 0,
+    "func-names": 0,
+    "arrow-body-style": 0,
+    "eqeqeq": [2, "allow-null"],
+    "react/prefer-es6-class": [1, "always"],
+    "react/sort-comp": [1, {
+      "order": [
+        "constructor",
+        "lifecycle",
+        "everything-else",
+        "render"
+      ]
+    }]
+  },
+  "presets": [
+    "stage-3"
+  ],
+  "globals": {
+    "__DEV__": true
+  }
+}
