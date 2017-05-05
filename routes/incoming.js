@@ -1,194 +1,177 @@
-var express = require('express');
-var pg      = require('pg');
-var sys     = require('sys');
-var moment  = require('moment')
-var db      = require('../public/javascripts/db');
-var stages  = require('../public/javascripts/stages');
+const router = require('express').Router()
+const moment = require('moment')
+const pg = require('pg')
+const _ = require('lodash')
 
-var Messenger = require('../public/javascripts/TextMessenger');
-var RiderMessenger  = require('../public/javascripts/Rider/RiderMessenger');
-var DriverMessenger = require('../public/javascripts/Driver/DriverMessenger');
+const stages = require('../public/javascripts/stages')
 
-var router = express.Router();
+const Messenger = require('../public/javascripts/TextMessenger')
+const RiderMessenger = require('../public/javascripts/Rider/RiderMessenger')
+const DriverMessenger = require('../public/javascripts/Driver/DriverMessenger')
 
-/******************/
+/* ************** */
 /* TEST FUNCTIONS */
-/******************/
-function isRideStageReset(res, msg) {
-  msg = msg.replace(/\s+/g, '');
-  if (msg.toLowerCase() == "reset") {
-    sys.log("isRideStageReset: message was a reset");
+/* ************** */
 
-    var message = "Ok, rideStage/driveStage has been reset to NOTHING";
-    var cookies = {
-      'rideStage': stages.rideStages.NOTHING,
-      'driveStage': stages.driveStages.NOTHING
+function isRideStageReset(res, msg = '') {
+  if (msg.replace(/\s+/g, '').toLowerCase() !== 'reset') {
+    return false
+  }
+
+  Messenger.textResponse(res, 'Ok, rideStage/driveStage has been reset to NOTHING', {
+    rideStage: stages.rideStages.NOTHING,
+    driveStage: stages.driveStages.NOTHING
+  })
+
+  return true
+}
+
+function isQuickDriverSignUp(res, msg = '', from) {
+  if (msg.replace(/\s+/g, '').toLowerCase() !== 'signupdriver') {
+    return false
+  }
+
+  pg.connect(process.env.DATABASE_URL, (err, client) => {
+    if (err) {
+      return Messenger.textResponse(res, `Error connecting to DB to add driver, ${err}`)
     }
-    Messenger.textResponse(res, message, cookies);
 
-    sys.log("isRideStageReset: returning true");
-    return true;
-  }
-  return false;
+    const queryString = `
+      INSERT INTO drivers (
+        num,
+        working,
+        current_zone,
+        has_trailer,
+        rating,
+        last_payment,
+        total_rides_completed,
+        time_last_ride
+      ) VALUES (
+        '${from}',
+        true,
+        1,
+        true,
+        100,
+        '${moment().format('YYYY-MM-DD HH:mm:ssZ')}',
+        0,
+        '${moment('1976-01-01').format('YYYY-MM-DD HH:mm:ssZ')}'
+      )`
+
+    client.query(queryString, (err1) => {
+      const responseText = (err1 != null)
+        ? `Error adding driver, ${err1}`
+        : 'Ok, you are now registered as a driver!'
+
+      Messenger.textResponse(res, responseText, {
+        driveStage: stages.driveStages.NOTHING
+      })
+
+      client.end()
+    })
+  })
+
+  return true
 }
 
-function isQuickDriverSignUp(res, message, from) {
-  message = message.replace(/\s+/g, '');
-  if (message.toLowerCase() == "signupdriver") {
-    pg.connect(process.env.DATABASE_URL, function(err, client) {
-      if (!err) {
-        var queryString = "INSERT INTO drivers (num, working, current_zone, has_trailer, rating, last_payment, total_rides_completed, time_last_ride) VALUES ('"
-          + from + "', true, 1, true, 100, '" + moment().format('YYYY-MM-DD HH:mm:ssZ') + "', 0, '" + moment('1976-01-01').format('YYYY-MM-DD HH:mm:ssZ') + "')";
-
-        var query = client.query(queryString, function(err, result) {
-          var responseText = "";
-          var cookies = {};
-          if (!err) {
-            sys.log("isQuickDriverSignUp: Driver added to DB successfully");
-            responseText += "Ok, you are now registered as a driver!";
-            cookies = {
-              'driveStage': stages.driveStages.NOTHING
-            }
-          } else {
-            sys.log("isQuickDriverSignUp: Error adding driver to DB, " + err);
-            responseText += "Error adding driver, " + err;
-          }
-
-          Messenger.textResponse(res, responseText, cookies);
-          client.end();
-        });
-      } else {
-        // Error connecting to DB
-        var errorString = "Error connecting to DB to add driver, " + err;
-        Messenger.textResponse(res, errorString);
-        sys.log("isQuickDriverSignUp: " + errorString);
-      }
-    });
-    return true;
+function isQuickRemoveDriver(res, msg = '', from) {
+  if (msg.replace(/\s+/g, '').toLowerCase() !== 'removedriver') {
+    return false
   }
-  return false;
+
+  pg.connect(process.env.DATABASE_URL, (err, client) => {
+    if (err) {
+      return Messenger.textResponse(res, `Error connecting to DB to remove driver, ${err}`)
+    }
+
+    client.query(`DELETE FROM drivers WHERE num = '${from}'`, (err1) => {
+      const responseText = (err1 != null)
+        ? `Error removing driver, ${err}`
+        : 'Ok, you are no longer a driver!'
+
+      Messenger.textResponse(res, responseText, {
+        rideStage: (err1 != null) ? stages.rideStages.NOTHING : undefined
+      })
+
+      client.end()
+    })
+  })
+
+  return true
 }
 
-function isQuickRemoveDriver(res, message, from) {
-  message = message.replace(/\s+/g, '');
-  if (message.toLowerCase() == "removedriver") {
-    pg.connect(process.env.DATABASE_URL, function(err, client) {
-      if (!err) {
-        var queryString = "DELETE FROM drivers WHERE num = '" + from + "'";
-        var query = client.query(queryString, function(err, result) {
-          var responseText = "";
-          var cookies = {};
-          if (!err) {
-            sys.log("isQuickRemoveDriver: Driver removed from DB successfully");
-            responseText += "Ok, you are no longer a driver!";
-            cookies = {
-              'rideStage': stages.rideStages.NOTHING
-            }
-          } else {
-            sys.log("isQuickRemoveDriver: Error removing driver from DB, " + err);
-            responseText += "Error removing driver, " + err;
-          }
-
-          Messenger.textResponse(res, responseText, cookies);
-          client.end();
-        });
-      } else {
-        var errorString = "Error connecting to DB to remove driver, " + err;
-        sys.log("isQuickRemoveDriver: " + errorString);
-        Messenger.textResponse(res, errorString);
-      }
-    });
-    return true;
-  }
-  return false;
-}
-
-
-/*********************/
+/* ***************** */
 /* ROUTING FUNCTIONS */
-/*********************/
+/* ***************** */
+
 function getStage(request, isDriver) {
-  var defaultReturnVal;
-
   if (isDriver) {
-    defaultReturnVal = stages.driveStages.NOTHING;
+    if (_.get(request, 'cookies.driveStage')) {
+      return request.cookies.driveStage
+    }
   } else {
-    defaultReturnVal = stages.rideStages.NOTHING;
-  }
-
-  if (request.cookies != null) {
-    if (isDriver) {
-      if (request.cookies.driveStage != null) {
-        return request.cookies.driveStage;
-      }
-    } else {
-      if (request.cookies.rideStage != null) {
-        return request.cookies.rideStage;
-      }
+    if (_.get(request, 'cookies.rideStage')) {
+      return request.cookies.rideStage
     }
   }
 
-  return defaultReturnVal;
+  return isDriver
+    ? stages.driveStages.NOTHING
+    : stages.rideStages.NOTHING
 }
 
-var receiveIncomingMessage = function(req, res, next) {
-  var message = req.body.Body;
-  var from    = req.body.From;
-  
-  var fromCity = req.body.FromCity;
-  var fromState = req.body.FromState;
-  var fromZip = req.body.FromZip;
-  var fromCountry = req.body.FromCountry;
+function receiveIncomingMessage(req, res, next) {
+  const message = req.body.Body
+  const from = req.body.From
 
-  // These all come from the phone number itself
-  // But not from the sender's actual location (unless they're in the same
-  // place that their phone number is registered)
-  // if (fromCity) sys.log("incoming: fromCity = " + fromCity);
-  // if (fromState) sys.log("incoming: fromState = " + fromState);
-  // if (fromZip) sys.log("incoming: fromZip = " + fromZip);
-  // if (fromCountry) sys.log("incoming: fromCountry = " + fromCountry);
+  console.log(`incoming: From: ${from}, Message: ${message}`)
 
-  sys.log('incoming: From: ' + from + ', Message: ' + message);
+  /**
+   * These all come from the phone number itself, not from the sender's actual location
+   * (unless they're in the same place that their phone number is registered).
+   *
+   * const fromCity = req.body.FromCity
+   * const fromState = req.body.FromState
+   * const fromZip = req.body.FromZip
+   * const fromCountry = req.body.FromCountry
+   *
+   * if (fromCity) sys.log('incoming: fromCity = ' + fromCity)
+   * if (fromState) sys.log('incoming: fromState = ' + fromState)
+   * if (fromZip) sys.log('incoming: fromZip = ' + fromZip)
+   * if (fromCountry) sys.log('incoming: fromCountry = ' + fromCountry)
+   */
 
   // Testing shortcuts
-  if (isRideStageReset(res, message)) {
-    return;
-  } else if (isQuickDriverSignUp(res, message, from)) {
-    return;
-  } else if (isQuickRemoveDriver(res, message, from)) {
-    return;
+  if (isRideStageReset(res, message) ||
+      isQuickDriverSignUp(res, message, from) ||
+      isQuickRemoveDriver(res, message, from)) {
+    return
   }
 
-  pg.connect(process.env.DATABASE_URL, function(err, client) {
-    if (!err) {
-      // Check if sender is a driver
-      var query = client.query("SELECT num FROM drivers WHERE num = '" + from + "'", function(err, result) {
-        if (!err) {
-          if (result.rows.length == 0) {
-            sys.log("incoming: sender is a rider");
-            RiderMessenger.handleText(req, res, message, from, getStage(req, false));
-          } else {
-            sys.log("incoming: sender is a driver");
-            DriverMessenger.handleText(res, message, from, getStage(req, true));
-          }
-        } else {
-          sys.log("incoming: Error querying DB to see if driver exists already, " + err);
-          // Default to rider
-          RiderMessenger.handleText(req, res, message, from, getStage(req, false));
-        }
-
-        client.end();
-      });
-
-    } else {
-      sys.log("receiveIncomingMessage: Error connecting to DB, " + err);
+  pg.connect(process.env.DATABASE_URL, (err, client) => {
+    if (err) {
       // Default to rider
-      RiderMessenger.handleText(req, res, message, from, getStage(req, false));
+      return RiderMessenger.handleText(req, res, message, from, getStage(req, false))
     }
-  });
+
+    // Check if sender is a driver
+    client.query(`SELECT num FROM drivers WHERE num = '${from}'`, (err1, {rows: drivers}) => {
+      if (err1) {
+        // Default to rider
+        return RiderMessenger.handleText(req, res, message, from, getStage(req, false))
+      }
+
+      if (drivers.length === 0) {
+        RiderMessenger.handleText(req, res, message, from, getStage(req, false))
+      } else {
+        DriverMessenger.handleText(res, message, from, getStage(req, true))
+      }
+
+      client.end()
+    })
+  })
 }
 
 /* Incoming SMS */
-router.post('/', [receiveIncomingMessage]);
+router.post('/', [receiveIncomingMessage])
 
-module.exports = router;
+module.exports = router
