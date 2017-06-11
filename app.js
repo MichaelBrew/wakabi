@@ -1,14 +1,21 @@
-const express = require('express')
-const path = require('path')
-const logger = require('morgan')
-const cookieParser = require('cookie-parser')
-const bodyParser = require('body-parser')
+const Rollbar = require('rollbar');
+const rollbar = new Rollbar({
+  accessToken: process.env.ROLLBAR_ACCESS_TOKEN,
+  handleUncaughtExceptions: true,
+  handleUnhandledRejections: true
+});
 
-const index = require('./routes/index')
-const drivercenter = require('./routes/drivercenter')
-const {handleIncomingText} = require('./routes/incoming')
+const express = require('express');
+const path = require('path');
+const logger = require('morgan');
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 
-const app = express()
+const index = require('./routes/index');
+const drivercenter = require('./routes/drivercenter');
+const {handleIncomingText} = require('./routes/incoming');
+
+const app = express();
 
 // Rider waiting queue
 global.riderWaitingQueue = []
@@ -35,6 +42,9 @@ app.post('/incoming', handleIncomingText)
 app.use((req, res, next) => {
   next(Object.assign(new Error('Not Found'), {status: 404}))
 })
+
+// Log to rollbar
+app.use(rollbar.errorHandler());
 
 // Error handler
 app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
