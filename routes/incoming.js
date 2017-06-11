@@ -84,42 +84,36 @@ function getStage(request, isDriver) {
     : STAGES.rideStages.NOTHING
 }
 
-module.exports = {
-  handleIncomingText: (req, res, next) => { // eslint-disable-line no-unused-vars
-    const message = req.body.Body
-    const fromNum = req.body.From
+module.exports = (req, res, next) => { // eslint-disable-line no-unused-vars
+  const message = req.body.Body
+  const fromNum = req.body.From.replace(/\D/g, '')
 
-    console.log(`incoming: fromNum = ${fromNum}, message = ${message}`)
+  console.log(`incoming: fromNum = ${fromNum}, message = ${message}`)
 
-    /**
-     * These all come from the phone number itself, not from the sender's actual location
-     * (unless they're in the same place that their phone number is registered).
-     *
-     * const fromCity = req.body.FromCity
-     * const fromState = req.body.FromState
-     * const fromZip = req.body.FromZip
-     * const fromCountry = req.body.FromCountry
-     */
+  /**
+   * These all come from the phone number itself, not from the sender's actual location
+   * (unless they're in the same place that their phone number is registered).
+   *
+   * const fromCity = req.body.FromCity
+   * const fromState = req.body.FromState
+   * const fromZip = req.body.FromZip
+   * const fromCountry = req.body.FromCountry
+   */
 
-    // Testing shortcuts
-    if (isRideStageReset(message)) {
-      return processRideStageReset(res)
-    } else if (isQuickDriverSignUp(message)) {
-      return processQuickDriverSignUp(res, fromNum)
-    } else if (isQuickRemoveDriver(message)) {
-      return processQuickRemoveDriver(res, fromNum)
-    }
-
-    return PgUtil.query(`SELECT num FROM drivers WHERE num = '${fromNum}'`)
-      .then(({rows: drivers}) => {
-        if (drivers.length === 0) {
-          return RiderMessenger.handleText(req, res, message, fromNum, getStage(req, false))
-        }
-
-        return DriverMessenger.handleText(res, message, fromNum, getStage(req, true))
-      })
-      .catch(() => {
-        return RiderMessenger.handleText(req, res, message, fromNum, getStage(req, false))
-      })
+  // Testing shortcuts
+  if (isRideStageReset(message)) {
+    return processRideStageReset(res)
+  } else if (isQuickDriverSignUp(message)) {
+    return processQuickDriverSignUp(res, fromNum)
+  } else if (isQuickRemoveDriver(message)) {
+    return processQuickRemoveDriver(res, fromNum)
   }
+
+  return PgUtil.query(`SELECT num FROM drivers WHERE num = '${fromNum}'`)
+    .then(({rows: drivers}) =>
+      drivers.length === 0
+        ? RiderMessenger.handleText(req, res, message, fromNum, getStage(req, false))
+        : DriverMessenger.handleText(res, message, fromNum, getStage(req, true))
+    )
+    .catch(() => RiderMessenger.handleText(req, res, message, fromNum, getStage(req, false)))
 }

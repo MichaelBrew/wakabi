@@ -1,5 +1,4 @@
 var pg = require('pg');
-var sys = require('sys');
 var _ = require('underscore')
 var moment = require('moment')
 
@@ -70,16 +69,16 @@ module.exports.sendRequestToAvailableDriver = function(params) {
                 if (!err) {
                   // good
                 } else {
-                  sys.log("db.sendRequestToAvailableDriver: error adding driver num to ride entry, ", err)
+                  console.log("db.sendRequestToAvailableDriver: error adding driver num to ride entry, ", err)
                 }
                 client.end()
               })
             } else {
-              sys.log("db.sendRequestToAvailableDriver: error with db, ", err)
+              console.log("db.sendRequestToAvailableDriver: error with db, ", err)
             }
           })
         } else {
-          sys.log("db.sendRequestToAvailableDriver: error getting rides, ", err)
+          console.log("db.sendRequestToAvailableDriver: error getting rides, ", err)
         }
       })
     }
@@ -163,7 +162,7 @@ module.exports.createNewRide = function(riderNum, requestTime, cb) {
         if (!err) {
           cb(result.rows[0].ride_id)
         } else {
-          sys.log("db.createNewRide: error with query, ", err)
+          console.log("db.createNewRide: error with query, ", err)
         }
         client.end()
       })
@@ -180,7 +179,7 @@ module.exports.addOriginToRide = function(origin, rideId, cb) {
         if (!err) {
           cb(result.rows[0].ride_id)
         } else {
-          sys.log("db.addOriginToRide: error with query, ", err)
+          console.log("db.addOriginToRide: error with query, ", err)
         }
         client.end()
       })
@@ -197,7 +196,7 @@ module.exports.addTrailerToRide = function(needTrailer, rideId, cb) {
         if (!err) {
           cb(result.rows[0].ride_id)
         } else {
-          sys.log("db.addTrailerToRide: error, ", err)
+          console.log("db.addTrailerToRide: error, ", err)
         }
         client.end()
       })

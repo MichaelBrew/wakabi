@@ -1,21 +1,20 @@
-var sys       = require('sys');
-var pg        = require('pg');
-var moment    = require('moment')
+const pg = require('pg');
+const moment = require('moment');
 
-var stages    = require('../stages');
-var strings   = require('../strings');
-var db        = require('../db');
-var parser    = require('../messageParser');
-var Messenger = require('../TextMessenger');
+const stages = require('../stages');
+const strings = require('../strings');
+const db = require('../db');
+const parser = require('../messageParser');
+const Messenger = require('../TextMessenger');
 
-var DriverMessenger   = require('../Driver/DriverMessenger');
-var RiderWaitingQueue = require('./RiderWaitingQueue');
+const DriverMessenger = require('../Driver/DriverMessenger');
+const RiderWaitingQueue = require('./RiderWaitingQueue');
 
 function handleRideRequest(res, message, from) {
   if (parser.isRideRequest(message)) {
-    sys.log('RiderMessenger.handleRideRequest: Ride request received');
+    console.log('RiderMessenger.handleRideRequest: Ride request received');
 
-    db.createNewRide(from, moment().format('YYYY-MM-DD HH:mm:ssZ'), function(rideId) {
+    db.createNewRide(from, moment().format('YYYY-MM-DD HH:mm:ssZ'), (rideId) => {
       if (rideId) {
         requestLocation(res, false, rideId)
       }
@@ -23,52 +22,53 @@ function handleRideRequest(res, message, from) {
 
     db.addRiderNumToDb(from);
   } else {
-    sys.log('RiderMessenger.handleRideRequest: Invalid message received');
+    console.log('RiderMessenger.handleRideRequest: Invalid message received');
     defaultHelpResponse(res);
   }
 }
 
 function handleLocationResponse(req, res, message, from) {
   if (parser.verifyRiderLocation(message)) {
-    sys.log('RiderMessenger.handleLocationResponse: Location received');
-    db.addOriginToRide(message, req.cookies.rideId, function(rideId) {
+    console.log('RiderMessenger.handleLocationResponse: Location received');
+
+    db.addOriginToRide(message, req.cookies.rideId, (rideId) => {
       if (rideId) {
         requestTrailerInfo(res, false);
       }
     })
   } else {
-    sys.log('RiderMessenger.handleLocationResponse: Invalid response for location');
+    console.log('RiderMessenger.handleLocationResponse: Invalid response for location');
     requestLocation(res, true);
   }
 }
 
 function handleTrailerResponse(req, res, message, from) {
   if (parser.isYesMessage(message) || parser.isNoMessage(message)) {
-    sys.log('RiderMessenger.handleTrailerResponse: Trailer decision received');
-    var needsTrailer = (parser.isYesMessage(message) ? true : false);
+    console.log('RiderMessenger.handleTrailerResponse: Trailer decision received');
+    const needsTrailer = parser.isYesMessage(message);
 
-    db.addTrailerToRide(needsTrailer, req.cookies.rideId, function(rideId) {
+    db.addTrailerToRide(needsTrailer, req.cookies.rideId, (rideId) => {
       if (rideId) {
-        searchForDriver(res, rideId)
+        searchForDriver(res, rideId);
       }
     })
   } else {
-    sys.log('handleTrailerResponse: Invalid response for trailer decision');
+    console.log('handleTrailerResponse: Invalid response for trailer decision');
     requestTrailerInfo(res, true);
   }
 }
 
 function requestLocation(res, resend, rideId) {
-  cookies = {
-    "rideStage": stages.rideStages.AWAITING_LOCATION,
-    "rideId": rideId
-  }
-  Messenger.requestLocation(res, resend, cookies);
+  Messenger.requestLocation(res, resend, {
+    rideId,
+    rideStage: stages.rideStages.AWAITING_LOCATION
+  });
 }
 
 function requestTrailerInfo(res, resend) {
-  cookies = {"rideStage": stages.rideStages.AWAITING_TRAILER}
-  Messenger.textResponse(res, strings.askTrailer, cookies);
+  Messenger.textResponse(res, strings.askTrailer, {
+    rideStage: stages.rideStages.AWAITING_TRAILER
+  });
 }
 
 function handleFeedbackResponse(res, message, from) {
@@ -76,22 +76,21 @@ function handleFeedbackResponse(res, message, from) {
 }
 
 function sendWaitText(res) {
-  cookies = {"rideStage": stages.rideStages.CONTACTING_DRIVER}
-  Messenger.textResponse(res, strings.waitText, cookies);
+  Messenger.textResponse(res, strings.waitText, {
+    rideStage: stages.rideStages.CONTACTING_DRIVER
+  });
 }
 
 function defaultHelpResponse(res) {
-  Messenger.textResponse(res, strings.resendText + strings.helpText);
+  Messenger.textResponse(res, `${strings.resendText}${strings.helpText}`);
 }
 
-function searchForDriver(res, rideId) {
-  var params = {
-    rideId: rideId,
-    riderRes: res,
+function searchForDriver(riderRes, rideId) {
+  db.sendRequestToAvailableDriver({
+    rideId,
+    riderRes,
     riderWaitingForResponse: true
-  }
-
-  db.sendRequestToAvailableDriver(params)
+  })
 }
 
 function noDriversFound(from, location, resend) {
@@ -101,7 +100,9 @@ function noDriversFound(from, location, resend) {
 }
 
 function sendNoDriversText(rider, isTimeout) {
-  msg = isTimeout ? strings.noDriversAvailable : (strings.noDriversAvailable + strings.willNotifyIn30);
+  const msg = isTimeout
+    ? strings.noDriversAvailable
+    : `${strings.noDriversAvailable}${strings.willNotifyIn30}`;
 
   if (isTimeout && RiderWaitingQueue.isRiderWaiting(rider)) {
     RiderWaitingQueue.removeRiderFromQueue(rider);
@@ -116,7 +117,7 @@ function startTimeoutForRider(riderNum) {
 }
 
 module.exports = {
-  handleText: function(req, res, message, from, rideStage) {
+  handleText: (req, res, message, from, rideStage) => {
     switch (rideStage) {
       case stages.rideStages.NOTHING:
         handleRideRequest(res, message, from);
@@ -134,13 +135,14 @@ module.exports = {
         if (parser.isYesMessage(message) || parser.isNoMessage(message)) {
           handleFeedbackResponse(res, message, from);
         } else {
-          sys.log('handleRiderText: received text from waiting rider');
+          console.log('handleRiderText: received text from waiting rider');
           sendWaitText(res);
         }
       break;
     }
   },
-  noDriversFoundForRide: function(from, location, resend) {
-    noDriversFound(from, location, resend)
+
+  noDriversFoundForRide: (from, location, resend) => {
+    noDriversFound(from, location, resend);
   }
 };
